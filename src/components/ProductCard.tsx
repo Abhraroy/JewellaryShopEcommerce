@@ -30,6 +30,7 @@ export default function ProductCard({
   const [isWishlistActive, setIsWishlistActive] = useState(isWishlisted);
   const [imageError, setImageError] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+  const [isCartClicked, setIsCartClicked] = useState(false);
 
   const handleWishlistClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -41,7 +42,13 @@ export default function ProductCard({
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    setIsCartClicked(true);
     onAddToCart?.(product.id);
+    
+    // Reset animation after it completes
+    setTimeout(() => {
+      setIsCartClicked(false);
+    }, 500);
   };
 
   const discountPercentage = product.originalPrice && product.discount
@@ -179,13 +186,15 @@ export default function ProductCard({
           {/* Action Button - Redesigned */}
           <button
             onClick={handleAddToCart}
-            className="w-full bg-gradient-to-r from-gray-900 to-gray-800 hover:from-gray-800 hover:to-gray-700 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-300 shadow-md hover:shadow-lg transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2 group/btn"
+            className="w-full bg-white text-gray-900 font-semibold py-3 px-4 rounded-xl transition-all duration-300 shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] hover:shadow-[0_1px_3px_0_rgba(0,0,0,0.08)] transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2 group/btn"
           >
-            <span className="transition-transform duration-300 group-hover/btn:translate-x-0.5">
+            <span className="transition-transform duration-300 group-hover/btn:translate-x-0.5 underline">
               Add to Cart
             </span>
             <svg
-              className="w-5 h-5 transition-transform duration-300 group-hover/btn:translate-x-1"
+              className={`w-5 h-5 transition-transform duration-300 origin-center ${
+                isCartClicked ? 'rotate-90' : ''
+              }`}
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
