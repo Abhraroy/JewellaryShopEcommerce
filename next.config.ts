@@ -7,6 +7,10 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: 'battulaaljewels.com',
       },
+      {
+        protocol: 'https',
+        hostname: 'cdn-media.glamira.com',
+      },
     ],
   },
 };
