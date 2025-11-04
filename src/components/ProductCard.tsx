@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import Image from 'next/image';
-import { useState } from 'react';
-import Link from 'next/link';
+import Image from "next/image";
+import { useState } from "react";
+import Link from "next/link";
 
 export interface Product {
   id: string;
@@ -44,21 +44,25 @@ export default function ProductCard({
     e.stopPropagation();
     setIsCartClicked(true);
     onAddToCart?.(product.id);
-    
+
     // Reset animation after it completes
     setTimeout(() => {
       setIsCartClicked(false);
     }, 500);
   };
 
-  const discountPercentage = product.originalPrice && product.discount
-    ? product.discount
-    : product.originalPrice
-    ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
-    : 0;
+  const discountPercentage =
+    product.originalPrice && product.discount
+      ? product.discount
+      : product.originalPrice
+      ? Math.round(
+          ((product.originalPrice - product.price) / product.originalPrice) *
+            100
+        )
+      : 0;
 
   const CardContent = (
-    <div 
+    <div
       className="group relative bg-white rounded-2xl border border-gray-100 hover:border-gray-200 shadow-sm hover:shadow-2xl transition-all duration-500 overflow-hidden flex flex-col h-full transform hover:-translate-y-1"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -72,15 +76,17 @@ export default function ProductCard({
               alt={product.title}
               fill
               className={`object-cover transition-all duration-700 ${
-                isHovered ? 'scale-110 brightness-105' : 'scale-100'
+                isHovered ? "scale-110 brightness-105" : "scale-100"
               }`}
               sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
               onError={() => setImageError(true)}
             />
             {/* Gradient Overlay on Hover */}
-            <div className={`absolute inset-0 bg-gradient-to-t from-black/0 via-black/0 to-black/0 transition-all duration-500 ${
-              isHovered ? 'via-black/5 to-black/10' : ''
-            }`} />
+            <div
+              className={`absolute inset-0 bg-gradient-to-t from-black/0 via-black/0 to-black/0 transition-all duration-500 ${
+                isHovered ? "via-black/5 to-black/10" : ""
+              }`}
+            />
           </>
         ) : (
           <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
@@ -115,21 +121,19 @@ export default function ProductCard({
         {/* Wishlist Button - Enhanced */}
         <button
           onClick={handleWishlistClick}
-          className={`absolute top-3 right-3 p-2.5 bg-white/95 backdrop-blur-sm hover:bg-white rounded-full shadow-lg transition-all duration-300 z-10 transform ${
-            isWishlistActive ? 'scale-110' : 'hover:scale-110'
-          }`}
-          aria-label={isWishlistActive ? 'Remove from wishlist' : 'Add to wishlist'}
+          className="absolute top-3 right-3 p-2.5 bg-white/95 backdrop-blur-sm hover:bg-white rounded-full shadow-lg z-10"
+          aria-label={
+            isWishlistActive ? "Remove from wishlist" : "Add to wishlist"
+          }
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            fill={isWishlistActive ? 'currentColor' : 'none'}
+            fill={isWishlistActive ? "currentColor" : "none"}
             viewBox="0 0 24 24"
             strokeWidth={2.5}
             stroke="currentColor"
-            className={`w-5 h-5 transition-all duration-300 ${
-              isWishlistActive
-                ? 'text-red-500 fill-red-500 scale-110'
-                : 'text-gray-700 group-hover:text-red-500'
+            className={`w-5 h-5 ${
+              isWishlistActive ? "text-red-500 fill-red-500" : "text-gray-700"
             }`}
           >
             <path
@@ -141,16 +145,20 @@ export default function ProductCard({
         </button>
 
         {/* Quick View Overlay - Appears on Hover */}
-        <div className={`absolute inset-0 bg-black/0 flex items-center justify-center transition-all duration-300 ${
-          isHovered ? 'bg-black/5 opacity-100' : 'opacity-0'
-        }`}>
+        <div
+          className={`absolute inset-0 bg-black/0 flex items-center justify-center transition-all duration-300 ${
+            isHovered ? "bg-black/5 opacity-100" : "opacity-0"
+          }`}
+        >
           <button
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
             }}
             className={`transform transition-all duration-300 ${
-              isHovered ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'
+              isHovered
+                ? "translate-y-0 opacity-100"
+                : "translate-y-4 opacity-0"
             } bg-white/95 backdrop-blur-sm text-gray-900 px-6 py-2.5 rounded-full font-medium text-sm shadow-xl hover:bg-white`}
           >
             Quick View
@@ -193,7 +201,7 @@ export default function ProductCard({
             </span>
             <svg
               className={`w-5 h-5 transition-transform duration-300 origin-center ${
-                isCartClicked ? 'rotate-90' : ''
+                isCartClicked ? "rotate-90" : ""
               }`}
               fill="none"
               stroke="currentColor"
@@ -209,9 +217,6 @@ export default function ProductCard({
           </button>
         </div>
       </div>
-
-      {/* Decorative Corner Accent */}
-      <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-gray-50/50 to-transparent pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
     </div>
   );
 
