@@ -5,6 +5,7 @@ import CategorySection from '@/components/CategorySection';
 import ProductCarousel, { Product } from '@/components/ProductCarousel';
 import BentoGrid from '@/components/BentoGrid';
 import Image from 'next/image';
+import Footer from '@/components/Footer';
 
 export default function LandingPage() {
   // Create multiple slides with the same image
@@ -163,6 +164,8 @@ export default function LandingPage() {
           onAddToCart={handleAddToCart}
           onWishlistToggle={handleWishlistToggle}
         />
+
+        <Footer/>
       </main>
     </div>
   );
