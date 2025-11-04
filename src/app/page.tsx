@@ -82,6 +82,58 @@ export default function LandingPage() {
     // Implement your wishlist logic here
   };
 
+  // Gold Chain Products Section
+  const goldChainProducts: Product[] = [
+    {
+      id: '7',
+      title: 'Artificial Gold Chain 1 Gram Gold Plated 20 Inch for Boys and Men',
+      imageUrl: 'https://gurupujan.com/cdn/shop/files/Artificial_Gold_Chain_1_Gram_Gold_Plated_20_Inch_for_boys_and_men_offering_a_stylish_affordable_accessory_for_any_occasion.1.png?v=1756272428',
+      price: 299.00,
+      originalPrice: 499.00,
+      slug: 'artificial-gold-chain-1-gram-20-inch',
+    },
+    {
+      id: '8',
+      title: 'Artificial Gold Chain 2 Gram Gold Plated 22 Inch for Boys and Men',
+      imageUrl: 'https://gurupujan.com/cdn/shop/files/Artificial_Gold_Chain_1_Gram_Gold_Plated_20_Inch_for_boys_and_men_offering_a_stylish_affordable_accessory_for_any_occasion.1.png?v=1756272428',
+      price: 399.00,
+      originalPrice: 599.00,
+      slug: 'artificial-gold-chain-2-gram-22-inch',
+    },
+    {
+      id: '9',
+      title: 'Artificial Gold Chain 1.5 Gram Gold Plated 24 Inch for Men',
+      imageUrl: 'https://gurupujan.com/cdn/shop/files/Artificial_Gold_Chain_1_Gram_Gold_Plated_20_Inch_for_boys_and_men_offering_a_stylish_affordable_accessory_for_any_occasion.1.png?v=1756272428',
+      price: 349.00,
+      originalPrice: 549.00,
+      slug: 'artificial-gold-chain-1-5-gram-24-inch',
+    },
+    {
+      id: '10',
+      title: 'Stylish Gold Plated Chain 18 Inch for Boys',
+      imageUrl: 'https://gurupujan.com/cdn/shop/files/Artificial_Gold_Chain_1_Gram_Gold_Plated_20_Inch_for_boys_and_men_offering_a_stylish_affordable_accessory_for_any_occasion.1.png?v=1756272428',
+      price: 259.00,
+      originalPrice: 449.00,
+      slug: 'stylish-gold-plated-chain-18-inch',
+    },
+    {
+      id: '11',
+      title: 'Premium Gold Chain 2.5 Gram Gold Plated 20 Inch for Men',
+      imageUrl: 'https://gurupujan.com/cdn/shop/files/Artificial_Gold_Chain_1_Gram_Gold_Plated_20_Inch_for_boys_and_men_offering_a_stylish_affordable_accessory_for_any_occasion.1.png?v=1756272428',
+      price: 449.00,
+      originalPrice: 699.00,
+      slug: 'premium-gold-chain-2-5-gram-20-inch',
+    },
+    {
+      id: '12',
+      title: 'Classic Gold Chain 1 Gram Gold Plated 20 Inch Combo Pack',
+      imageUrl: 'https://gurupujan.com/cdn/shop/files/Artificial_Gold_Chain_1_Gram_Gold_Plated_20_Inch_for_boys_and_men_offering_a_stylish_affordable_accessory_for_any_occasion.1.png?v=1756272428',
+      price: 549.00,
+      originalPrice: 899.00,
+      slug: 'classic-gold-chain-combo-pack',
+    },
+  ];
+
   return (
     <div className="min-h-screen bg-white">
       <Navbar cartCount={0} />
@@ -105,12 +157,12 @@ export default function LandingPage() {
         <BentoGrid />
 
         {/* You can add more ProductCarousel sections with different data */}
-        {/* <ProductCarousel
+        <ProductCarousel
           sectionHeading="Best Sellers"
-          products={bestSellerProducts}
+          products={goldChainProducts}
           onAddToCart={handleAddToCart}
           onWishlistToggle={handleWishlistToggle}
-        /> */}
+        />
       </main>
     </div>
   );
