@@ -105,7 +105,7 @@ export default function ProductCarousel({
             msOverflowStyle: 'none',
           }}
         >
-          <div className="flex gap-6 pb-4 pl-4 sm:pl-6 lg:pl-8 pr-4 sm:pr-6 lg:pr-8">
+          <div className="flex gap-6 pb-12 pl-4 sm:pl-6 lg:pl-8 pr-4 sm:pr-6 lg:pr-8">
             {products.map((product) => (
               <div
                 key={product.id}
