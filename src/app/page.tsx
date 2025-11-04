@@ -3,6 +3,7 @@ import Navbar from '@/components/Navbar';
 import Carousel from '@/components/Carousel';
 import CategorySection from '@/components/CategorySection';
 import ProductCarousel, { Product } from '@/components/ProductCarousel';
+import BentoGrid from '@/components/BentoGrid';
 import Image from 'next/image';
 
 export default function LandingPage() {
@@ -99,6 +100,9 @@ export default function LandingPage() {
           onAddToCart={handleAddToCart}
           onWishlistToggle={handleWishlistToggle}
         />
+
+        {/* Bento Grid Category Section */}
+        <BentoGrid />
 
         {/* You can add more ProductCarousel sections with different data */}
         {/* <ProductCarousel

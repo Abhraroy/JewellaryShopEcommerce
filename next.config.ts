@@ -5,15 +5,7 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'battulaaljewels.com',
-      },
-      {
-        protocol: 'https',
-        hostname: 'cdn-media.glamira.com',
-      },
-      {
-        protocol: 'https',
-        hostname: 'www.onlinepng.com',
+        hostname: '*',
       },
     ],
   },
