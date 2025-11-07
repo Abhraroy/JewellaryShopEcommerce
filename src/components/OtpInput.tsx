@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useStore } from '@/zustandStore/zustandStore';
 import { createClient } from '@/app/utils/supabase/client';
+import { redirect } from 'next/navigation';
 interface OtpInputProps {
   length?: number;
   onComplete?: (otp: string) => void;
@@ -104,6 +105,16 @@ export default function OtpInput({ length = 6, onComplete }: OtpInputProps) {
     }
   };
 
+  const createMyUser = async () => {
+    const response = await fetch('/api/userRoutes', {
+      method: 'POST',
+      body: JSON.stringify({
+        phone:customerMobno,
+      }),
+    })
+    console.log('response', response)
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const completeOtp = otp.join('');
@@ -124,6 +135,8 @@ export default function OtpInput({ length = 6, onComplete }: OtpInputProps) {
       console.log('error', error)
       if (session && !error) {
         setOtpInputState();
+        createMyUser();
+        redirect('/collection/account');
       } else {
         setError('Invalid OTP');
       }

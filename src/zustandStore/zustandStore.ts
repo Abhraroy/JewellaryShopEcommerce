@@ -7,6 +7,8 @@ interface StoreState {
     setCustomerMobno: (mobno: string) => void;
     OtpInputState: boolean;
     setOtpInputState: () => void;
+    updateEmailState: boolean;
+    setUpdateEmailState: () => void;
 }
 
 export const useStore = create<StoreState>((set) => ({
@@ -16,5 +18,7 @@ export const useStore = create<StoreState>((set) => ({
     setCustomerMobno: (mobno: string) => set({ customerMobno: mobno }),
     OtpInputState: false,
     setOtpInputState: () => set((state) => ({ OtpInputState: !state.OtpInputState })),
+    updateEmailState: false,
+    setUpdateEmailState: () => set((state) => ({ updateEmailState: !state.updateEmailState })),
 }))
 
