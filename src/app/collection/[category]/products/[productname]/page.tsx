@@ -193,7 +193,9 @@ export default async function ProductPage({
               </div>
             </div>
         </div>
-        <div className="w-full h-[40vh] flex flex-row bg-gray-300 items-center justify-center  "></div>
+        <div className="w-full h-[40vh] flex flex-row bg-gray-300 items-center justify-center  ">
+          
+        </div>
         <div className="w-full h-[40vh] flex flex-row bg-gray-300 items-center justify-center  "></div>
         <div className="w-full h-[40vh] flex flex-row bg-gray-300 items-center justify-center  "></div>
         

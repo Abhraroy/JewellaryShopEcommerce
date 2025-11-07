@@ -6,8 +6,12 @@ import ProductCarousel, { Product } from '@/components/ProductCarousel';
 import BentoGrid from '@/components/BentoGrid';
 import Image from 'next/image';
 import Footer from '@/components/Footer';
+import { useStore } from '@/zustandStore/zustandStore';
+import PhoneNumberInput from '@/components/PhoneNumberInput';
+import OtpInput from '@/components/OtpInput';
 
 export default function LandingPage() {
+  const { MobnoInputState, OtpInputState, setMobnoInputState } = useStore();
   // Create multiple slides with the same image
   const carouselItems = Array.from({ length: 3 }, (_, index) => (
     <div key={index} className="w-full h-[400px] md:h-[500px] lg:h-[600px] relative">
@@ -138,6 +142,8 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen bg-white">
       <Navbar cartCount={0} />
+      {MobnoInputState && !OtpInputState && <PhoneNumberInput />}
+      {OtpInputState && !MobnoInputState && <OtpInput />}
       <main className="w-full">
         <Carousel 
           items={carouselItems} 

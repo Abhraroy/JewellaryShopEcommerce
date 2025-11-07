@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useStore } from '../zustandStore/zustandStore';
 
 interface NavbarProps {
   cartCount?: number;
@@ -205,7 +206,7 @@ export default function Navbar({ cartCount = 0, isAuthenticated = false }: Navba
   const [searchQuery, setSearchQuery] = useState('');
   const [showMobileSearch, setShowMobileSearch] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-
+  const { setMobnoInputState } = useStore();
   // Prevent body scroll when sidebar is open
   useEffect(() => {
     if (isSidebarOpen) {
@@ -268,7 +269,9 @@ export default function Navbar({ cartCount = 0, isAuthenticated = false }: Navba
     {
       label: 'Account',
       icon: <UserIcon className="w-6 h-6 md:w-7 md:h-7" />,
-      onClick: () => {},
+      onClick: () => {
+        setMobnoInputState();
+      },
     },
     {
       label: 'Wishlist',
@@ -293,7 +296,9 @@ export default function Navbar({ cartCount = 0, isAuthenticated = false }: Navba
     {
       label: 'Account',
       icon: <UserIcon className="w-6 h-6" />,
-      onClick: () => {},
+      onClick: () => {
+        setMobnoInputState();
+      },
     },
     {
       label: 'Shopping Cart',
