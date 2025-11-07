@@ -1,23 +1,33 @@
 import { useStore } from '@/zustandStore/zustandStore';
 import { useState } from 'react';
+import { createClient } from '@/app/utils/supabase/client';
 
 export default function PhoneNumberInput() {
-    const { setOtpInputState, setMobnoInputState } = useStore();
+    const { setOtpInputState, setMobnoInputState, setCustomerMobno } = useStore();
     const [phoneNumber, setPhoneNumber] = useState('');
     const [error, setError] = useState('');
+    const supabase = createClient();
   
-    const handlePhoneSubmit = (e: React.FormEvent) => {
+    const handlePhoneSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
       // Basic validation for 10-digit phone number
-      const cleanedPhone = phoneNumber.replace(/\D/g, '');
-      if (cleanedPhone.length === 10) {
+      let cleanedPhone = phoneNumber.replace(/\D/g, '');
+      cleanedPhone = '+91' + cleanedPhone;
+      if (cleanedPhone.length === 13) {
         setError('');
         console.log('Phone number:', cleanedPhone);
         // Handle phone number submission here
         // You can add your logic to store or verify the phone number
+        const { data, error } = await supabase.auth.signInWithOtp({
+            phone: cleanedPhone,
+          })
+        console.log('data', data)
+        console.log('error', error)
+        setCustomerMobno(cleanedPhone);
         setMobnoInputState();
         setOtpInputState();
-      } else {
+      }
+       else {
         setError('Please enter a valid 10-digit phone number');
       }
     };

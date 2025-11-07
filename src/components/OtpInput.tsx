@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { useStore } from '@/zustandStore/zustandStore';
+import { createClient } from '@/app/utils/supabase/client';
 interface OtpInputProps {
   length?: number;
   onComplete?: (otp: string) => void;
@@ -9,7 +10,8 @@ export default function OtpInput({ length = 6, onComplete }: OtpInputProps) {
   const [otp, setOtp] = useState<string[]>(Array(length).fill(''));
   const [error, setError] = useState('');
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
-  const { setOtpInputState } = useStore();
+  const { setOtpInputState, customerMobno } = useStore();
+  const supabase = createClient();
   // Focus first input on mount
   useEffect(() => {
     if (inputRefs.current[0]) {
@@ -102,7 +104,7 @@ export default function OtpInput({ length = 6, onComplete }: OtpInputProps) {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const completeOtp = otp.join('');
     
@@ -110,10 +112,24 @@ export default function OtpInput({ length = 6, onComplete }: OtpInputProps) {
       setError('');
       console.log('OTP:', completeOtp);
       // Handle OTP verification here
+      const {
+        data: { session },
+        error,
+      } = await supabase.auth.verifyOtp({
+        phone: customerMobno,
+        token: completeOtp,
+        type: 'sms',
+      })
+      console.log('session', session)
+      console.log('error', error)
+      if (session && !error) {
+        setOtpInputState();
+      } else {
+        setError('Invalid OTP');
+      }
       if (onComplete) {
         onComplete(completeOtp);
       }
-      setOtpInputState();
     } else {
       setError(`Please enter all ${length} digits`);
     }
