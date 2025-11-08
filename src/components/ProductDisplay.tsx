@@ -600,7 +600,7 @@ export default function ProductDisplay({ product }: ProductDisplayProps) {
               </button>
 
               {/* Description */}
-              <div className="border-t pt-5 mt-2">
+              <div className="border-t border-black/10 pt-5 mt-2">
                 <h3 className="text-lg font-semibold text-gray-900 mb-3">Description</h3>
                 <p className="text-sm text-gray-600 leading-relaxed">
                   {shouldTruncate && !isDescriptionExpanded

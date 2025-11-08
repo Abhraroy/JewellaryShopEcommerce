@@ -91,58 +91,58 @@ export default function ProductReview({
 
   return (
     <>
-      <div className="max-w-7xl mx-auto px-4 sm:px-8 py-12">
-        <div className="border-t pt-12">
-          <h2 className="text-3xl font-bold text-gray-900 mb-8">Customer Reviews</h2>
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-8 sm:py-12">
+        <div className="border-t border-black/10 pt-8 sm:pt-12">
+          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-6 sm:mb-8">Customer Reviews</h2>
 
           {/* Rating Overview and Review Images */}
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-6 sm:gap-8 mb-6 sm:mb-8">
             {/* Overall Rating - Shortened */}
-            <div className="lg:col-span-2">
-              <div className="bg-gray-50 p-4 rounded-lg">
+            <div className="md:col-span-2">
+              <div className="bg-gray-50 p-3 sm:p-4 rounded-lg">
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-gray-900 mb-1">
+                  <div className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1">
                     {averageRating.toFixed(1)}
                   </div>
                   <div className="flex items-center justify-center mb-1">
                     {renderStars(averageRating, 'md')}
                   </div>
-                  <div className="text-xs text-gray-600">
+                  <div className="text-xs sm:text-sm text-gray-600">
                     {totalReviews} reviews
                   </div>
                 </div>
               </div>
 
               {/* Rating Distribution - Compact */}
-              <div className="mt-4 space-y-1">
+              <div className="mt-3 sm:mt-4 space-y-1.5 sm:space-y-1">
                 {[5, 4, 3, 2, 1].map((stars) => (
                   <button
                     key={stars}
                     onClick={() => setSelectedRatingFilter(
                       selectedRatingFilter === stars ? null : stars
                     )}
-                    className={`flex items-center gap-1 text-xs w-full transition-colors ${
+                    className={`flex items-center gap-1 sm:gap-2 text-xs sm:text-sm w-full transition-colors p-1 sm:p-0 rounded sm:rounded-none ${
                       selectedRatingFilter === stars
-                        ? 'text-[#E94E8B] font-medium'
+                        ? 'text-[#E94E8B] font-medium bg-[#E94E8B]/10 sm:bg-transparent'
                         : 'text-gray-600 hover:text-[#E94E8B]'
                     }`}
                   >
-                    <span>{stars}★</span>
-                    <div className="flex-1 bg-gray-200 rounded-full h-1 mx-1">
+                    <span className="w-3 sm:w-auto">{stars}★</span>
+                    <div className="flex-1 bg-gray-200 rounded-full h-1.5 sm:h-1 mx-1">
                       <div
-                        className="bg-[#E94E8B] h-1 rounded-full transition-all duration-300"
+                        className="bg-[#E94E8B] h-1.5 sm:h-1 rounded-full transition-all duration-300"
                         style={{
                           width: `${totalReviews > 0 ? (ratingDistribution[stars] / totalReviews) * 100 : 0}%`
                         }}
                       />
                     </div>
-                    <span className="text-xs">{ratingDistribution[stars] || 0}</span>
+                    <span className="text-xs min-w-[12px] text-right">{ratingDistribution[stars] || 0}</span>
                   </button>
                 ))}
                 {selectedRatingFilter && (
                   <button
                     onClick={() => setSelectedRatingFilter(null)}
-                    className="text-xs text-[#E94E8B] hover:text-[#d43e7a] font-medium mt-2"
+                    className="text-xs sm:text-sm text-[#E94E8B] hover:text-[#d43e7a] font-medium mt-2 block w-full text-left sm:text-center"
                   >
                     Clear filter
                   </button>
@@ -151,17 +151,17 @@ export default function ProductReview({
             </div>
 
             {/* Review Images Gallery */}
-            <div className="lg:col-span-3">
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">Customer Photos</h3>
+            <div className="md:col-span-3">
+              <div className="bg-gray-50 p-3 sm:p-4 rounded-lg">
+                <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3">Customer Photos</h3>
                 {previewImages.length > 0 ? (
                   <>
-                    <div className="flex flex-wrap gap-2 mb-3">
+                    <div className="flex flex-wrap gap-1.5 sm:gap-2 mb-3">
                       {previewImages.map((image, index) => (
                         <button
                           key={index}
                           onClick={() => handleImageClick(allReviewImages, index)}
-                          className="relative w-20 h-20 rounded-lg overflow-hidden border-2 border-gray-200 hover:border-[#E94E8B] transition-colors shrink-0"
+                          className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden border-2 border-gray-200 hover:border-[#E94E8B] transition-colors shrink-0"
                         >
                           <Image
                             src={image}
@@ -175,18 +175,18 @@ export default function ProductReview({
                     {allReviewImages.length > 12 && (
                       <button
                         onClick={handleViewMoreImages}
-                        className="w-full bg-white text-gray-900 font-semibold py-3 px-4 rounded-xl transition-all duration-300 shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] hover:shadow-[0_1px_3px_0_rgba(0,0,0,0.08)] transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2 group/btn"
+                        className="w-full bg-white text-gray-900 font-semibold py-2.5 sm:py-3 px-3 sm:px-4 rounded-xl transition-all duration-300 shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] hover:shadow-[0_1px_3px_0_rgba(0,0,0,0.08)] transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2 group/btn text-sm sm:text-base"
                       >
                         <span>View All Photos ({allReviewImages.length})</span>
                       </button>
                     )}
                   </>
                 ) : (
-                  <div className="text-center py-8 text-gray-500">
-                    <svg className="w-12 h-12 mx-auto mb-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="text-center py-6 sm:py-8 text-gray-500">
+                    <svg className="w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
-                    <p className="text-sm">No customer photos yet</p>
+                    <p className="text-xs sm:text-sm">No customer photos yet</p>
                   </div>
                 )}
               </div>
@@ -194,51 +194,43 @@ export default function ProductReview({
           </div>
 
           {/* Reviews List */}
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6">
             {filteredReviews.map((review) => (
-              <div key={review.id} className="border border-gray-200 rounded-lg p-6">
+              <div key={review.id} className="border border-black/5 rounded-lg p-3 sm:p-6">
                 {/* Review Header */}
-                <div className="flex items-start justify-between mb-4 gap-4">
-                  <div className="flex items-center gap-3 flex-1">
-                    <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center shrink-0">
+                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-3 sm:mb-4 gap-3 sm:gap-4">
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gray-300 rounded-full flex items-center justify-center shrink-0">
                       {review.userAvatar ? (
                         <Image
                           src={review.userAvatar}
                           alt={review.userName}
                           width={40}
                           height={40}
-                          className="w-10 h-10 rounded-full object-cover"
+                          className="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover"
                         />
                       ) : (
-                        <span className="text-sm font-medium text-gray-700">
+                        <span className="text-xs sm:text-sm font-medium text-gray-700">
                           {review.userName.charAt(0).toUpperCase()}
                         </span>
                       )}
                     </div>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium text-gray-900">{review.userName}</span>
-                        {review.verified && (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
-                            <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                            </svg>
-                            Verified Purchase
-                          </span>
-                        )}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                        <span className="font-medium text-gray-900 text-sm sm:text-base truncate">{review.userName}</span>
                       </div>
-                      <div className="flex items-center gap-2 mt-1">
+                      <div className="flex items-center gap-2 mt-0.5 sm:mt-1">
                         <div className="flex items-center">
                           {renderStars(review.rating)}
                         </div>
-                        <span className="text-sm text-gray-500">{review.date}</span>
+                        <span className="text-xs sm:text-sm text-gray-500 shrink-0">{review.date}</span>
                       </div>
                     </div>
                   </div>
                   
                   {/* Review Images on the right */}
                   {review.images && review.images.length > 0 && (
-                    <div className="flex gap-2 shrink-0">
+                    <div className="flex gap-1.5 sm:gap-2 shrink-0">
                       {review.images.slice(0, 3).map((image, imgIndex) => (
                         <button
                           key={imgIndex}
@@ -248,7 +240,7 @@ export default function ProductReview({
                               handleImageClick(allReviewImages, startIndex);
                             }
                           }}
-                          className="relative w-16 h-16 rounded-lg overflow-hidden border-2 border-gray-200 hover:border-[#E94E8B] transition-colors shrink-0"
+                          className="relative w-12 h-12 sm:w-16 sm:h-16 rounded-lg overflow-hidden border-2 border-gray-200 hover:border-[#E94E8B] transition-colors shrink-0"
                         >
                           <Image
                             src={image}
@@ -266,7 +258,7 @@ export default function ProductReview({
                               handleImageClick(allReviewImages, startIndex);
                             }
                           }}
-                          className="relative w-16 h-16 rounded-lg overflow-hidden border-2 border-gray-200 hover:border-[#E94E8B] transition-colors shrink-0 bg-gray-100 flex items-center justify-center text-xs font-medium text-gray-600"
+                          className="relative w-12 h-12 sm:w-16 sm:h-16 rounded-lg overflow-hidden border-2 border-gray-200 hover:border-[#E94E8B] transition-colors shrink-0 bg-gray-100 flex items-center justify-center text-xs font-medium text-gray-600"
                         >
                           +{review.images.length - 3}
                         </button>
@@ -277,8 +269,8 @@ export default function ProductReview({
 
                 {/* Review Content */}
                 <div>
-                  <h4 className="font-medium text-gray-900 mb-2">{review.title}</h4>
-                  <p className="text-gray-700 leading-relaxed">{review.comment}</p>
+                  <h4 className="font-medium text-gray-900 mb-2 text-sm sm:text-base">{review.title}</h4>
+                  <p className="text-gray-700 leading-relaxed text-sm sm:text-base">{review.comment}</p>
                 </div>
               </div>
             ))}
@@ -286,8 +278,8 @@ export default function ProductReview({
 
           {/* Load More Button */}
           {filteredReviews.length > 3 && (
-            <div className="text-center mt-8">
-              <button className="px-6 py-3 bg-[#E94E8B] text-white rounded-lg hover:bg-[#d43e7a] transition-colors font-medium">
+            <div className="text-center mt-6 sm:mt-8">
+              <button className="px-4 sm:px-6 py-2.5 sm:py-3 bg-[#E94E8B] text-white rounded-lg hover:bg-[#d43e7a] transition-colors font-medium text-sm sm:text-base">
                 Load More Reviews
               </button>
             </div>
@@ -297,15 +289,15 @@ export default function ProductReview({
 
       {/* Image Modal */}
       {showImageModal && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4 overflow-y-auto">
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-2 sm:p-4 overflow-y-auto">
           <div className="relative max-w-4xl max-h-[90vh] w-full flex flex-col items-center overflow-visible">
             {/* Close Button */}
             <button
               onClick={handleModalClose}
-              className="absolute top-4 right-4 z-10 w-10 h-10 bg-white/90 hover:bg-white rounded-full flex items-center justify-center text-gray-900 hover:text-gray-700 transition-all shadow-lg"
+              className="absolute top-2 sm:top-4 right-2 sm:right-4 z-10 w-8 h-8 sm:w-10 sm:h-10 bg-white/90 hover:bg-white rounded-full flex items-center justify-center text-gray-900 hover:text-gray-700 transition-all shadow-lg"
               aria-label="Close"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
+              <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
@@ -315,19 +307,19 @@ export default function ProductReview({
               <>
                 <button
                   onClick={() => handleModalNavigate('prev')}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 z-10 w-12 h-12 bg-white/90 hover:bg-white rounded-full flex items-center justify-center text-gray-900 hover:text-gray-700 transition-all shadow-lg"
+                  className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 sm:w-12 sm:h-12 bg-white/90 hover:bg-white rounded-full flex items-center justify-center text-gray-900 hover:text-gray-700 transition-all shadow-lg"
                   aria-label="Previous image"
                 >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
+                  <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
                   </svg>
                 </button>
                 <button
                   onClick={() => handleModalNavigate('next')}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 z-10 w-12 h-12 bg-white/90 hover:bg-white rounded-full flex items-center justify-center text-gray-900 hover:text-gray-700 transition-all shadow-lg"
+                  className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 sm:w-12 sm:h-12 bg-white/90 hover:bg-white rounded-full flex items-center justify-center text-gray-900 hover:text-gray-700 transition-all shadow-lg"
                   aria-label="Next image"
                 >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
+                  <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
                   </svg>
                 </button>
@@ -346,18 +338,18 @@ export default function ProductReview({
             </div>
 
             {/* Image Counter */}
-            <div className="text-center mt-4 text-white">
+            <div className="text-center mt-2 sm:mt-4 text-white text-sm sm:text-base">
               {modalImageIndex + 1} of {allReviewImages.length}
             </div>
 
             {/* Thumbnail Navigation */}
             {allReviewImages.length > 1 && (
-              <div className="flex justify-center mt-4 gap-2 overflow-x-auto overflow-y-visible pb-6 max-w-full px-2 py-2">
+              <div className="flex justify-center mt-3 sm:mt-4 gap-1.5 sm:gap-2 overflow-x-auto overflow-y-visible pb-4 sm:pb-6 max-w-full px-1 sm:px-2 py-2">
                 {allReviewImages.map((image, index) => (
                   <button
                     key={index}
                     onClick={() => setModalImageIndex(index)}
-                    className={`shrink-0 w-12 h-12 rounded-lg overflow-hidden border-2 transition-all ${
+                    className={`shrink-0 w-10 h-10 sm:w-12 sm:h-12 rounded-lg overflow-hidden border-2 transition-all ${
                       modalImageIndex === index
                         ? 'border-white scale-110 z-10'
                         : 'border-white border-opacity-50 hover:border-opacity-100'
