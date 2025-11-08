@@ -3,6 +3,8 @@
 import Image from "next/image";
 import { useState } from "react";
 import Link from "next/link";
+import { useStore } from "@/zustandStore/zustandStore";
+
 
 export interface Product {
   id: string;
@@ -31,7 +33,7 @@ export default function ProductCard({
   const [imageError, setImageError] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [isCartClicked, setIsCartClicked] = useState(false);
-
+  const { cartItems, setCartItems } = useStore();
   const handleWishlistClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -44,7 +46,13 @@ export default function ProductCard({
     e.stopPropagation();
     setIsCartClicked(true);
     onAddToCart?.(product.id);
-
+    console.log(product)
+    const localCartItems = localStorage.getItem('cartItems')
+    console.log('localCartItems', localCartItems)
+    console.log('localCartItems', typeof localCartItems)
+    let localCartItemsArray = localCartItems ? JSON.parse(localCartItems) : [];
+    localCartItemsArray.push(product)
+    localStorage.setItem("cartItems",JSON.stringify(localCartItemsArray))
     // Reset animation after it completes
     setTimeout(() => {
       setIsCartClicked(false);
@@ -196,8 +204,10 @@ export default function ProductCard({
             onClick={handleAddToCart}
             className="w-full bg-white text-gray-900 font-semibold py-3 px-4 rounded-xl transition-all duration-300 shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] hover:shadow-[0_1px_3px_0_rgba(0,0,0,0.08)] transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2 group/btn"
           >
-            <span className="transition-transform duration-300 group-hover/btn:translate-x-0.5 underline">
-              Add to Cart
+            <span className="transition-transform duration-300 group-hover/btn:translate-x-0.5 underline"
+            
+            >
+              Add to Cart 
             </span>
             <svg
               className={`w-5 h-5 transition-transform duration-300 origin-center ${

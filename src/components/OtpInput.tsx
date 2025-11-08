@@ -11,7 +11,7 @@ export default function OtpInput({ length = 6, onComplete }: OtpInputProps) {
   const [otp, setOtp] = useState<string[]>(Array(length).fill(''));
   const [error, setError] = useState('');
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
-  const { setOtpInputState, customerMobno } = useStore();
+  const { setOtpInputState, customerMobno, setAuthenticatedState } = useStore();
   const supabase = createClient();
   // Focus first input on mount
   useEffect(() => {
@@ -112,7 +112,7 @@ export default function OtpInput({ length = 6, onComplete }: OtpInputProps) {
         phone:customerMobno,
       }),
     })
-    console.log('response', response)
+    console.log('response from createMyUser', response)
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -136,6 +136,7 @@ export default function OtpInput({ length = 6, onComplete }: OtpInputProps) {
       if (session && !error) {
         setOtpInputState();
         createMyUser();
+        setAuthenticatedState(true)
         redirect('/collection/account');
       } else {
         setError('Invalid OTP');

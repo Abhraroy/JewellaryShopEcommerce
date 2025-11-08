@@ -9,6 +9,10 @@ interface StoreState {
     setOtpInputState: () => void;
     updateEmailState: boolean;
     setUpdateEmailState: () => void;
+    AuthenticatedState: boolean;
+    setAuthenticatedState: (auth: boolean) => void;
+    cartItems: any;
+    setCartItems: (items: any) => void;
 }
 
 export const useStore = create<StoreState>((set) => ({
@@ -20,5 +24,9 @@ export const useStore = create<StoreState>((set) => ({
     setOtpInputState: () => set((state) => ({ OtpInputState: !state.OtpInputState })),
     updateEmailState: false,
     setUpdateEmailState: () => set((state) => ({ updateEmailState: !state.updateEmailState })),
+    AuthenticatedState: false,
+    setAuthenticatedState: (auth: boolean) => set({ AuthenticatedState: auth }),
+    cartItems: [],
+    setCartItems: (items: any) => set((state) => ({ cartItems: [...state.cartItems, items] })),
 }))
 

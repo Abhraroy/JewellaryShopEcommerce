@@ -6,6 +6,7 @@ import { useStore } from '../zustandStore/zustandStore';
 interface NavbarProps {
   cartCount?: number;
   isAuthenticated?: boolean;
+  onCartClick?: () => void;
 }
 
 interface IconProps {
@@ -202,7 +203,7 @@ const AboutIcon = ({ className = 'w-5 h-5' }: IconProps) => (
   </svg>
 );
 
-export default function Navbar({ cartCount = 0, isAuthenticated = false }: NavbarProps) {
+export default function Navbar({ cartCount = 0, isAuthenticated = false, onCartClick }: NavbarProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [showMobileSearch, setShowMobileSearch] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -282,7 +283,7 @@ export default function Navbar({ cartCount = 0, isAuthenticated = false }: Navba
       label: 'Shopping Cart',
       icon: <CartIcon className="w-6 h-6 md:w-7 md:h-7" />,
       badge: cartCount,
-      onClick: () => {},
+      onClick: onCartClick || (() => {}),
     },
   ];
 
@@ -304,7 +305,7 @@ export default function Navbar({ cartCount = 0, isAuthenticated = false }: Navba
       label: 'Shopping Cart',
       icon: <CartIcon className="w-6 h-6" />,
       badge: cartCount,
-      onClick: () => {},
+      onClick: onCartClick || (() => {}),
     },
     {
       label: 'Menu',

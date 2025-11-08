@@ -9,9 +9,13 @@ import Footer from '@/components/Footer';
 import { useStore } from '@/zustandStore/zustandStore';
 import PhoneNumberInput from '@/components/PhoneNumberInput';
 import OtpInput from '@/components/OtpInput';
+import { useEffect, useState } from 'react';
+import { createClient } from '@/app/utils/supabase/client';
+import Cart from '@/components/Cart';
 
 export default function LandingPage() {
-  const { MobnoInputState, OtpInputState, setMobnoInputState } = useStore();
+  const { MobnoInputState, OtpInputState, setMobnoInputState, setAuthenticatedState } = useStore();
+  const [isCartOpen, setIsCartOpen] = useState(false);
   // Create multiple slides with the same image
   const carouselItems = Array.from({ length: 3 }, (_, index) => (
     <div key={index} className="w-full h-[400px] md:h-[500px] lg:h-[600px] relative">
@@ -139,11 +143,40 @@ export default function LandingPage() {
     },
   ];
 
+  useEffect(() => {
+    const checkAuthentication = async () => {
+      const supabase =  createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        setAuthenticatedState(true)
+        console.log('User is authenticated')
+      }else{
+        setAuthenticatedState(false)
+        console.log('User is not authenticated')
+      }
+    }
+    checkAuthentication()
+  }, [])
+
+  // Handler to open the cart
+  const handleOpenCart = () => {
+    setIsCartOpen(true);
+  };
+
+  // Handler to close the cart
+  const handleCloseCart = () => {
+    setIsCartOpen(false);
+  };
+
   return (
     <div className="min-h-screen bg-white">
-      <Navbar cartCount={0} />
+      {/* Navbar with cart click handler */}
+      <Navbar cartCount={0} onCartClick={handleOpenCart} />
       {MobnoInputState && !OtpInputState && <PhoneNumberInput />}
       {OtpInputState && !MobnoInputState && <OtpInput />}
+      
+      {/* Cart Component - receives isOpen state and onClose handler */}
+      {isCartOpen && < Cart isOpen={isCartOpen} onClose={handleCloseCart} />}
       <main className="w-full">
         <Carousel 
           items={carouselItems} 

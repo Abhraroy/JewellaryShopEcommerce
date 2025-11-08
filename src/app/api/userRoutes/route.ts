@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
     console.log('body', body)
     const userExists = await supabase.from("users").select("*").eq("phone_number","+"+body.phone).single();
     if (userExists.data) {
-        return NextResponse.json({ message:"Successfully Sign in" }, { status: 200 });
+        return NextResponse.json({ message:"Successfully Sign in",user:userExists.data }, { status: 200 });
     }
     const db_res = await supabase
     .from("users")

@@ -3,6 +3,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { redirect } from 'next/navigation';
 
+
 // Icon Components
 const PhoneIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
@@ -42,7 +43,6 @@ const AddressIcon = () => (
 );
 
 export default async function AccountPage() {
-  const { updateEmailState, setUpdateEmailState } = useStore();
   const supabase = await createClient();
   const { data, error } = await supabase.auth.getUser();
   console.log('data', data)
@@ -101,7 +101,7 @@ export default async function AccountPage() {
                         </div>
                         <span className="text-sm font-medium text-gray-500">Email</span>
                       </div>
-                      {<span className="text-gray-900 font-medium">{formattedEmail}</span>
+                      <span className="text-gray-900 font-medium">{formattedEmail}</span>
                     </div>
                   <button className="text-amber-600 hover:text-amber-700 font-medium text-sm">Update Email</button>
                 </div>
