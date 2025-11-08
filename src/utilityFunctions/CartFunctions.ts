@@ -4,27 +4,28 @@ export const addToLocalCart = (product: any) => {
     let cartMap = new Map();
     const product_obj = {
       ...product,
-      quantity: product.quantity ?? 1
     }
+    
     const localCartItems = localStorage.getItem('cartItems')
     let localCartItemsArray = localCartItems ? JSON.parse(localCartItems) : [];
     // console.log("localCartItemsArray before adding product", localCartItemsArray)
     if(localCartItemsArray.length === 0){
-        cartMap.set(product_obj.id, product_obj)
+        cartMap.set(product_obj.id,{products:product_obj,quantity:1})
     }
     else{
         localCartItemsArray.forEach((item: any) => {
-            cartMap.set(item.id, item)
+            cartMap.set(item.products.id, item)
         })
         if(cartMap.has(product_obj.id)){
             cartMap.get(product_obj.id).quantity += 1
         }
         else{
-            cartMap.set(product_obj.id, product_obj)
+            cartMap.set(product_obj.id, {products:product_obj,quantity:1})
         }
     }
-    localStorage.setItem("cartItems",JSON.stringify(Array.from(cartMap.values())))
-    return Array.from(cartMap.values())
+    const updatedCart = Array.from(cartMap.values())
+    localStorage.setItem("cartItems",JSON.stringify(updatedCart))
+    return updatedCart;
 }
 
 
@@ -93,25 +94,23 @@ export const createCart = async(AuthUserId:string,supabase:any)=>{
 }
 
 
-export const getCartData = async(AuthUserId:string,CartId:string,supabase:any)=>{
+export const getCartData = async(CartId:string,supabase:any)=>{
     const {data,error} = await supabase
     .from("cart_items")
     .select(`
         *,
     cart(*),
-    product(*)
+    products(*)
     `)
-    .eq("user_id",AuthUserId)
     .eq("cart_id",CartId)
     if(error){
         console.log("error",error)
-        return {success:false,error:error,message:"Failed to get cart data"}
+        return {success:false,data:null,message:error.message}
     }
     else{
         console.log("cart data",data)
         return {success:true,data:data,message:"Cart data fetched successfully"}
     }
-    return {success:false,error:error,message:"Failed to get cart data"}
 }
 
 
@@ -143,18 +142,22 @@ export const addToDbCart = async(product:any,AuthUserId:string,CartId:string,sup
     }
     else{
         console.log("product does not exist in cart")
+        console.log("product",product)
+        console.log("cartID",CartId)
+        console.log("AuthUserId",AuthUserId)
+        const {data,error} = await supabase.from("cart_items").insert({
+            cart_id:CartId,
+            product_id:product.product_id,
+            quantity:product.quantity,
+        })
+        if(error){
+            console.log("error",error)
+            return {success:false,error:error,message:"Failed to add to cart"}
+        }
+        else{
+            console.log("cart item added",data)
+            return {success:true,data:data,message:"Cart item added successfully"}
+        }
     }
-    const {data,error} = await supabase.from("cart_items").insert({
-        cart_id:CartId,
-        product_id:product.id,
-        quantity:product.quantity,
-    })
-    if(error){
-        console.log("error",error)
-        return {success:false,error:error,message:"Failed to add to cart"}
-    }
-    else{
-        console.log("cart item added",data)
-        return {success:true,data:data,message:"Cart item added successfully"}
-    }
+    
 }

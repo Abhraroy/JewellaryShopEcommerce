@@ -6,20 +6,21 @@ import Link from "next/link";
 import { useStore } from "@/zustandStore/zustandStore";
 import { addToDbCart, addToLocalCart } from "@/utilityFunctions/CartFunctions";
 import { createClient } from "@/app/utils/supabase/client";
+import { Product } from "@/utilityFunctions/TypeInterface";
 
 
-export interface Product {
-  product_id: string;
-  title: string;
-  imageUrl: string;
-  price: number;
-  originalPrice?: number;
-  discount?: number;
-  slug?: string;
-}
+// export interface Product {
+//   id: string;
+//   title: string;
+//   imageUrl: string;
+//   price: number;
+//   originalPrice?: number;
+//   discount?: number;
+//   slug?: string;
+// }
 
 
-export interface 
+// export interface 
 
 
 
@@ -51,15 +52,18 @@ export default function ProductCard({
     e.preventDefault();
     e.stopPropagation();
     setIsWishlistActive(!isWishlistActive);
-    onWishlistToggle?.(product.id);
+    onWishlistToggle?.(product.product_id);
   };
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setIsCartClicked(true);
-    onAddToCart?.(product.id);
+    onAddToCart?.(product.product_id);
     if(AuthenticatedState){
+      console.log("AuthenticatedState",AuthenticatedState)
+      console.log("AuthUserId",AuthUserId)
+      console.log("CartId",CartId)
       addToDbCart(product,AuthUserId,CartId,supabase)
     }
     else{
@@ -72,11 +76,11 @@ export default function ProductCard({
   };
 
   const discountPercentage =
-    product.originalPrice && product.discount
-      ? product.discount
-      : product.originalPrice
+    product.base_price && product.discount_percentage
+      ? product.discount_percentage
+      : product.base_price
       ? Math.round(
-          ((product.originalPrice - product.price) / product.originalPrice) *
+          ((product.base_price - product.final_price) / product.base_price) *
             100
         )
       : 0;
@@ -92,8 +96,8 @@ export default function ProductCard({
         {!imageError ? (
           <>
             <Image
-              src={product.imageUrl}
-              alt={product.title}
+              src={product.thumbnail_image}
+              alt={product.product_name}
               fill
               className={`object-cover transition-all duration-700 ${
                 isHovered ? "scale-110 brightness-105" : "scale-100"
@@ -190,7 +194,7 @@ export default function ProductCard({
       <div className="p-4 md:p-5 flex flex-col flex-grow">
         {/* Title */}
         <h3 className="text-sm md:text-base font-semibold text-gray-900 line-clamp-2 mb-3 min-h-[2.5rem] md:min-h-[3rem] leading-snug group-hover:text-gray-700 transition-colors duration-300">
-          {product.title}
+          {product.product_name}
         </h3>
 
         {/* Price Section - Enhanced */}
@@ -202,25 +206,25 @@ export default function ProductCard({
                   ? 'text-base md:text-lg' 
                   : 'text-xl md:text-2xl'
               }`}>
-                ₹{product.price.toFixed(2)}
+                ₹{product.final_price.toFixed(2)}
               </span>
-              {product.originalPrice && product.originalPrice > product.price && (
+              {product.base_price && product.base_price > product.final_price && (
                 <span className={`text-gray-400 line-through font-medium ${
                   size === 'small' 
                     ? 'text-xs md:text-sm' 
                     : 'text-sm md:text-base'
                 }`}>
-                  ₹{product.originalPrice.toFixed(2)}
+                  ₹{product.base_price.toFixed(2)}
                 </span>
               )}
             </div>
-            {product.originalPrice && product.originalPrice > product.price && (
+            {product.base_price && product.base_price > product.final_price && (
               <span className={`font-semibold text-green-600 bg-green-50 rounded ${
                 size === 'small' 
                   ? 'text-[10px] md:text-xs px-1.5 py-0.5 w-full md:w-auto' 
                   : 'text-xs md:text-sm px-2 py-0.5'
               }`}>
-                Save ₹{(product.originalPrice - product.price).toFixed(2)}
+                Save ₹{(product.base_price - product.final_price).toFixed(2)}
               </span>
             )}
           </div>
@@ -256,9 +260,9 @@ export default function ProductCard({
     </div>
   );
 
-  if (product.slug) {
+  if (product.product_id) {
     return (
-      <Link href={`/product/${product.slug}`} className="block h-full">
+      <Link href={`/product/${product.product_id}`} className="block h-full">
         {CardContent}
       </Link>
     );
