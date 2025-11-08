@@ -15,6 +15,10 @@ interface StoreState {
     setCartItems: (items: any) => void;
     checkoutState: boolean;
     setCheckoutState: (state: boolean) => void;
+    AuthUserId: string;
+    setAuthUserId: (userId: string) => void;
+    CartId: string;
+    setCartId: (cartId: string) => void;
 }
 
 export const useStore = create<StoreState>((set) => ({
@@ -32,5 +36,9 @@ export const useStore = create<StoreState>((set) => ({
     setCartItems: (items: any) => set({ cartItems: items }),
     checkoutState:false,
     setCheckoutState: (state: boolean) => set({ checkoutState: state }),
+    AuthUserId:"",
+    setAuthUserId: (userId: string) => set({ AuthUserId: userId }),
+    CartId:"",
+    setCartId: (cartId: string) => set({ CartId: cartId }),
 }))
 

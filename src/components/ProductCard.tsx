@@ -4,11 +4,12 @@ import Image from "next/image";
 import { useState } from "react";
 import Link from "next/link";
 import { useStore } from "@/zustandStore/zustandStore";
-import { addToLocalCart } from "@/utilityFunctions/CartFunctions";
+import { addToDbCart, addToLocalCart } from "@/utilityFunctions/CartFunctions";
+import { createClient } from "@/app/utils/supabase/client";
 
 
 export interface Product {
-  id: string;
+  product_id: string;
   title: string;
   imageUrl: string;
   price: number;
@@ -36,7 +37,8 @@ export default function ProductCard({
   const [imageError, setImageError] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [isCartClicked, setIsCartClicked] = useState(false);
-  const { cartItems, setCartItems } = useStore();
+  const { cartItems, setCartItems,AuthenticatedState,AuthUserId,CartId } = useStore();
+  const supabase = createClient();
   const handleWishlistClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -49,7 +51,12 @@ export default function ProductCard({
     e.stopPropagation();
     setIsCartClicked(true);
     onAddToCart?.(product.id);
-    addToLocalCart(product)
+    if(AuthenticatedState){
+      addToDbCart(product,AuthUserId,CartId,supabase)
+    }
+    else{
+      addToLocalCart(product)
+    }
     // Reset animation after it completes
     setTimeout(() => {
       setIsCartClicked(false);
