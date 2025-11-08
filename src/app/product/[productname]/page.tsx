@@ -1,205 +1,161 @@
-import { createClient } from "@/app/utils/supabase/server";
+import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
+import ProductDisplay from '@/components/ProductDisplay';
+import ProductReview from '@/components/ProductReview';
 
-export default async function ProductPage({
-  params,
-}: {
-  params: Promise<{ category: string; productname: string }>;
-}) {
-  console.log(await params);
-  const supabase = await createClient();
-  const productName = decodeURIComponent((await params).productname);
+// Demo product data - will be replaced with actual data from Supabase
+const demoProduct = {
+  name: 'Elegant Gold Chain Necklace',
+  price: 2499,
+  originalPrice: 3499,
+  discount: 29,
+  rating: 4.5,
+  reviews: 128,
+  inStock: true,
+  stockCount: 15,
+  description: 'Experience luxury with our exquisite gold chain necklace. Crafted with precision and care, this timeless piece features a delicate design that complements any outfit. Perfect for both casual and formal occasions. Made from premium quality materials, this necklace showcases exceptional craftsmanship and attention to detail. The elegant chain design adds sophistication to your look while maintaining comfort throughout the day. Each piece is carefully inspected to ensure the highest standards of quality and durability. The versatile design makes it perfect for layering with other necklaces or wearing as a standalone statement piece. Whether you\'re attending a special event or simply want to elevate your everyday style, this necklace is the perfect addition to your jewelry collection.',
+  images: [
+    'https://www.onlinepng.com/cdn/shop/files/CH-928725-1.jpg?v=1719396928',
+    'https://www.onlinepng.com/cdn/shop/files/CH-928725-1.jpg?v=1719396928',
+    'https://www.onlinepng.com/cdn/shop/files/CH-928725-1.jpg?v=1719396928',
+    'https://www.onlinepng.com/cdn/shop/files/CH-928725-1.jpg?v=1719396928',
+  ],
+  sizes: ['14"', '16"', '18"', '20"'],
+  category: 'Necklaces',
+  material: 'Gold Plated',
+  weight: '12g',
+  sku: 'CH-928725',
+};
 
-  const { data, error } = await supabase
-    .from("products")
-    .select("*")
-    .eq("product_name", productName);
-
-  if (error) {
-    console.error(error);
+// Demo review data
+const demoReviews = [
+  {
+    id: '1',
+    userName: 'Sarah Johnson',
+    userAvatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b47c?w=150&h=150&fit=crop&crop=face',
+    rating: 5,
+    date: '2024-11-15',
+    title: 'Absolutely stunning piece!',
+    comment: 'This necklace exceeded my expectations! The craftsmanship is impeccable and it looks even more beautiful in person. The gold plating is high quality and hasn\'t faded at all. Perfect for both everyday wear and special occasions. I get compliments every time I wear it!',
+    images: [
+      'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=400&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=400&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1506630448388-4e683c67ddb0?w=400&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=400&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1611955167811-4711904bb9f0?w=400&h=400&fit=crop'
+    ],
+    verified: true,
+    helpful: 12
+  },
+  {
+    id: '2',
+    userName: 'Michael Chen',
+    rating: 4,
+    date: '2024-11-10',
+    title: 'Great quality, fast shipping',
+    comment: 'Very happy with this purchase. The necklace arrived quickly and was well packaged. The design is elegant and the weight feels just right - not too heavy but substantial enough to feel premium. Only giving 4 stars because the clasp could be a bit more secure, but overall excellent value.',
+    images: [
+      'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=400&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=400&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1603561596112-0a1323e8e0f6?w=400&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1603561591415-8f16e4c0c0e3?w=400&h=400&fit=crop'
+    ],
+    verified: true,
+    helpful: 8
+  },
+  {
+    id: '3',
+    userName: 'Emma Davis',
+    rating: 5,
+    date: '2024-11-08',
+    title: 'Perfect gift for my sister',
+    comment: 'I bought this as a birthday gift for my sister and she absolutely loves it! The quality is outstanding and it arrived in beautiful packaging. The chain length is perfect and the pendant sits nicely. Will definitely be shopping here again for jewelry gifts.',
+    images: [
+      'https://images.unsplash.com/photo-1611955167811-4711904bb9f0?w=400&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1506630448388-4e683c67ddb0?w=400&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=400&h=400&fit=crop'
+    ],
+    verified: true,
+    helpful: 6
+  },
+  {
+    id: '4',
+    userName: 'James Wilson',
+    userAvatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
+    rating: 5,
+    date: '2024-11-05',
+    title: 'Exceptional craftsmanship',
+    comment: 'As someone who works in fashion, I can appreciate the attention to detail in this piece. The gold plating is flawless and the chain links are perfectly uniform. It\'s comfortable to wear all day and the design is timeless. Highly recommend for anyone looking for quality jewelry.',
+    images: [
+      'https://images.unsplash.com/photo-1602173574767-37ac01994b2a?w=400&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1584302179602-e4c3d3fd629d?w=400&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?w=400&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1603561591415-8f16e4c0c0e3?w=400&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1603561596112-0a1323e8e0f6?w=400&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=400&h=400&fit=crop'
+    ],
+    verified: true,
+    helpful: 15
+  },
+  {
+    id: '5',
+    userName: 'Lisa Rodriguez',
+    rating: 4,
+    date: '2024-11-02',
+    title: 'Beautiful but sizing runs small',
+    comment: 'Love the design and quality of this necklace! The pendant is gorgeous and the chain is nice and delicate. However, I found that the sizing runs a bit small - I had to exchange for a larger size. Customer service was excellent in helping with the exchange. Would buy again!',
+    images: [
+      'https://images.unsplash.com/photo-1506630448388-4e683c67ddb0?w=400&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1611955167811-4711904bb9f0?w=400&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=400&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1603561596112-0a1323e8e0f6?w=400&h=400&fit=crop'
+    ],
+    verified: true,
+    helpful: 9
+  },
+  {
+    id: '6',
+    userName: 'David Kim',
+    rating: 5,
+    date: '2024-10-28',
+    title: 'Worth every penny',
+    comment: 'This necklace is a true investment piece. The quality is outstanding and it feels luxurious without being overly heavy. I\'ve worn it daily for a month now and it still looks brand new. The packaging was elegant and made for a great unboxing experience. 5 stars all the way!',
+    images: [
+      'https://images.unsplash.com/photo-1544441893-675973e31985?w=400&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1603561591415-8f16e4c0c0e3?w=400&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=400&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1506630448388-4e683c67ddb0?w=400&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1611955167811-4711904bb9f0?w=400&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=400&h=400&fit=crop'
+    ],
+    verified: true,
+    helpful: 11
   }
-  if (data) {
-    console.log(data);
-  }
+];
 
+const demoRatingDistribution = {
+  5: 89,
+  4: 25,
+  3: 8,
+  2: 4,
+  1: 2
+};
+
+export default function ProductPage() {
   return (
-    <>
-      <div className="w-full h-[18vh] bg-amber-600 "></div>
-       {/* Mobile Layout (0px - 767px) */}
-       <div className="block md:hidden">
-         <div className="w-full min-h-screen bg-gray-50 p-2 flex flex-col gap-2">
-           {/* Product Images Section */}
-           <div className="w-full flex flex-col items-center justify-center gap-2">
-             <div className="w-80 h-80 max-w-[90vw] max-h-[40vh] bg-amber-300 rounded-lg"></div>
-             <div className="w-full flex flex-row justify-center gap-1">
-               {[1, 2, 3, 4].map((i) => (
-                 <div key={i} className="w-10 h-10 bg-gray-800 rounded-lg"></div>
-               ))}
-             </div>
-           </div>
+    <div className="min-h-screen bg-white flex flex-col">
+      <Navbar cartCount={3} isAuthenticated={false} />
 
-           {/* Content Section */}
-           <div className="w-full pt-2 flex flex-col items-center gap-3 box-border">
-             <div className="w-full text-start">
-               <span className="text-2xl font-bold">Jewellery Name</span>
-             </div>
-             <div className="w-full text-start">
-               <span className="text-lg font-bold">review</span>
-             </div>
-             <div className="w-full text-start">
-               <span className="text-lg font-bold">price</span>
-             </div>
+      <ProductDisplay product={demoProduct} />
 
-             <div className="w-full flex flex-row items-center justify-center">
-               <button className="w-[100%] h-12 text-lg font-bold bg-amber-800 rounded-lg">
-                 Add to Cart
-               </button>
-             </div>
-             <div className="w-full h-16 flex flex-row bg-gray-300 items-center justify-center"></div>
-             <div className="w-full h-16 flex flex-row bg-gray-300 items-center justify-center"></div>
-             <div className="w-full flex flex-col items-start justify-start gap-3">
-               <span className="text-lg font-bold">size</span>
-               <div className="w-full flex flex-row items-center justify-start gap-2">
-                 {[1, 2, 3, 4].map((i) => (
-                   <div key={i} className="w-10 h-10 bg-gray-600 rounded-lg"></div>
-                 ))}
-                 <div className="w-1/2 h-10 border-2 border-gray-600 rounded-lg text-center items-center justify-center flex">
-                   <span className="text-lg font-bold">Stock Status</span>
-                 </div>
-               </div>
-             </div>
-             <div className="w-full flex flex-row items-center justify-center">
-               <button className="w-[100%] h-12 text-lg font-bold bg-amber-800 rounded-lg">
-                 Add to Cart
-               </button>
-             </div>
-             <div className="w-full h-16 flex flex-row bg-gray-300 items-center justify-center"></div>
-             <div className="w-full h-16 flex flex-row bg-gray-300 items-center justify-center"></div>
-           </div>
+      <ProductReview
+        reviews={demoReviews}
+        totalReviews={128}
+        averageRating={4.5}
+        ratingDistribution={demoRatingDistribution}
+      />
 
-           {/* Additional Sections */}
-           <div className="w-full h-16 flex flex-row bg-gray-300 items-center justify-center"></div>
-           <div className="w-full h-16 flex flex-row bg-gray-300 items-center justify-center"></div>
-           <div className="w-full h-16 flex flex-row bg-gray-300 items-center justify-center"></div>
-         </div>
-       </div>
-
-       {/* Tablet Layout (768px - 1365px) */}
-       <div className="hidden md:block xl:hidden">
-         <div className="w-full min-h-screen bg-gray-50 p-6 flex flex-col gap-6">
-           {/* Product Images Section */}
-           <div className="w-full h-[45vh] flex flex-row items-center justify-center gap-3">
-             <div className="p-3 flex flex-col gap-3">
-               {[1, 2, 3, 4].map((i) => (
-                 <div key={i} className="w-16 h-16 bg-gray-800 rounded-lg"></div>
-               ))}
-             </div>
-             <div className="w-[70%] h-full bg-amber-300 rounded-lg"></div>
-           </div>
-
-           {/* Content Section */}
-           <div className="w-full h-[35vh] pt-6 flex flex-col items-center gap-5 box-border [&>*]:flex-shrink-0 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-             <div className="w-full text-start">
-               <span className="text-3xl font-bold">Jewellery Name</span>
-             </div>
-             <div className="w-full text-start">
-               <span className="text-xl font-bold">review</span>
-             </div>
-             <div className="w-full text-start">
-               <span className="text-xl font-bold">price</span>
-             </div>
-
-             <div className="w-full flex flex-row items-center justify-center">
-               <button className="w-[70%] h-14 text-xl font-bold bg-amber-800 rounded-lg">
-                 Add to Cart
-               </button>
-             </div>
-             <div className="w-full h-20 flex flex-row bg-gray-300 items-center justify-center"></div>
-             <div className="w-full h-20 flex flex-row bg-gray-300 items-center justify-center"></div>
-             <div className="w-full h-20 flex flex-col items-start justify-start gap-3">
-               <span className="text-xl font-bold">size</span>
-               <div className="w-full flex flex-row items-center justify-start gap-3">
-                 {[1, 2, 3, 4].map((i) => (
-                   <div key={i} className="w-12 h-12 bg-gray-600 rounded-lg"></div>
-                 ))}
-                 <div className="w-1/2 h-12 border-2 border-gray-600 rounded-lg text-center items-center justify-center flex">
-                   <span className="text-xl font-bold">Stock Status</span>
-                 </div>
-               </div>
-             </div>
-             <div className="w-full flex flex-row items-center justify-center">
-               <button className="w-[70%] h-14 text-xl font-bold bg-amber-800 rounded-lg">
-                 Add to Cart
-               </button>
-             </div>
-             <div className="w-full h-20 flex flex-row bg-gray-300 items-center justify-center"></div>
-             <div className="w-full h-20 flex flex-row bg-gray-300 items-center justify-center"></div>
-           </div>
-
-           {/* Additional Sections */}
-           <div className="w-full h-[25vh] flex flex-row bg-gray-300 items-center justify-center"></div>
-           <div className="w-full h-[25vh] flex flex-row bg-gray-300 items-center justify-center"></div>
-           <div className="w-full h-[25vh] flex flex-row bg-gray-300 items-center justify-center"></div>
-         </div>
-       </div>
-
-       {/* Desktop Layout (1366px+) */}
-       <div className="hidden xl:flex flex-col justify-center items-start w-screen gap-8 pt-4 ">
-        <div className="flex justify-center items-start w-screen gap-4 pt-4">
-            <div className="w-[50%] h-[80vh]  flex flex-row items-center justify-center gap-4 ">
-              <div className="p-4 flex flex-col gap-4  ">
-                {[1, 2, 3, 4].map((i) => (
-                  <div key={i} className="w-24 h-24 bg-gray-800 rounded-lg"></div>
-                ))}
-              </div>
-              <div className="w-[70%] h-[100%] bg-amber-300 rounded-lg  "></div>
-            </div>
-              <div className="w-[30%] h-[80vh] pt-8 flex flex-col items-center gap-6 box-border [&>*]:flex-shrink-0 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-              <div className="w-full text-start ">
-                <span className="text-4xl font-bold">Jewellery Name</span>
-              </div>
-              <div className="w-full text-start ">
-                <span className="text-2xl font-bold">review</span>
-              </div>
-              <div className="w-full text-start ">
-                <span className="text-2xl font-bold">price</span>
-              </div>
-    
-              <div className="w-full flex flex-row items-center justify-center ">
-                <button className="w-[100%] h-16 text-2xl font-bold bg-amber-800 rounded-lg">
-                  Add to Cart
-                </button>
-              </div>
-              <div className="w-full h-26 flex flex-row bg-gray-300 items-center justify-center  "></div>
-              <div className="w-full h-26 flex flex-row bg-gray-300 items-center justify-center  "></div>
-              <div className="w-full h-26 flex flex-col items-start justify-start gap-4  ">
-                <span className="text-2xl font-bold">size</span>
-                <div className="w-full flex flex-row items-center justify-start gap-4  ">
-                  {[1, 2, 3, 4].map((i) => (
-                    <div key={i} className="w-14 h-14 bg-gray-600 rounded-lg"></div>
-                  ))}
-                  <div className="w-1/2 h-14 border-2 border-gray-600 rounded-lg text-center items-center justify-center flex "><span className="text-2xl font-bold">Stock Status</span></div>
-                </div>
-              </div>
-              <div className="w-full flex flex-row items-center justify-center ">
-                <button className="w-[100%] h-16 text-2xl font-bold bg-amber-800 rounded-lg">
-                  Add to Cart
-                </button>
-              </div>
-              <div className="w-full h-26 flex flex-row bg-gray-300 items-center justify-center  ">
-    
-              </div>
-              <div className="w-full h-26 flex flex-row bg-gray-300 items-center justify-center  ">
-                
-              </div>
-            </div>
-        </div>
-        <div className="w-full h-[40vh] flex flex-row bg-gray-300 items-center justify-center  ">
-          
-        </div>
-        <div className="w-full h-[40vh] flex flex-row bg-gray-300 items-center justify-center  "></div>
-        <div className="w-full h-[40vh] flex flex-row bg-gray-300 items-center justify-center  "></div>
-        
-      </div>
-    </>
+      <Footer />
+    </div>
   );
 }
