@@ -1,32 +1,28 @@
 export const addToLocalCart = (product: any) => {
-    console.log(product)
+    // console.log(product)
+    let cartMap = new Map();
     const product_obj = {
       ...product,
       quantity: 1
     }
     const localCartItems = localStorage.getItem('cartItems')
     let localCartItemsArray = localCartItems ? JSON.parse(localCartItems) : [];
+    // console.log("localCartItemsArray before adding product", localCartItemsArray)
     if(localCartItemsArray.length === 0){
-      localCartItemsArray.push(product_obj)
+        cartMap.set(product_obj.id, product_obj)
     }
     else{
-    localCartItemsArray.forEach((item: any) => {
-      console.log('item.id', item.id)
-      console.log('product.id', product.id)
-      if(item.id === product.id){
-        console.log("Item is already in cart increasing quantity")
-        item.quantity += 1
-        return;
-      }
-      else{
-        console.log("Item is not in cart adding to cart")
-        localCartItemsArray.push(product_obj)
-      }
-      console.log("****************")
-    })
+        localCartItemsArray.forEach((item: any) => {
+            cartMap.set(item.id, item)
+        })
+        if(cartMap.has(product_obj.id)){
+            cartMap.get(product_obj.id).quantity += 1
+        }
+        else{
+            cartMap.set(product_obj.id, product_obj)
+        }
     }
-    console.log('localCartItemsArray', localCartItemsArray)
-    localStorage.setItem("cartItems",JSON.stringify(localCartItemsArray))
-    return localCartItemsArray
+    localStorage.setItem("cartItems",JSON.stringify(Array.from(cartMap.values())))
+    return Array.from(cartMap.values())
 }
 
