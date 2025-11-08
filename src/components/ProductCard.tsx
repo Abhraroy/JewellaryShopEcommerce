@@ -18,6 +18,14 @@ export interface Product {
   slug?: string;
 }
 
+
+export interface 
+
+
+
+
+
+
 interface ProductCardProps {
   product: Product;
   onAddToCart?: (productId: string) => void;
