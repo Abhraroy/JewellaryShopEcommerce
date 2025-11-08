@@ -137,7 +137,7 @@ export default function OtpInput({ length = 6, onComplete }: OtpInputProps) {
         setOtpInputState();
         createMyUser();
         setAuthenticatedState(true)
-        redirect('/collection/account');
+        redirect('/account');
       } else {
         setError('Invalid OTP');
       }
