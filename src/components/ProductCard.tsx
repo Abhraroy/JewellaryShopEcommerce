@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useState } from "react";
 import Link from "next/link";
 import { useStore } from "@/zustandStore/zustandStore";
+import { addToLocalCart } from "@/utilityFunctions/CartFunctions";
 
 
 export interface Product {
@@ -46,13 +47,33 @@ export default function ProductCard({
     e.stopPropagation();
     setIsCartClicked(true);
     onAddToCart?.(product.id);
-    console.log(product)
-    const localCartItems = localStorage.getItem('cartItems')
-    console.log('localCartItems', localCartItems)
-    console.log('localCartItems', typeof localCartItems)
-    let localCartItemsArray = localCartItems ? JSON.parse(localCartItems) : [];
-    localCartItemsArray.push(product)
-    localStorage.setItem("cartItems",JSON.stringify(localCartItemsArray))
+    // console.log(product)
+    // const product_obj = {
+    //   ...product,
+    //   quantity: 1
+    // }
+    // const localCartItems = localStorage.getItem('cartItems')
+    // console.log('localCartItems', localCartItems)
+    // console.log('localCartItems', typeof localCartItems)
+    // let localCartItemsArray = localCartItems ? JSON.parse(localCartItems) : [];
+    // if(localCartItemsArray.length === 0){
+    //   localCartItemsArray.push(product_obj)
+    // }
+    // else{
+    // localCartItemsArray.forEach((item: any) => {
+    //   console.log('item.id', item.id)
+    //   console.log('product.id', product.id)
+    //   if(item.id === product.id){
+    //     item.quantity += 1
+    //     return;
+    //   }
+    //   else{
+    //     localCartItemsArray.push(product_obj)
+    //   }
+    // })
+    // }
+    // localStorage.setItem("cartItems",JSON.stringify(localCartItemsArray))
+    addToLocalCart(product)
     // Reset animation after it completes
     setTimeout(() => {
       setIsCartClicked(false);

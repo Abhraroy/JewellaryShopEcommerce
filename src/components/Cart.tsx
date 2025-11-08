@@ -18,7 +18,7 @@ export default function Cart({ isOpen = false, onClose }: CartProps) {
 
   if(cartItems && cartItems.length > 0){
   const subtotal = cartItems.reduce(
-    (sum, item) => sum + item.price * item.quantity,
+    (sum: number, item: any) => sum + item.price * item.quantity,
     0
   );
   const shipping: number = 0;
@@ -28,10 +28,12 @@ export default function Cart({ isOpen = false, onClose }: CartProps) {
   useEffect(() => {
     const getCartItems = async () => {
     if(!AuthenticatedState){
-        const cartItems = localStorage.getItem('cartItems');
-        console.log('cart items from local storage', cartItems);
+        const localCartItems = localStorage.getItem('cartItems');
+        console.log('cart items from local storage', localCartItems);
         if(cartItems){
-            setCartItems(JSON.parse(cartItems));
+            const tempCartItems = localCartItems ? JSON.parse(localCartItems) : [];
+            console.log('tempCartItems', typeof tempCartItems);
+            setCartItems(tempCartItems);
         }
     }
     else if(AuthenticatedState){
@@ -140,16 +142,16 @@ export default function Cart({ isOpen = false, onClose }: CartProps) {
               </div>
             ) : (
               <div className="space-y-4">
-                {cartItems && cartItems.map((item) => (
+                {cartItems && cartItems.map((item: any,index: number) => (
                   <div
-                    key={item.id}
+                    key={index}
                     className="flex gap-4 p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors duration-200"
                   >
                     {/* Product Image */}
                     <div className="relative w-20 h-20 sm:w-24 sm:h-24 flex-shrink-0 bg-white rounded-lg overflow-hidden border border-gray-200">
                       <Image
-                        src={item.image}
-                        alt={item.name}
+                        src={item.imageUrl}
+                        alt={item.title}
                         fill
                         className="object-cover"
                         sizes="(max-width: 640px) 80px, 96px"
@@ -159,10 +161,10 @@ export default function Cart({ isOpen = false, onClose }: CartProps) {
                     {/* Product Details */}
                     <div className="flex-1 min-w-0">
                       <h3 className="text-sm font-semibold text-gray-900 line-clamp-2 mb-1">
-                        {item.name}
+                       {item.title}
                       </h3>
                       <p className="text-lg font-bold text-gray-900 mb-3">
-                        {/* ₹{item.price.toFixed(2)} */}
+                        ₹{item.price}    
                       </p>
 
                       {/* Quantity Controls */}
@@ -193,6 +195,7 @@ export default function Cart({ isOpen = false, onClose }: CartProps) {
                           <button
                             className="p-1.5 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded transition-colors duration-200"
                             aria-label="Increase quantity"
+                            onClick = {() => handleIncreaseQuantity(item.id)}
                           >
                             <svg
                               xmlns="http://www.w3.org/2000/svg"

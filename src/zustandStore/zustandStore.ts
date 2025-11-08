@@ -27,6 +27,6 @@ export const useStore = create<StoreState>((set) => ({
     AuthenticatedState: false,
     setAuthenticatedState: (auth: boolean) => set({ AuthenticatedState: auth }),
     cartItems: [],
-    setCartItems: (items: any) => set((state) => ({ cartItems: [...state.cartItems, items] })),
+    setCartItems: (items: any) => set({ cartItems: items }),
 }))
 
