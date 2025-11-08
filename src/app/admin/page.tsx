@@ -1,9 +1,11 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Dashboard from "./(components)/Dashboard";
 import Products from "./(components)/Products";
 import Categories from "./(components)/Categories";
+import { adminLogout, checkAdminAuth } from "./login/actions";
 
 // Icon Components
 const DashboardIcon = ({ className = "w-5 h-5" }) => (
@@ -148,8 +150,34 @@ const ThemeToggleIcon = ({
 type TabType = "dashboard" | "categories" | "products" | "reviews" | "orders";
 
 export default function AdminDashboard() {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<TabType>("dashboard");
   const [isDarkTheme, setIsDarkTheme] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  // Check authentication on mount
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const authResult = await checkAdminAuth();
+        if (authResult.authenticated) {
+          setIsAuthenticated(true);
+        } else {
+          router.push('/admin/login');
+          return;
+        }
+      } catch (error) {
+        console.error('Auth check failed:', error);
+        router.push('/admin/login');
+        return;
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    checkAuth();
+  }, [router]);
 
   const navigationItems = [
     { id: "dashboard" as TabType, label: "Dashboard", icon: DashboardIcon },
@@ -163,9 +191,21 @@ export default function AdminDashboard() {
     setIsDarkTheme(!isDarkTheme);
   };
 
-  const handleLogout = () => {
-    // Implement logout logic here
-    console.log("Logout clicked");
+  const handleLogout = async () => {
+    try {
+      const result = await adminLogout()
+      if (result.success) {
+        window.location.href = '/admin/login'
+      } else {
+        console.error('Logout error:', result.error)
+        // Fallback redirect
+        window.location.href = '/admin/login'
+      }
+    } catch (error) {
+      console.error('Logout error:', error)
+      // Fallback redirect
+      window.location.href = '/admin/login'
+    }
   };
 
   const renderContent = () => {
@@ -235,6 +275,18 @@ export default function AdminDashboard() {
         return null;
     }
   };
+
+  // Show loading while checking authentication or if not authenticated
+  if (isLoading || !isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div
