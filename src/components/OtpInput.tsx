@@ -2,6 +2,8 @@ import { useState, useRef, useEffect } from 'react';
 import { useStore } from '@/zustandStore/zustandStore';
 import { createClient } from '@/app/utils/supabase/client';
 import { redirect } from 'next/navigation';
+import { userSignIn } from '@/utilityFunctions/UserSignIn';
+import { createMyUser } from '@/utilityFunctions/UserFunctions';
 interface OtpInputProps {
   length?: number;
   onComplete?: (otp: string) => void;
@@ -105,15 +107,15 @@ export default function OtpInput({ length = 6, onComplete }: OtpInputProps) {
     }
   };
 
-  const createMyUser = async () => {
-    const response = await fetch('/api/userRoutes', {
-      method: 'POST',
-      body: JSON.stringify({
-        phone:customerMobno,
-      }),
-    })
-    console.log('response from createMyUser', response)
-  }
+  // const createMyUser = async () => {
+  //   const response = await fetch('/api/userRoutes', {
+  //     method: 'POST',
+  //     body: JSON.stringify({
+  //       phone:customerMobno,
+  //     }),
+  //   })
+  //   console.log('response from createMyUser', response)
+  // }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -123,30 +125,44 @@ export default function OtpInput({ length = 6, onComplete }: OtpInputProps) {
       setError('');
       console.log('OTP:', completeOtp);
       // Handle OTP verification here
-      const {
-        data: { session },
-        error,
-      } = await supabase.auth.verifyOtp({
-        phone: customerMobno,
-        token: completeOtp,
-        type: 'sms',
-      })
-      console.log('session', session)
-      console.log('error', error)
-      if (session && !error) {
+      // const {
+      //   data: { session },
+      //   error,
+      // } = await supabase.auth.verifyOtp({
+      //   phone: customerMobno,
+      //   token: completeOtp,
+      //   type: 'sms',
+      // })
+      // console.log('session', session)
+      // console.log('error', error)
+      // if (session && !error) {
+      //   setOtpInputState();
+      //   createMyUser();
+      //   setAuthenticatedState(true)
+      //   redirect('/account');
+      // } else {
+      //   setError('Invalid OTP');
+      // }
+      // if (onComplete) {
+      //   onComplete(completeOtp);
+      //}
+      const {success,error,session,message} = await userSignIn(completeOtp,customerMobno,supabase)
+
+      if(success && !error && session){
         setOtpInputState();
-        createMyUser();
-        setAuthenticatedState(true)
+        setAuthenticatedState(true);
         redirect('/account');
-      } else {
-        setError('Invalid OTP');
+      }
+      else{
+        setError(message);
       }
       if (onComplete) {
-        onComplete(completeOtp);
+         onComplete(completeOtp);
       }
     } else {
       setError(`Please enter all ${length} digits`);
     }
+
   };
 
   return (

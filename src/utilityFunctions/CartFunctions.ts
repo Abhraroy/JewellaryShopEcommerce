@@ -77,3 +77,84 @@ export const decreaseQuantityFromLocalCart = (product:any)=>{
     return Array.from(cartMap.values())
 }
 
+
+export const createCart = async(AuthUserId:string,supabase:any)=>{
+    const {data,error} = await supabase.from("cart").insert({
+        user_id:AuthUserId,
+    })
+    if(error){
+        console.log("error",error)
+        return {success:false,error:error,message:"Failed to create cart"}
+    }
+    else{
+        console.log("cart created",data)
+        return {success:true,data:data,message:"Cart created successfully"}
+    }
+}
+
+
+export const getCartData = async(AuthUserId:string,CartId:string,supabase:any)=>{
+    const {data,error} = await supabase
+    .from("cart_items")
+    .select(`
+        *,
+    cart(*),
+    product(*)
+    `)
+    .eq("user_id",AuthUserId)
+    .eq("cart_id",CartId)
+    if(error){
+        console.log("error",error)
+        return {success:false,error:error,message:"Failed to get cart data"}
+    }
+    else{
+        console.log("cart data",data)
+        return {success:true,data:data,message:"Cart data fetched successfully"}
+    }
+    return {success:false,error:error,message:"Failed to get cart data"}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+export const addToDbCart = async(product:any,AuthUserId:string,CartId:string,supabase:any)=>{
+    console.log("Adding to db cart")
+    const productExistsInCart = await supabase.from("cart_items").select("*").eq("cart_id",CartId).eq("product_id",product.id).maybeSingle();
+    if(productExistsInCart.data){
+        const {data,error} = await supabase.from("cart_items").update({
+            quantity:productExistsInCart.data.quantity + 1,
+        })
+        if(error){
+            console.log("error",error)
+            return {success:false,error:error,message:"Failed to update cart item"}
+        }
+        else{
+            console.log("cart item updated",data)
+            return {success:true,data:data,message:"Cart item updated successfully"}
+        }
+    }
+    else{
+        console.log("product does not exist in cart")
+    }
+    const {data,error} = await supabase.from("cart_items").insert({
+        cart_id:CartId,
+        product_id:product.id,
+        quantity:product.quantity,
+    })
+    if(error){
+        console.log("error",error)
+        return {success:false,error:error,message:"Failed to add to cart"}
+    }
+    else{
+        console.log("cart item added",data)
+        return {success:true,data:data,message:"Cart item added successfully"}
+    }
+}

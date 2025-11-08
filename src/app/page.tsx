@@ -12,10 +12,12 @@ import OtpInput from '@/components/OtpInput';
 import { useEffect, useState } from 'react';
 import { createClient } from '@/app/utils/supabase/client';
 import Cart from '@/components/Cart';
+import { createCart } from '@/utilityFunctions/CartFunctions';
 
 export default function LandingPage() {
-  const { MobnoInputState, OtpInputState, setMobnoInputState, setAuthenticatedState } = useStore();
+  const { MobnoInputState, OtpInputState, setMobnoInputState, setAuthenticatedState, AuthenticatedState, setAuthUserId, setCartId } = useStore();
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [products, setProducts] = useState<Product[]>([]);
   // Create multiple slides with the same image
   const carouselItems = Array.from({ length: 3 }, (_, index) => (
     <div key={index} className="w-full h-[400px] md:h-[500px] lg:h-[600px] relative">
@@ -149,6 +151,24 @@ export default function LandingPage() {
       const { data: { user } } = await supabase.auth.getUser()
       if (user) {
         setAuthenticatedState(true)
+        const userData:any = await  supabase.from("users").select("*").eq("phone_number","+"+user.phone).single();
+        if(userData.data){
+          setAuthUserId(userData.data?.user_id)
+          const {data,error} = await supabase.from("cart").select("*").eq("user_id",userData.data?.user_id).maybeSingle();
+          if(data){
+            setCartId(data?.cart_id)
+          }
+          else{
+            const {success,data,error} = await createCart(userData.data?.user_id,supabase)
+            if(success){
+              setCartId(data?.cart_id)
+            }
+            else{
+              console.log("error",error)
+            }
+          }
+          console.log('User data', userData.data)
+        }
         console.log('User is authenticated')
       }else{
         setAuthenticatedState(false)
@@ -156,6 +176,21 @@ export default function LandingPage() {
       }
     }
     checkAuthentication()
+  }, [AuthenticatedState])
+
+  useEffect(() => {
+    const getProducts = async () =>{
+      const supabase = createClient()
+      const {data,error}:any = await supabase.from("products").select("*")
+      if(error){
+        console.log("error",error)
+      }
+      else{
+        console.log("products",data)
+        setProducts(data)
+      }
+    }
+    getProducts()
   }, [])
 
   // Handler to open the cart
