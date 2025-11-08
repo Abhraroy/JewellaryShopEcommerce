@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { getCategories, createCategory, updateCategory, deleteCategory, type Category, type CreateCategoryData, type UpdateCategoryData } from '../actions';
 
 // Icon Components
 const PlusIcon = ({ className = 'w-5 h-5' }) => (
@@ -63,97 +64,20 @@ interface CategoriesProps {
   isDarkTheme: boolean;
 }
 
-// Default categories based on your current setup
-const defaultCategories = [
-  {
-    id: 'ring',
-    name: 'Ring',
-    image: 'https://www.onlinepng.com/cdn/shop/files/CH-928725-1.jpg?v=1719396928',
-    subCategories: [
-      { id: 'hallmark', name: 'Hallmark Ring', image: 'https://www.onlinepng.com/cdn/shop/files/CH-928725-1.jpg?v=1719396928' },
-      { id: 'american', name: 'American Diamond Ring', image: 'https://www.onlinepng.com/cdn/shop/files/CH-928725-1.jpg?v=1719396928' },
-      { id: 'gold-plated', name: 'Gold Plated Ring', image: 'https://www.onlinepng.com/cdn/shop/files/CH-928725-1.jpg?v=1719396928' },
-      { id: 'silver', name: 'Silver Ring', image: 'https://www.onlinepng.com/cdn/shop/files/CH-928725-1.jpg?v=1719396928' },
-      { id: 'oxidized', name: 'Oxidized Ring', image: 'https://www.onlinepng.com/cdn/shop/files/CH-928725-1.jpg?v=1719396928' },
-    ]
-  },
-  {
-    id: 'necklace',
-    name: 'Necklace',
-    image: 'https://www.onlinepng.com/cdn/shop/files/CH-928725-1.jpg?v=1719396928',
-    subCategories: [
-      { id: 'hallmark', name: 'Hallmark Necklace', image: 'https://www.onlinepng.com/cdn/shop/files/CH-928725-1.jpg?v=1719396928' },
-      { id: 'american', name: 'American Diamond Necklace', image: 'https://www.onlinepng.com/cdn/shop/files/CH-928725-1.jpg?v=1719396928' },
-      { id: 'gold-plated', name: 'Gold Plated Necklace', image: 'https://www.onlinepng.com/cdn/shop/files/CH-928725-1.jpg?v=1719396928' },
-      { id: 'silver', name: 'Silver Necklace', image: 'https://www.onlinepng.com/cdn/shop/files/CH-928725-1.jpg?v=1719396928' },
-      { id: 'oxidized', name: 'Oxidized Necklace', image: 'https://www.onlinepng.com/cdn/shop/files/CH-928725-1.jpg?v=1719396928' },
-      { id: 'choker', name: 'Choker Necklace', image: 'https://www.onlinepng.com/cdn/shop/files/CH-928725-1.jpg?v=1719396928' },
-    ]
-  },
-  {
-    id: 'earring',
-    name: 'Earring',
-    image: 'https://www.onlinepng.com/cdn/shop/files/CH-928725-1.jpg?v=1719396928',
-    subCategories: [
-      { id: 'hallmark', name: 'Hallmark Earring', image: 'https://www.onlinepng.com/cdn/shop/files/CH-928725-1.jpg?v=1719396928' },
-      { id: 'american', name: 'American Diamond Earring', image: 'https://www.onlinepng.com/cdn/shop/files/CH-928725-1.jpg?v=1719396928' },
-      { id: 'gold-plated', name: 'Gold Plated Earring', image: 'https://www.onlinepng.com/cdn/shop/files/CH-928725-1.jpg?v=1719396928' },
-      { id: 'silver', name: 'Silver Earring', image: 'https://www.onlinepng.com/cdn/shop/files/CH-928725-1.jpg?v=1719396928' },
-      { id: 'jhumka', name: 'Jhumka', image: 'https://www.onlinepng.com/cdn/shop/files/CH-928725-1.jpg?v=1719396928' },
-      { id: 'stud', name: 'Stud Earring', image: 'https://www.onlinepng.com/cdn/shop/files/CH-928725-1.jpg?v=1719396928' },
-    ]
-  },
-  {
-    id: 'bracelet',
-    name: 'Bracelet',
-    image: 'https://www.onlinepng.com/cdn/shop/files/CH-928725-1.jpg?v=1719396928',
-    subCategories: [
-      { id: 'hallmark', name: 'Hallmark Bracelet', image: 'https://www.onlinepng.com/cdn/shop/files/CH-928725-1.jpg?v=1719396928' },
-      { id: 'american', name: 'American Diamond Bracelet', image: 'https://www.onlinepng.com/cdn/shop/files/CH-928725-1.jpg?v=1719396928' },
-      { id: 'gold-plated', name: 'Gold Plated Bracelet', image: 'https://www.onlinepng.com/cdn/shop/files/CH-928725-1.jpg?v=1719396928' },
-      { id: 'silver', name: 'Silver Bracelet', image: 'https://www.onlinepng.com/cdn/shop/files/CH-928725-1.jpg?v=1719396928' },
-    ]
-  },
-  {
-    id: 'chain',
-    name: 'Chain',
-    image: 'https://gurupujan.com/cdn/shop/files/Artificial_Gold_Chain_1_Gram_Gold_Plated_20_Inch_for_boys_and_men_offering_a_stylish_affordable_accessory_for_any_occasion.1.png?v=1756272428',
-    subCategories: [
-      { id: 'gold-plated', name: 'Gold Plated Chain', image: 'https://gurupujan.com/cdn/shop/files/Artificial_Gold_Chain_1_Gram_Gold_Plated_20_Inch_for_boys_and_men_offering_a_stylish_affordable_accessory_for_any_occasion.1.png?v=1756272428' },
-      { id: 'silver', name: 'Silver Chain', image: 'https://gurupujan.com/cdn/shop/files/Artificial_Gold_Chain_1_Gram_Gold_Plated_20_Inch_for_boys_and_men_offering_a_stylish_affordable_accessory_for_any_occasion.1.png?v=1756272428' },
-      { id: 'stainless-steel', name: 'Stainless Steel Chain', image: 'https://gurupujan.com/cdn/shop/files/Artificial_Gold_Chain_1_Gram_Gold_Plated_20_Inch_for_boys_and_men_offering_a_stylish_affordable_accessory_for_any_occasion.1.png?v=1756272428' },
-    ]
-  },
-  {
-    id: 'pendant',
-    name: 'Pendant',
-    image: 'https://www.onlinepng.com/cdn/shop/files/CH-928725-1.jpg?v=1719396928',
-    subCategories: [
-      { id: 'hallmark', name: 'Hallmark Pendant', image: 'https://www.onlinepng.com/cdn/shop/files/CH-928725-1.jpg?v=1719396928' },
-      { id: 'american', name: 'American Diamond Pendant', image: 'https://www.onlinepng.com/cdn/shop/files/CH-928725-1.jpg?v=1719396928' },
-      { id: 'gold-plated', name: 'Gold Plated Pendant', image: 'https://www.onlinepng.com/cdn/shop/files/CH-928725-1.jpg?v=1719396928' },
-    ]
-  },
-  {
-    id: 'bangle',
-    name: 'Bangle',
-    image: 'https://www.onlinepng.com/cdn/shop/files/CH-928725-1.jpg?v=1719396928',
-    subCategories: [
-      { id: 'hallmark', name: 'Hallmark Bangle', image: 'https://www.onlinepng.com/cdn/shop/files/CH-928725-1.jpg?v=1719396928' },
-      { id: 'gold-plated', name: 'Gold Plated Bangle', image: 'https://www.onlinepng.com/cdn/shop/files/CH-928725-1.jpg?v=1719396928' },
-      { id: 'silver', name: 'Silver Bangle', image: 'https://www.onlinepng.com/cdn/shop/files/CH-928725-1.jpg?v=1719396928' },
-    ]
-  },
-];
-
 export default function Categories({ isDarkTheme }: CategoriesProps) {
-  const [categories, setCategories] = useState(defaultCategories);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
   const [showAddCategory, setShowAddCategory] = useState(false);
   const [editingCategory, setEditingCategory] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
   const [formData, setFormData] = useState({
-    name: '',
+    category_name: '',
+    slug: '',
+    description: '',
     image: null as File | null,
     imagePreview: '',
+    is_active: true,
+    display_order: 0,
     subCategories: [] as Array<{
       name: string;
       image: File | null;
@@ -161,11 +85,40 @@ export default function Categories({ isDarkTheme }: CategoriesProps) {
     }>,
   });
 
+  // Fetch categories on component mount
+  useEffect(() => {
+    fetchCategories();
+  }, []);
+
+  const fetchCategories = async () => {
+    try {
+      const result = await getCategories();
+      if (result.success && result.data) {
+        setCategories(result.data);
+      } else {
+        console.error('Failed to fetch categories:', result.error);
+      }
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormData((prev) => {
+      const updated = { ...prev, [name]: value };
+
+      // Auto-generate slug from category name
+      if (name === 'category_name') {
+        updated.slug = value.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+      }
+
+      return updated;
+    });
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -304,81 +257,91 @@ export default function Categories({ isDarkTheme }: CategoriesProps) {
     });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmitting(true);
 
-    if (editingCategory) {
-      // Update existing category
-      setCategories((prev) =>
-        prev.map((cat) =>
-          cat.id === editingCategory
-            ? {
-                ...cat,
-                name: formData.name,
-                image: formData.imagePreview || cat.image, // Use preview URL for now
-                subCategories: formData.subCategories
-                  .filter(sub => sub.name.trim() !== '')
-                  .map((sub) => ({
-                    id: sub.name.toLowerCase().replace(/\s+/g, '-'),
-                    name: sub.name.trim(),
-                    image: sub.imagePreview || 'https://www.onlinepng.com/cdn/shop/files/CH-928725-1.jpg?v=1719396928'
-                  }))
-              }
-            : cat
-        )
-      );
-      setEditingCategory(null);
-    } else {
-      // Add new category
-      const newCategory = {
-        id: formData.name.toLowerCase().replace(/\s+/g, '-'),
-        name: formData.name,
-        image: formData.imagePreview || 'https://www.onlinepng.com/cdn/shop/files/CH-928725-1.jpg?v=1719396928', // Default image if none uploaded
-        subCategories: formData.subCategories
-          .filter(sub => sub.name.trim() !== '')
-          .map((sub) => ({
-            id: sub.name.toLowerCase().replace(/\s+/g, '-'),
-            name: sub.name.trim(),
-            image: sub.imagePreview || 'https://www.onlinepng.com/cdn/shop/files/CH-928725-1.jpg?v=1719396928'
-          }))
+    try {
+      const categoryData: CreateCategoryData = {
+        category_name: formData.category_name,
+        slug: formData.slug,
+        description: formData.description || undefined,
+        image: formData.image || undefined,
+        is_active: formData.is_active,
+        display_order: formData.display_order,
       };
-      setCategories((prev) => [...prev, newCategory]);
-    }
 
-    // Reset form and cleanup
-    if (formData.imagePreview) {
-      URL.revokeObjectURL(formData.imagePreview);
-    }
-    formData.subCategories.forEach(sub => {
-      if (sub.imagePreview) {
-        URL.revokeObjectURL(sub.imagePreview);
+      if (editingCategory) {
+        // Update existing category
+        const updateData: UpdateCategoryData = {
+          ...categoryData,
+          category_id: editingCategory,
+        };
+
+        const result = await updateCategory(updateData);
+        if (result.success && result.data) {
+          setCategories((prev) =>
+            prev.map((cat) =>
+              cat.category_id === editingCategory ? result.data! : cat
+            )
+          );
+          setEditingCategory(null);
+        } else {
+          alert(`Failed to update category: ${result.error}`);
+          return;
+        }
+      } else {
+        // Add new category
+        const result = await createCategory(categoryData);
+        if (result.success && result.data) {
+          setCategories((prev) => [...prev, result.data!]);
+        } else {
+          alert(`Failed to create category: ${result.error}`);
+          return;
+        }
       }
-    });
-    setFormData({ name: '', image: null, imagePreview: '', subCategories: [] });
-    setShowAddCategory(false);
+
+      // Reset form and cleanup
+      handleCancel();
+    } catch (error) {
+      console.error('Submit error:', error);
+      alert('An unexpected error occurred. Please try again.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleEdit = (categoryId: string) => {
-    const category = categories.find(cat => cat.id === categoryId);
+    const category = categories.find(cat => cat.category_id === categoryId);
     if (category) {
       setFormData({
-        name: category.name,
+        category_name: category.category_name,
+        slug: category.slug,
+        description: category.description || '',
         image: null, // We don't have the actual file, just the URL
-        imagePreview: category.image, // Use existing image as preview
-        subCategories: category.subCategories.map(sub => ({
-          name: sub.name,
-          image: null, // We don't have the actual file, just the URL
-          imagePreview: sub.image || '' // Use existing image as preview
-        }))
+        imagePreview: category.image_url || '', // Use existing image as preview
+        is_active: category.is_active,
+        display_order: category.display_order,
+        subCategories: [] // Keep empty for now as per requirements
       });
       setEditingCategory(categoryId);
       setShowAddCategory(true);
     }
   };
 
-  const handleDelete = (categoryId: string) => {
-    if (confirm('Are you sure you want to delete this category?')) {
-      setCategories((prev) => prev.filter(cat => cat.id !== categoryId));
+  const handleDelete = async (categoryId: string) => {
+    if (confirm('Are you sure you want to delete this category? This action cannot be undone.')) {
+      try {
+        const result = await deleteCategory(categoryId);
+        if (result.success) {
+          setCategories((prev) => prev.filter(cat => cat.category_id !== categoryId));
+        } else {
+          alert(`Failed to delete category: ${result.error}`);
+        }
+      } catch (error) {
+        console.error('Delete error:', error);
+        alert('An unexpected error occurred while deleting the category.');
+      }
     }
   };
 
@@ -393,7 +356,16 @@ export default function Categories({ isDarkTheme }: CategoriesProps) {
         URL.revokeObjectURL(sub.imagePreview);
       }
     });
-    setFormData({ name: '', image: null, imagePreview: '', subCategories: [] });
+    setFormData({
+      category_name: '',
+      slug: '',
+      description: '',
+      image: null,
+      imagePreview: '',
+      is_active: true,
+      display_order: 0,
+      subCategories: []
+    });
     setEditingCategory(null);
     setShowAddCategory(false);
   };
@@ -456,8 +428,8 @@ export default function Categories({ isDarkTheme }: CategoriesProps) {
                   </label>
                   <input
                     type="text"
-                    name="name"
-                    value={formData.name}
+                    name="category_name"
+                    value={formData.category_name}
                     onChange={handleInputChange}
                     placeholder="e.g., Ring, Necklace, Earring"
                     className={`w-full px-4 py-2 rounded-lg border transition-colors ${
@@ -466,6 +438,100 @@ export default function Categories({ isDarkTheme }: CategoriesProps) {
                         : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400'
                     } focus:outline-none focus:ring-2 focus:ring-[#E94E8B]`}
                     required
+                  />
+                </div>
+
+                {/* Slug */}
+                <div className="md:col-span-2">
+                  <label
+                    className={`block text-sm font-medium mb-2 ${
+                      isDarkTheme ? 'text-gray-300' : 'text-gray-700'
+                    }`}
+                  >
+                    Slug *
+                  </label>
+                  <input
+                    type="text"
+                    name="slug"
+                    value={formData.slug}
+                    onChange={handleInputChange}
+                    placeholder="e.g., ring, necklace, earring"
+                    className={`w-full px-4 py-2 rounded-lg border transition-colors ${
+                      isDarkTheme
+                        ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500'
+                        : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400'
+                    } focus:outline-none focus:ring-2 focus:ring-[#E94E8B]`}
+                    required
+                  />
+                  <p className={`text-xs mt-1 ${isDarkTheme ? 'text-gray-400' : 'text-gray-500'}`}>
+                    Auto-generated from category name. Used in URLs.
+                  </p>
+                </div>
+
+                {/* Description */}
+                <div className="md:col-span-2">
+                  <label
+                    className={`block text-sm font-medium mb-2 ${
+                      isDarkTheme ? 'text-gray-300' : 'text-gray-700'
+                    }`}
+                  >
+                    Description
+                  </label>
+                  <textarea
+                    name="description"
+                    value={formData.description}
+                    onChange={handleInputChange}
+                    placeholder="Brief description of the category..."
+                    rows={3}
+                    className={`w-full px-4 py-2 rounded-lg border transition-colors ${
+                      isDarkTheme
+                        ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500'
+                        : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400'
+                    } focus:outline-none focus:ring-2 focus:ring-[#E94E8B]`}
+                  />
+                </div>
+
+                {/* Is Active */}
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    id="is_active"
+                    name="is_active"
+                    checked={formData.is_active}
+                    onChange={(e) => setFormData(prev => ({ ...prev, is_active: e.target.checked }))}
+                    className="w-4 h-4 text-[#E94E8B] bg-gray-100 border-gray-300 rounded focus:ring-[#E94E8B] focus:ring-2"
+                  />
+                  <label
+                    htmlFor="is_active"
+                    className={`ml-2 text-sm font-medium ${
+                      isDarkTheme ? 'text-gray-300' : 'text-gray-700'
+                    }`}
+                  >
+                    Active
+                  </label>
+                </div>
+
+                {/* Display Order */}
+                <div>
+                  <label
+                    className={`block text-sm font-medium mb-2 ${
+                      isDarkTheme ? 'text-gray-300' : 'text-gray-700'
+                    }`}
+                  >
+                    Display Order
+                  </label>
+                  <input
+                    type="number"
+                    name="display_order"
+                    value={formData.display_order}
+                    onChange={(e) => setFormData(prev => ({ ...prev, display_order: parseInt(e.target.value) || 0 }))}
+                    placeholder="0"
+                    min="0"
+                    className={`w-full px-4 py-2 rounded-lg border transition-colors ${
+                      isDarkTheme
+                        ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500'
+                        : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400'
+                    } focus:outline-none focus:ring-2 focus:ring-[#E94E8B]`}
                   />
                 </div>
 
@@ -680,9 +746,10 @@ export default function Categories({ isDarkTheme }: CategoriesProps) {
               </button>
               <button
                 type="submit"
-                className="px-6 py-2 bg-[#E94E8B] text-white rounded-lg font-medium hover:bg-[#d43d75] transition-colors"
+                disabled={submitting}
+                className="px-6 py-2 bg-[#E94E8B] text-white rounded-lg font-medium hover:bg-[#d43d75] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {editingCategory ? 'Update Category' : 'Add Category'}
+                {submitting ? 'Saving...' : (editingCategory ? 'Update Category' : 'Add Category')}
               </button>
             </div>
           </form>
@@ -699,7 +766,11 @@ export default function Categories({ isDarkTheme }: CategoriesProps) {
           All Categories ({categories.length})
         </h2>
 
-        {categories.length === 0 ? (
+        {loading ? (
+          <div className={`text-center py-12 ${isDarkTheme ? 'text-gray-400' : 'text-gray-500'}`}>
+            Loading categories...
+          </div>
+        ) : categories.length === 0 ? (
           <div className={`text-center py-12 ${isDarkTheme ? 'text-gray-400' : 'text-gray-500'}`}>
             No categories added yet. Click "Add Category" to create your first category.
           </div>
@@ -707,7 +778,7 @@ export default function Categories({ isDarkTheme }: CategoriesProps) {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {categories.map((category) => (
               <div
-                key={category.id}
+                key={category.category_id}
                 className={`${
                   isDarkTheme ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-200'
                 } rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow`}
@@ -715,67 +786,59 @@ export default function Categories({ isDarkTheme }: CategoriesProps) {
                 {/* Category Image */}
                 <div className="relative h-48 bg-gray-100">
                   <img
-                    src={category.image}
-                    alt={category.name}
+                    src={category.image_url || 'https://www.onlinepng.com/cdn/shop/files/CH-928725-1.jpg?v=1719396928'}
+                    alt={category.category_name}
                     className="w-full h-full object-cover"
                   />
                   <div className="absolute top-2 right-2 flex gap-2">
                     <button
-                      onClick={() => handleEdit(category.id)}
+                      onClick={() => handleEdit(category.category_id)}
                       className="p-2 bg-white/80 backdrop-blur-sm rounded-full hover:bg-white transition-colors"
                     >
                       <EditIcon className="w-4 h-4 text-gray-700" />
                     </button>
                     <button
-                      onClick={() => handleDelete(category.id)}
+                      onClick={() => handleDelete(category.category_id)}
                       className="p-2 bg-white/80 backdrop-blur-sm rounded-full hover:bg-white transition-colors"
                     >
                       <DeleteIcon className="w-4 h-4 text-red-600" />
                     </button>
+                  </div>
+                  {/* Status Badge */}
+                  <div className="absolute top-2 left-2">
+                    <span className={`px-2 py-1 text-xs font-medium rounded ${
+                      category.is_active
+                        ? 'bg-green-100 text-green-800'
+                        : 'bg-red-100 text-red-800'
+                    }`}>
+                      {category.is_active ? 'Active' : 'Inactive'}
+                    </span>
                   </div>
                 </div>
 
                 {/* Category Info */}
                 <div className="p-4">
                   <h3 className={`font-semibold text-lg mb-2 ${isDarkTheme ? 'text-white' : 'text-gray-900'}`}>
-                    {category.name}
+                    {category.category_name}
                   </h3>
 
-                  <div className="mb-3">
-                    <p className={`text-sm font-medium mb-2 ${isDarkTheme ? 'text-gray-300' : 'text-gray-700'}`}>
-                      Sub Categories ({category.subCategories.length}):
+                  {category.description && (
+                    <p className={`text-sm mb-2 ${isDarkTheme ? 'text-gray-300' : 'text-gray-600'}`}>
+                      {category.description}
                     </p>
-                    <div className="grid grid-cols-2 gap-2">
-                      {category.subCategories.map((sub) => (
-                        <div
-                          key={sub.id}
-                          className={`flex items-center gap-2 p-2 rounded-lg ${
-                            isDarkTheme
-                              ? 'bg-gray-700'
-                              : 'bg-gray-100'
-                          }`}
-                        >
-                          <img
-                            src={sub.image}
-                            alt={sub.name}
-                            className="w-8 h-8 rounded object-cover"
-                          />
-                          <span
-                            className={`text-xs truncate ${
-                              isDarkTheme
-                                ? 'text-gray-300'
-                                : 'text-gray-600'
-                            }`}
-                          >
-                            {sub.name}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
+                  )}
+
+                  <div className="flex items-center justify-between text-xs">
+                    <span className={isDarkTheme ? 'text-gray-400' : 'text-gray-500'}>
+                      Slug: {category.slug}
+                    </span>
+                    <span className={isDarkTheme ? 'text-gray-400' : 'text-gray-500'}>
+                      Order: {category.display_order}
+                    </span>
                   </div>
 
-                  <div className={`text-xs ${isDarkTheme ? 'text-gray-400' : 'text-gray-500'}`}>
-                    Used in: Landing Page (Category) & Collection Page (Sub-categories)
+                  <div className={`text-xs mt-2 ${isDarkTheme ? 'text-gray-400' : 'text-gray-500'}`}>
+                    Used in: Landing Page (Category)
                   </div>
                 </div>
               </div>
