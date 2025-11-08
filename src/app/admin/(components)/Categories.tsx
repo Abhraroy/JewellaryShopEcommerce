@@ -97,9 +97,11 @@ export default function Categories({ isDarkTheme }: CategoriesProps) {
         setCategories(result.data);
       } else {
         console.error('Failed to fetch categories:', result.error);
+        alert(`Failed to load categories: ${result.error}`);
       }
     } catch (error) {
       console.error('Error fetching categories:', error);
+      alert('An unexpected error occurred while loading categories.');
     } finally {
       setLoading(false);
     }
@@ -301,6 +303,9 @@ export default function Categories({ isDarkTheme }: CategoriesProps) {
         }
       }
 
+      // Refresh categories to ensure we have the latest data
+      await fetchCategories();
+
       // Reset form and cleanup
       handleCancel();
     } catch (error) {
@@ -335,6 +340,8 @@ export default function Categories({ isDarkTheme }: CategoriesProps) {
         const result = await deleteCategory(categoryId);
         if (result.success) {
           setCategories((prev) => prev.filter(cat => cat.category_id !== categoryId));
+          // Refresh categories to ensure we have the latest data
+          await fetchCategories();
         } else {
           alert(`Failed to delete category: ${result.error}`);
         }
@@ -725,7 +732,7 @@ export default function Categories({ isDarkTheme }: CategoriesProps) {
                 ))}
                 {formData.subCategories.length === 0 && (
                   <div className={`text-center py-8 ${isDarkTheme ? 'text-gray-400' : 'text-gray-500'}`}>
-                    No sub categories added yet. Click "Add Sub Category" to add one.
+                    No sub categories added yet. Click &quot;Add Sub Category&quot; to add one.
                   </div>
                 )}
               </div>
@@ -762,9 +769,12 @@ export default function Categories({ isDarkTheme }: CategoriesProps) {
           isDarkTheme ? 'bg-black border border-gray-700' : 'bg-white'
         } rounded-lg shadow p-6`}
       >
-        <h2 className={`text-xl font-semibold mb-4 ${isDarkTheme ? 'text-white' : 'text-gray-900'}`}>
-          All Categories ({categories.length})
+        <h2 className={`text-xl font-semibold mb-2 ${isDarkTheme ? 'text-white' : 'text-gray-900'}`}>
+          Main Categories ({categories.length})
         </h2>
+        <p className={`text-sm mb-4 ${isDarkTheme ? 'text-gray-400' : 'text-gray-600'}`}>
+          Manage your jewelry categories. Categories are sorted by display order.
+        </p>
 
         {loading ? (
           <div className={`text-center py-12 ${isDarkTheme ? 'text-gray-400' : 'text-gray-500'}`}>
@@ -772,7 +782,7 @@ export default function Categories({ isDarkTheme }: CategoriesProps) {
           </div>
         ) : categories.length === 0 ? (
           <div className={`text-center py-12 ${isDarkTheme ? 'text-gray-400' : 'text-gray-500'}`}>
-            No categories added yet. Click "Add Category" to create your first category.
+            No categories added yet. Click &quot;Add Category&quot; to create your first category.
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -784,12 +794,23 @@ export default function Categories({ isDarkTheme }: CategoriesProps) {
                 } rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow`}
               >
                 {/* Category Image */}
-                <div className="relative h-48 bg-gray-100">
-                  <img
-                    src={category.image_url || 'https://www.onlinepng.com/cdn/shop/files/CH-928725-1.jpg?v=1719396928'}
-                    alt={category.category_name}
-                    className="w-full h-full object-cover"
-                  />
+                <div className={`relative h-48 ${category.image_url ? 'bg-gray-100' : isDarkTheme ? 'bg-gray-800' : 'bg-gray-100'}`}>
+                  {category.image_url ? (
+                    <img
+                      src={category.image_url}
+                      alt={category.category_name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <div className="text-center">
+                        <ImageIcon className={`w-12 h-12 mx-auto mb-2 ${isDarkTheme ? 'text-gray-600' : 'text-gray-400'}`} />
+                        <p className={`text-xs ${isDarkTheme ? 'text-gray-500' : 'text-gray-500'}`}>
+                          No Image
+                        </p>
+                      </div>
+                    </div>
+                  )}
                   <div className="absolute top-2 right-2 flex gap-2">
                     <button
                       onClick={() => handleEdit(category.category_id)}
@@ -808,8 +829,8 @@ export default function Categories({ isDarkTheme }: CategoriesProps) {
                   <div className="absolute top-2 left-2">
                     <span className={`px-2 py-1 text-xs font-medium rounded ${
                       category.is_active
-                        ? 'bg-green-100 text-green-800'
-                        : 'bg-red-100 text-red-800'
+                        ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                        : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
                     }`}>
                       {category.is_active ? 'Active' : 'Inactive'}
                     </span>
@@ -838,7 +859,7 @@ export default function Categories({ isDarkTheme }: CategoriesProps) {
                   </div>
 
                   <div className={`text-xs mt-2 ${isDarkTheme ? 'text-gray-400' : 'text-gray-500'}`}>
-                    Used in: Landing Page (Category)
+                    Used in: Landing Page • ID: {category.category_id.slice(0, 8)}...
                   </div>
                 </div>
               </div>

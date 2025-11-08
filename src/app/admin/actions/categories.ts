@@ -3,46 +3,11 @@
 import { createClient } from '@/app/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { uploadImageToCloudflare, deleteImageFromCloudflare } from '@/app/utils/cloudflare'
+import { extractR2KeyFromUrl } from './utils'
 
 /**
- * Extracts the R2 key from a URL
- * Handles both endpoint URLs and public URLs
+ * Category Types and Interfaces
  */
-function extractR2KeyFromUrl(url: string): string | null {
-  try {
-    const urlObj = new URL(url)
-    const pathParts = urlObj.pathname.split('/').filter(Boolean)
-    const bucketName = process.env.CLOUDFLARE_R2_BUCKET_NAME
-    const endpoint = process.env.CLOUDFLARE_R2_ENDPOINT
-    const publicUrl = process.env.CLOUDFLARE_R2_PUBLIC_URL
-    
-    // Check if URL uses the endpoint format
-    if (endpoint && url.includes(endpoint.replace('https://', '').replace('http://', ''))) {
-      // Endpoint format: https://endpoint/bucketName/key/path
-      if (bucketName && pathParts[0] === bucketName) {
-        return pathParts.slice(1).join('/')
-      }
-      // If bucket name not in path, assume it's just the key
-      return pathParts.join('/')
-    }
-    
-    // Check if URL uses public URL format
-    if (publicUrl && url.startsWith(publicUrl)) {
-      // Public URL format: https://publicUrl/key/path
-      const publicUrlPath = new URL(publicUrl).pathname
-      const publicPathParts = publicUrlPath.split('/').filter(Boolean)
-      // Remove public URL path parts and return the rest
-      return pathParts.slice(publicPathParts.length).join('/') || pathParts.join('/')
-    }
-    
-    // Fallback: assume everything after first slash is the key
-    return pathParts.join('/')
-  } catch (error) {
-    console.error('Error extracting R2 key from URL:', error)
-    return null
-  }
-}
-
 export interface Category {
   category_id: string
   parent_category_id: string | null
@@ -52,8 +17,6 @@ export interface Category {
   image_url: string | null
   is_active: boolean
   display_order: number
-  created_at?: string
-  updated_at?: string
 }
 
 export interface CreateCategoryData {
@@ -69,7 +32,10 @@ export interface UpdateCategoryData extends Partial<CreateCategoryData> {
   category_id: string
 }
 
-// Get all categories (only main categories for now, no subcategories)
+/**
+ * Get all main categories (categories without a parent)
+ * @returns Promise with array of categories sorted by display_order
+ */
 export async function getCategories(): Promise<{ success: boolean; data?: Category[]; error?: string }> {
   try {
     const supabase = await createClient()
@@ -95,7 +61,11 @@ export async function getCategories(): Promise<{ success: boolean; data?: Catego
   }
 }
 
-// Get a single category by ID
+/**
+ * Get a single category by ID
+ * @param categoryId - The UUID of the category
+ * @returns Promise with category data
+ */
 export async function getCategory(categoryId: string): Promise<{ success: boolean; data?: Category; error?: string }> {
   try {
     const supabase = await createClient()
@@ -121,7 +91,11 @@ export async function getCategory(categoryId: string): Promise<{ success: boolea
   }
 }
 
-// Create a new category
+/**
+ * Create a new category
+ * @param formData - Category data including optional image file
+ * @returns Promise with created category data
+ */
 export async function createCategory(formData: CreateCategoryData): Promise<{ success: boolean; data?: Category; error?: string }> {
   try {
     const supabase = await createClient()
@@ -180,7 +154,11 @@ export async function createCategory(formData: CreateCategoryData): Promise<{ su
   }
 }
 
-// Update an existing category
+/**
+ * Update an existing category
+ * @param formData - Category data to update, including category_id
+ * @returns Promise with updated category data
+ */
 export async function updateCategory(formData: UpdateCategoryData): Promise<{ success: boolean; data?: Category; error?: string }> {
   try {
     const supabase = await createClient()
@@ -224,9 +202,7 @@ export async function updateCategory(formData: UpdateCategoryData): Promise<{ su
     }
 
     // Update category in database
-    const updateData: Partial<Category> = {
-      updated_at: new Date().toISOString()
-    }
+    const updateData: Partial<Category> = {}
 
     if (formData.category_name !== undefined) updateData.category_name = formData.category_name
     if (formData.slug !== undefined) updateData.slug = formData.slug
@@ -258,7 +234,11 @@ export async function updateCategory(formData: UpdateCategoryData): Promise<{ su
   }
 }
 
-// Delete a category
+/**
+ * Delete a category and its associated image from R2
+ * @param categoryId - The UUID of the category to delete
+ * @returns Promise with deletion result
+ */
 export async function deleteCategory(categoryId: string): Promise<{ success: boolean; error?: string }> {
   try {
     const supabase = await createClient()
@@ -304,3 +284,4 @@ export async function deleteCategory(categoryId: string): Promise<{ success: boo
     }
   }
 }
+
