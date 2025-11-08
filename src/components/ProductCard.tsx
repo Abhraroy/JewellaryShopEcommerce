@@ -22,6 +22,7 @@ interface ProductCardProps {
   onAddToCart?: (productId: string) => void;
   onWishlistToggle?: (productId: string) => void;
   isWishlisted?: boolean;
+  size?: 'small' | 'default';
 }
 
 export default function ProductCard({
@@ -29,6 +30,7 @@ export default function ProductCard({
   onAddToCart,
   onWishlistToggle,
   isWishlisted = false,
+  size = 'default',
 }: ProductCardProps) {
   const [isWishlistActive, setIsWishlistActive] = useState(isWishlisted);
   const [imageError, setImageError] = useState(false);
@@ -204,19 +206,33 @@ export default function ProductCard({
 
         {/* Price Section - Enhanced */}
         <div className="mt-auto pt-3 border-t border-gray-100">
-          <div className="flex items-baseline gap-2 mb-4">
-            <span className="text-xl md:text-2xl font-bold text-gray-900 tracking-tight">
-              ₹{product.price.toFixed(2)}
-            </span>
-            {product.originalPrice && product.originalPrice > product.price && (
-              <>
-                <span className="text-sm md:text-base text-gray-400 line-through font-medium">
+          <div className={`flex gap-2 ${size === 'small' ? 'mb-3 flex-wrap md:flex-nowrap items-baseline md:items-baseline' : 'mb-4 items-baseline'}`}>
+            <div className="flex items-baseline gap-2">
+              <span className={`font-bold text-gray-900 tracking-tight ${
+                size === 'small' 
+                  ? 'text-base md:text-lg' 
+                  : 'text-xl md:text-2xl'
+              }`}>
+                ₹{product.price.toFixed(2)}
+              </span>
+              {product.originalPrice && product.originalPrice > product.price && (
+                <span className={`text-gray-400 line-through font-medium ${
+                  size === 'small' 
+                    ? 'text-xs md:text-sm' 
+                    : 'text-sm md:text-base'
+                }`}>
                   ₹{product.originalPrice.toFixed(2)}
                 </span>
-                <span className="text-xs md:text-sm font-semibold text-green-600 bg-green-50 px-2 py-0.5 rounded">
-                  Save ₹{(product.originalPrice - product.price).toFixed(2)}
-                </span>
-              </>
+              )}
+            </div>
+            {product.originalPrice && product.originalPrice > product.price && (
+              <span className={`font-semibold text-green-600 bg-green-50 rounded ${
+                size === 'small' 
+                  ? 'text-[10px] md:text-xs px-1.5 py-0.5 w-full md:w-auto' 
+                  : 'text-xs md:text-sm px-2 py-0.5'
+              }`}>
+                Save ₹{(product.originalPrice - product.price).toFixed(2)}
+              </span>
             )}
           </div>
 
@@ -253,7 +269,7 @@ export default function ProductCard({
 
   if (product.slug) {
     return (
-      <Link href={`/collection/${product.slug}`} className="block h-full">
+      <Link href={`/product/${product.slug}`} className="block h-full">
         {CardContent}
       </Link>
     );
