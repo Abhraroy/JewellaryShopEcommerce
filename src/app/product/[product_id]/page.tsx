@@ -1,7 +1,11 @@
+"use client"
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import ProductDisplay from '@/components/ProductDisplay';
 import ProductReview from '@/components/ProductReview';
+import { useParams } from 'next/navigation';
+import { createClient } from '@/app/utils/supabase/client';
+import { useEffect, useState } from 'react';
 
 // Demo product data - will be replaced with actual data from Supabase
 const demoProduct = {
@@ -142,6 +146,39 @@ const demoRatingDistribution = {
 };
 
 export default function ProductPage() {
+  const [productDetails,setProductDetails] = useState<any>(null);
+  const [productImages,setProductImages] = useState<any>(null);
+  const {product_id} = useParams();
+
+  const supabase = createClient();
+  
+  useEffect(()=>{
+    const getProductdetails = async()=>{
+      const {data,error} = await supabase.from("products").select("*").eq("product_id",product_id).single();
+      if(error){
+        console.log("error",error)
+      }
+      else{
+        console.log("product details",data)
+        setProductDetails(data)
+      }
+    }
+    getProductdetails();
+    const getProductimages = async()=>{
+      const {data,error} = await supabase.from("product_images").select("*").eq("product_id",product_id);
+      if(error){
+        console.log("error",error)
+      }
+      else{
+        console.log("product images",data)
+        setProductImages(data)
+      }
+    }
+    getProductimages();
+  },[product_id])
+
+
+
   return (
     <div className="min-h-screen bg-white flex flex-col">
       <Navbar cartCount={3} isAuthenticated={false} />
