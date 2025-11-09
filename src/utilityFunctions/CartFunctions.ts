@@ -1,5 +1,5 @@
 export const addToLocalCart = (product: any) => {
-    // console.log(product)
+    console.log(product)
     console.log("Adding to local cart")
     let cartMap = new Map();
     const product_obj = {
@@ -10,20 +10,25 @@ export const addToLocalCart = (product: any) => {
     let localCartItemsArray = localCartItems ? JSON.parse(localCartItems) : [];
     // console.log("localCartItemsArray before adding product", localCartItemsArray)
     if(localCartItemsArray.length === 0){
-        cartMap.set(product_obj.id,{products:product_obj,quantity:1})
+        cartMap.set(product_obj.product_id,{products:product_obj,quantity:1})
     }
     else{
         localCartItemsArray.forEach((item: any) => {
-            cartMap.set(item.products.id, item)
+            console.log("item",item)
+            cartMap.set(item.products.product_id, item)
         })
-        if(cartMap.has(product_obj.id)){
-            cartMap.get(product_obj.id).quantity += 1
+        console.log("cartMap",cartMap)
+        if(cartMap.has(product_obj.product_id)){
+            console.log("Product already exists in cart")
+            cartMap.get(product_obj.product_id).quantity += 1
         }
         else{
-            cartMap.set(product_obj.id, {products:product_obj,quantity:1})
+            console.log("Product does not exist in cart adding new product")
+            cartMap.set(product_obj.product_id, {products:product_obj,quantity:1})
         }
     }
     const updatedCart = Array.from(cartMap.values())
+    console.log("updatedCart",updatedCart)
     localStorage.setItem("cartItems",JSON.stringify(updatedCart))
     return updatedCart;
 }
@@ -124,9 +129,10 @@ export const getCartData = async(CartId:string,supabase:any)=>{
 
 
 
-export const addToDbCart = async(product:any,AuthUserId:string,CartId:string,supabase:any)=>{
+export const addToDbCart = async(product:any,CartId:string,supabase:any)=>{
     console.log("Adding to db cart")
     console.log("product",product.product_id)
+    console.log("supabase",supabase)
     const productExistsInCart = await supabase.from("cart_items").select("*").eq("cart_id",CartId).eq("product_id",product.product_id)
     console.log("Existence of product in cart",productExistsInCart)
     if(productExistsInCart.data.length > 0){
@@ -141,18 +147,25 @@ export const addToDbCart = async(product:any,AuthUserId:string,CartId:string,sup
         }
         else{
             console.log("cart item updated",data)
-            return {success:true,data:data,message:"Cart item updated successfully"}
+            const updatedCartItems = await getCartData(CartId,supabase)
+            if(updatedCartItems.success){
+                console.log("updatedCartItems from function ",updatedCartItems.data)
+                return updatedCartItems.data;
+            }
+            else{
+                // console.log("error",updatedCartItems.error)
+                // return {success:false,error:updatedCartItems.error,message:"Failed to get cart data"}
+            }
         }
     }
     else{
         console.log("product does not exist in cart")
         console.log("product",product)
         console.log("cartID",CartId)
-        console.log("AuthUserId",AuthUserId)
         const {data,error} = await supabase.from("cart_items").insert({
             cart_id:CartId,
             product_id:product.product_id,
-            quantity:product.quantity,
+            quantity:1,
         })
         if(error){
             console.log("error",error)
@@ -160,7 +173,15 @@ export const addToDbCart = async(product:any,AuthUserId:string,CartId:string,sup
         }
         else{
             console.log("cart item added",data)
-            return {success:true,data:data,message:"Cart item added successfully"}
+            const updatedCartItems = await getCartData(CartId,supabase)
+            if(updatedCartItems.success){
+                console.log("updatedCartItems from function ",updatedCartItems.data)
+                return updatedCartItems.data;
+            }
+            else{
+                // console.log("error",updatedCartItems.error)
+                // return {success:false,error:updatedCartItems.error,message:"Failed to get cart data"}
+            }
         }
     }
     
@@ -177,7 +198,15 @@ export const removeFromDbCart = async(product:any,CartId:string,supabase:any)=>{
     }
     else{
         console.log("cart item removed",data)
-        return {success:true,data:data,message:"Cart item removed successfully"}
+        const updatedCartItems = await getCartData(CartId,supabase)
+        if(updatedCartItems.success){
+            console.log("updatedCartItems from function ",updatedCartItems.data)
+            return updatedCartItems.data;
+        }
+        else{
+            // console.log("error",updatedCartItems.error)
+            // return {success:false,error:updatedCartItems.error,message:"Failed to get cart data"}
+        }
     }
 }
 

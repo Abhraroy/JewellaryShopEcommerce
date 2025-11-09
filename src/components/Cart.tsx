@@ -4,7 +4,7 @@ import Image from "next/image";
 import { useStore } from "@/zustandStore/zustandStore";
 import { useEffect, useState } from "react";
 import { createClient } from "@/app/utils/supabase/client";
-import { addToLocalCart, decreaseQuantityFromDbCart, decreaseQuantityFromLocalCart, getCartData, removeFromLocalCart } from "@/utilityFunctions/CartFunctions";
+import { addToDbCart, addToLocalCart, decreaseQuantityFromDbCart, decreaseQuantityFromLocalCart, getCartData, removeFromDbCart, removeFromLocalCart } from "@/utilityFunctions/CartFunctions";
 
 interface CartProps {
   isOpen?: boolean;
@@ -16,6 +16,7 @@ export default function Cart({ isOpen = false, onClose }: CartProps) {
   const [subtotal, setSubtotal] = useState(0);
   // Sample cart items for UI demonstration
   const supabase = createClient();
+  console.log("Initializing supabase",supabase)
 
   if (cartItems && cartItems.length > 0) {
     const subtotal = cartItems.reduce(
@@ -49,7 +50,32 @@ export default function Cart({ isOpen = false, onClose }: CartProps) {
     }
   }
 
-
+  const handleRemoveItem = async(product:any)=>{
+    if(AuthenticatedState){
+      const updatedItem = await removeFromDbCart(product,CartId,supabase)
+      setCartItems(updatedItem);
+    }
+    else{
+      const updatedItem = await removeFromLocalCart(product)
+      setCartItems(updatedItem);
+    }
+  }
+  
+  const handleIncreaseQuantity = async(product:any)=>{
+    if(AuthenticatedState){
+      console.log("Adding to db cart")
+      console.log("product",product.product_id)
+      console.log("CartId",CartId)
+      console.log("supabase",supabase)
+      const updatedItem = await addToDbCart(product,CartId,supabase)
+      setCartItems(updatedItem);
+    }
+    else{
+      console.log("User is not authenticated adding to local cart")
+      const updatedItem = addToLocalCart(product.products)
+      setCartItems(updatedItem);
+    }
+  }
 
   useEffect(() => {
     if(cartItems){
@@ -260,9 +286,8 @@ export default function Cart({ isOpen = false, onClose }: CartProps) {
                               className="p-1.5 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded transition-colors duration-200"
                               aria-label="Increase quantity"
                               onClick={() => {
-                                const updatedItem =  addToLocalCart(item);
-                                setCartItems(updatedItem);
-                                setSubtotal(calculateSubTotal(updatedItem));
+                                handleIncreaseQuantity(item);
+                                
                               }
                             }
                             >
@@ -288,8 +313,7 @@ export default function Cart({ isOpen = false, onClose }: CartProps) {
                             className="p-1.5 text-red-600 hover:text-red-700 hover:bg-red-50 rounded transition-colors duration-200"
                             aria-label="Remove item"
                             onClick={() => {
-                              const updatedItem = removeFromLocalCart(item);
-                              setCartItems(updatedItem);
+                              handleRemoveItem(item);
                             }}
                           >
                             <svg

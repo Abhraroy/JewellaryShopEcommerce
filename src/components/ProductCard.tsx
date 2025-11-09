@@ -55,7 +55,7 @@ export default function ProductCard({
     onWishlistToggle?.(product.product_id);
   };
 
-  const handleAddToCart = (e: React.MouseEvent) => {
+  const handleAddToCart = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setIsCartClicked(true);
@@ -64,10 +64,12 @@ export default function ProductCard({
       console.log("AuthenticatedState",AuthenticatedState)
       console.log("AuthUserId",AuthUserId)
       console.log("CartId",CartId)
-      addToDbCart(product,AuthUserId,CartId,supabase)
+      const updatedItem = await addToDbCart(product,CartId,supabase)
+      setCartItems(updatedItem);
     }
     else{
-      addToLocalCart(product)
+      const updatedItem = addToLocalCart(product)
+      setCartItems(updatedItem);
     }
     // Reset animation after it completes
     setTimeout(() => {
