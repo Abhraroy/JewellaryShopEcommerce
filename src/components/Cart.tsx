@@ -19,9 +19,10 @@ export default function Cart({ isOpen = false, onClose }: CartProps) {
 
   if (cartItems && cartItems.length > 0) {
     const subtotal = cartItems.reduce(
-      (sum: number, item: any) => sum + item.price * item.quantity,
-      0
+      (sum: number, item: any) =>  sum + item.products.final_price * item.quantity,0
+  
     );
+    console.log("subtotal",subtotal)
     const shipping: number = 0;
     const total = subtotal + shipping;
   }
@@ -32,7 +33,7 @@ export default function Cart({ isOpen = false, onClose }: CartProps) {
       return 0;
     }
     else{
-      return cartItems.reduce((sum: number, item: any) => sum + item.price * item.quantity, 0);
+      return cartItems.reduce((sum: number, item: any) => sum + item.products.final_price * item.quantity, 0);
     }
   }
 

@@ -126,11 +126,15 @@ export const getCartData = async(CartId:string,supabase:any)=>{
 
 export const addToDbCart = async(product:any,AuthUserId:string,CartId:string,supabase:any)=>{
     console.log("Adding to db cart")
-    const productExistsInCart = await supabase.from("cart_items").select("*").eq("cart_id",CartId).eq("product_id",product.id).maybeSingle();
-    if(productExistsInCart.data){
+    console.log("product",product.product_id)
+    const productExistsInCart = await supabase.from("cart_items").select("*").eq("cart_id",CartId).eq("product_id",product.product_id)
+    console.log("Existence of product in cart",productExistsInCart)
+    if(productExistsInCart.data.length > 0){
+        console.log("product exists in cart")
+        console.log("quantity before updating",productExistsInCart.data[0].quantity)
         const {data,error} = await supabase.from("cart_items").update({
-            quantity:productExistsInCart.data.quantity + 1,
-        })
+            quantity:productExistsInCart.data[0].quantity + 1,
+        }).eq("cart_id",CartId).eq("product_id",product.product_id)
         if(error){
             console.log("error",error)
             return {success:false,error:error,message:"Failed to update cart item"}
@@ -161,3 +165,6 @@ export const addToDbCart = async(product:any,AuthUserId:string,CartId:string,sup
     }
     
 }
+
+
+
