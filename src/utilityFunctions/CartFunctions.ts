@@ -167,4 +167,41 @@ export const addToDbCart = async(product:any,AuthUserId:string,CartId:string,sup
 }
 
 
+export const removeFromDbCart = async(product:any,CartId:string,supabase:any)=>{
+    console.log("Removing from db cart")
+    console.log("product",product.product_id)
+    const {data,error} = await supabase.from("cart_items").delete().eq("cart_id",CartId).eq("product_id",product.product_id)
+    if(error){
+        console.log("error",error)
+        return {success:false,error:error,message:"Failed to remove from cart"}
+    }
+    else{
+        console.log("cart item removed",data)
+        return {success:true,data:data,message:"Cart item removed successfully"}
+    }
+}
 
+export const decreaseQuantityFromDbCart = async(product:any,CartId:string,supabase:any)=>{
+    console.log("Decreasing quantity from db cart")
+    console.log("product",product.product_id)
+    const {data,error} = await supabase.from("cart_items").update({
+        quantity:product.quantity - 1,
+    }).eq("cart_id",CartId).eq("product_id",product.product_id)
+    console.log("data",data)
+    if(error){
+        console.log("error",error)
+        return {success:false,error:error,message:"Failed to decrease quantity from cart"}
+    }
+    else{
+        console.log("cart item quantity decreased",data)
+        const updatedCartItems = await getCartData(CartId,supabase)
+        if(updatedCartItems.success){
+            console.log("updatedCartItems from function ",updatedCartItems.data)
+            return updatedCartItems.data;
+        }
+        else{
+            // console.log("error",updatedCartItems.error)
+            // return {success:false,error:updatedCartItems.error,message:"Failed to get cart data"}
+        }
+    }
+}

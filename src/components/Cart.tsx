@@ -4,7 +4,7 @@ import Image from "next/image";
 import { useStore } from "@/zustandStore/zustandStore";
 import { useEffect, useState } from "react";
 import { createClient } from "@/app/utils/supabase/client";
-import { addToLocalCart, decreaseQuantityFromLocalCart, getCartData, removeFromLocalCart } from "@/utilityFunctions/CartFunctions";
+import { addToLocalCart, decreaseQuantityFromDbCart, decreaseQuantityFromLocalCart, getCartData, removeFromLocalCart } from "@/utilityFunctions/CartFunctions";
 
 interface CartProps {
   isOpen?: boolean;
@@ -36,6 +36,20 @@ export default function Cart({ isOpen = false, onClose }: CartProps) {
       return cartItems.reduce((sum: number, item: any) => sum + item.products.final_price * item.quantity, 0);
     }
   }
+
+  const handleDecreaseQuantity = async(product:any)=>{
+    if(AuthenticatedState){
+       const updatedItem = await decreaseQuantityFromDbCart(product,CartId,supabase)
+       console.log("updatedItem",updatedItem)
+        setCartItems(updatedItem);
+    }
+    else{
+      const updatedItem = await decreaseQuantityFromLocalCart(product)
+      setCartItems(updatedItem);
+    }
+  }
+
+
 
   useEffect(() => {
     if(cartItems){
@@ -214,11 +228,14 @@ export default function Cart({ isOpen = false, onClose }: CartProps) {
                         <div className="flex items-center gap-3">
                           <div className="flex items-center gap-2 border border-gray-300 rounded-lg bg-white">
                             <button
-                              className="p-1.5 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded transition-colors duration-200"
+                              className="p-1.5 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded transition-colors duration-200 
+                              disabled:opacity-50 disabled:cursor-not-allowed
+                              "
+                              disabled={item.quantity === 1?true:false}
                               aria-label="Decrease quantity"
                               onClick={() => {
-                                const updatedItem = decreaseQuantityFromLocalCart(item);
-                                setCartItems(updatedItem);
+                                handleDecreaseQuantity(item);
+                                
                               }}
                             >
                               <svg
