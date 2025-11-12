@@ -6,6 +6,7 @@ import ProductReview from '@/components/ProductReview';
 import { useParams } from 'next/navigation';
 import { createClient } from '@/app/utils/supabase/client';
 import { useEffect, useState } from 'react';
+import { useStore } from '@/zustandStore/zustandStore';
 
 // Demo product data - will be replaced with actual data from Supabase
 const demoProduct = {
@@ -145,36 +146,51 @@ const demoRatingDistribution = {
   1: 2
 };
 
-export default function ProductPage() {
-  const [productDetails,setProductDetails] = useState<any>(null);
-  const [productImages,setProductImages] = useState<any>(null);
-  const {product_id} = useParams();
 
+export default function ProductPage() {
+  const {product_id} = useParams();
+  const [productDetails, setProductDetails] = useState<any>(null);
+  const [reviews, setReviews] = useState<any>([]);
   const supabase = createClient();
   
   useEffect(()=>{
     const getProductdetails = async()=>{
-      const {data,error} = await supabase.from("products").select("*").eq("product_id",product_id).single();
+      const {data,error} = await supabase
+      .from("products")
+      .select(`
+        *,
+        product_images!product_images_product_id_fkey(*),
+        reviews(*),
+        categories(*)
+        `).eq("product_id",product_id);
       if(error){
         console.log("error",error)
       }
       else{
         console.log("product details",data)
-        setProductDetails(data)
+        setProductDetails(data);
       }
     }
     getProductdetails();
-    const getProductimages = async()=>{
-      const {data,error} = await supabase.from("product_images").select("*").eq("product_id",product_id);
+    const reviewData = async()=>{
+      const {data,error} = await supabase
+      .from("reviews")
+      .select(`
+      *,
+      review_images(*),
+      users(*)  
+      `)
+      .eq("product_id",product_id);
       if(error){
         console.log("error",error)
       }
       else{
         console.log("product images",data)
-        setProductImages(data)
+        setReviews(data);
       }
     }
-    getProductimages();
+    reviewData();
+    
   },[product_id])
 
 
@@ -183,14 +199,12 @@ export default function ProductPage() {
     <div className="min-h-screen bg-white flex flex-col">
       <Navbar cartCount={3} isAuthenticated={false} />
 
-      <ProductDisplay product={demoProduct} />
+      {productDetails && <ProductDisplay productDetails={productDetails} />}
 
-      <ProductReview
-        reviews={demoReviews}
-        totalReviews={128}
-        averageRating={4.5}
-        ratingDistribution={demoRatingDistribution}
-      />
+      {reviews && <ProductReview
+        reviews={reviews}
+      />}
+      {reviews && JSON.stringify(reviews)}
 
       <Footer />
     </div>
