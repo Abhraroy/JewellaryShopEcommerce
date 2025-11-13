@@ -204,8 +204,6 @@ export default function ProductPage() {
       {reviews && <ProductReview
         reviews={reviews}
       />}
-      {reviews && JSON.stringify(reviews)}
-
       <Footer />
     </div>
   );
