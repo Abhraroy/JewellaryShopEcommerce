@@ -29,6 +29,8 @@ interface StoreState {
     setCategories: (categories: any) => void;
     refresh: boolean;
     setRefresh: () => void;
+    wishListItems: any;
+    setWishListItems: (wishListItems: any) => void;
 }
 
 export const useStore = create<StoreState>((set) => ({
@@ -60,5 +62,7 @@ export const useStore = create<StoreState>((set) => ({
     setCategories: (categories: any) => set({ categories: categories }),
     refresh:false,
     setRefresh: () => set((state) => ({ refresh: !state.refresh })),
+    wishListItems: [],
+    setWishListItems: (wishListItems: any) => set({ wishListItems: wishListItems }),
 }))
 

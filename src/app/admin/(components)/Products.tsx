@@ -37,6 +37,8 @@ const ImageIcon = ({ className = 'w-5 h-5' }) => (
   </svg>
 );
 
+
+
 export default function Products({ isDarkTheme }: ProductsProps) {
   const [showAddProduct, setShowAddProduct] = useState(false);
   const [formData, setFormData] = useState({
@@ -59,6 +61,7 @@ export default function Products({ isDarkTheme }: ProductsProps) {
     waterproof: false,
     tarnishFree: false,
     tags: '',
+    size:[] as string[],
   });
 
   // Categories and their subcategories

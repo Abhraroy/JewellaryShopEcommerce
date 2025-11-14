@@ -7,6 +7,7 @@ import { useStore } from "@/zustandStore/zustandStore";
 import { addToDbCart, addToLocalCart } from "@/utilityFunctions/CartFunctions";
 import { createClient } from "@/app/utils/supabase/client";
 import { Product } from "@/utilityFunctions/TypeInterface";
+import { addToLocalWishList } from "@/utilityFunctions/WishListFunctions";
 
 
 // export interface Product {
@@ -48,11 +49,13 @@ export default function ProductCard({
   const [isCartClicked, setIsCartClicked] = useState(false);
   const { cartItems, setCartItems,AuthenticatedState,AuthUserId,CartId } = useStore();
   const supabase = createClient();
-  const handleWishlistClick = (e: React.MouseEvent) => {
+  const handleWishlistClick = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setIsWishlistActive(!isWishlistActive);
     onWishlistToggle?.(product.product_id);
+    const updatedWishList = await addToLocalWishList(product)
+    console.log("updatedWishList",updatedWishList)
   };
 
   const handleAddToCart = async (e: React.MouseEvent) => {
@@ -151,6 +154,7 @@ export default function ProductCard({
           aria-label={
             isWishlistActive ? "Remove from wishlist" : "Add to wishlist"
           }
+
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
