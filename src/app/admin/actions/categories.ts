@@ -172,7 +172,7 @@ export async function updateCategory(formData: UpdateCategoryData): Promise<{ su
     // Get current category data to handle image cleanup if needed
     const { data: currentCategory, error: fetchError } = await supabase
       .from('categories')
-      .select('image_url')
+      .select('category_image_url')
       .eq('category_id', categoryId)
       .single()
 
@@ -181,14 +181,14 @@ export async function updateCategory(formData: UpdateCategoryData): Promise<{ su
       return { success: false, error: fetchError.message }
     }
 
-    let imageUrl = currentCategory.image_url
+    let imageUrl = currentCategory.category_image_url
 
     // Upload new image to Cloudflare if provided
-    if (formData.image) {
+    if (formData.category_image_url) {
       // Delete old image if it exists
-      if (currentCategory.image_url) {
+      if (currentCategory.category_image_url) {
         // Extract R2 key from URL
-        const r2Key = extractR2KeyFromUrl(currentCategory.image_url)
+        const r2Key = extractR2KeyFromUrl(currentCategory.category_image_url)
         if (r2Key) {
           await deleteImageFromCloudflare(r2Key)
         }
@@ -211,9 +211,8 @@ export async function updateCategory(formData: UpdateCategoryData): Promise<{ su
     if (formData.category_name !== undefined) updateData.category_name = formData.category_name
     if (formData.slug !== undefined) updateData.slug = formData.slug
     if (formData.description !== undefined) updateData.description = formData.description
-    if (imageUrl !== undefined) updateData.image_url = imageUrl
+    if (imageUrl !== undefined) updateData.category_image_url = imageUrl
     if (formData.is_active !== undefined) updateData.is_active = formData.is_active
-    if (formData.display_order !== undefined) updateData.display_order = formData.display_order
 
     const { data, error } = await supabase
       .from('categories')
@@ -289,3 +288,7 @@ export async function deleteCategory(categoryId: string): Promise<{ success: boo
   }
 }
 
+
+export async function createSubCategory(formData:any){
+
+}

@@ -64,7 +64,99 @@ const PlusIcon = ({ className = 'w-5 h-5' }) => (
 
 export default function CategoriesList({ category, isDarkTheme, handleEdit, handleDelete, fetchCategories, setCategories }: { category: Category, isDarkTheme: boolean, handleEdit: (categoryId: string) => void, handleDelete: (categoryId: string) => void, fetchCategories: () => void, setCategories: (categories: Category[]) => void }) {
   const [showSubCategories, setShowSubCategories] = useState(false);
+  const [showAddSubCategory, setShowAddSubCategory] = useState(false);
   const [subCategories, setSubCategories] = useState<[]>([]);
+  const [formData, setFormData] = useState({
+    sub_category_name: '',
+    slug: '',
+    description: '',
+    image: null as File | null,
+    imagePreview: '',
+    is_active: true,
+  });
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => {
+      const updated = { ...prev, [name]: value };
+      // Auto-generate slug from sub category name
+      if (name === 'sub_category_name') {
+        updated.slug = value.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+      }
+      return updated;
+    });
+  };
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const previewUrl = URL.createObjectURL(file);
+      setFormData((prev) => ({
+        ...prev,
+        image: file,
+        imagePreview: previewUrl,
+      }));
+    }
+  };
+
+  const removeImage = () => {
+    if (formData.imagePreview) {
+      URL.revokeObjectURL(formData.imagePreview);
+    }
+    setFormData((prev) => ({
+      ...prev,
+      image: null,
+      imagePreview: '',
+    }));
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const files = e.dataTransfer.files;
+    if (files && files[0]) {
+      const file = files[0];
+      if (file.type.startsWith('image/')) {
+        const previewUrl = URL.createObjectURL(file);
+        setFormData((prev) => ({
+          ...prev,
+          image: file,
+          imagePreview: previewUrl,
+        }));
+      }
+    }
+  };
+
+  const handleCancel = () => {
+    if (formData.imagePreview) {
+      URL.revokeObjectURL(formData.imagePreview);
+    }
+    setFormData({
+      sub_category_name: '',
+      slug: '',
+      description: '',
+      image: null,
+      imagePreview: '',
+      is_active: true,
+    });
+    setShowAddSubCategory(false);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitting(true);
+    // TODO: Add submit logic here
+    console.log('Subcategory form data:', formData);
+    // After successful submission:
+    // handleCancel();
+    setSubmitting(false);
+  };
   return (
     <>
         <React.Fragment key={category.category_id}>
@@ -160,7 +252,7 @@ export default function CategoriesList({ category, isDarkTheme, handleEdit, hand
                   </div>
                 </td>
               </tr>
-              {showSubCategories && <>
+              { !showAddSubCategory &&showSubCategories && <>
                   <tr className={`${isDarkTheme ? 'bg-gray-800' : 'bg-gray-50'}`}>
                     <td className="py-4 px-4">
                       <span className={`text-[1rem] font-bold ${isDarkTheme ? 'text-gray-300' : 'text-gray-700'}`}>
@@ -196,6 +288,7 @@ export default function CategoriesList({ category, isDarkTheme, handleEdit, hand
                               : 'hover:bg-gray-700  hover:text-white'
                           }`}
                           title="Add Sub Category"
+                          onClick={() => setShowAddSubCategory(!showAddSubCategory)}
                         >
                           Add Sub Category
                         </button>
@@ -203,6 +296,180 @@ export default function CategoriesList({ category, isDarkTheme, handleEdit, hand
                     </td>
                   </tr>
               </>}
+              {showAddSubCategory && (
+                <>
+                  <tr className={`${isDarkTheme ? 'bg-gray-900 border border-gray-700' : 'bg-white border border-gray-200'}`}>
+                    <td colSpan={7} className="py-6 px-6">
+                      <div className={`${isDarkTheme ? 'bg-gray-800' : 'bg-white'} rounded-lg p-6`}>
+                        <h3 className={`text-xl font-semibold mb-6 ${isDarkTheme ? 'text-white' : 'text-gray-900'}`}>
+                          Add New Sub Category
+                        </h3>
+                        
+                        <form onSubmit={handleSubmit} className="space-y-6">
+                          {/* Basic Information */}
+                          <div className="space-y-4">
+                            <div>
+                              <label className={`block text-sm font-medium mb-2 ${isDarkTheme ? 'text-gray-300' : 'text-gray-700'}`}>
+                                Sub Category Name *
+                              </label>
+                              <input
+                                type="text"
+                                name="sub_category_name"
+                                value={formData.sub_category_name}
+                                onChange={handleInputChange}
+                                placeholder="e.g., Gold Rings, Silver Necklaces"
+                                className={`w-full px-4 py-2 rounded-lg border transition-colors ${
+                                  isDarkTheme
+                                    ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-500'
+                                    : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400'
+                                } focus:outline-none focus:ring-2 focus:ring-[#E94E8B]`}
+                                required
+                              />
+                            </div>
+
+                            <div>
+                              <label className={`block text-sm font-medium mb-2 ${isDarkTheme ? 'text-gray-300' : 'text-gray-700'}`}>
+                                Slug *
+                              </label>
+                              <input
+                                type="text"
+                                name="slug"
+                                value={formData.slug}
+                                onChange={handleInputChange}
+                                placeholder="e.g., gold-rings, silver-necklaces"
+                                className={`w-full px-4 py-2 rounded-lg border transition-colors ${
+                                  isDarkTheme
+                                    ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-500'
+                                    : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400'
+                                } focus:outline-none focus:ring-2 focus:ring-[#E94E8B]`}
+                                required
+                              />
+                              <p className={`text-xs mt-1 ${isDarkTheme ? 'text-gray-400' : 'text-gray-500'}`}>
+                                Auto-generated from sub category name. Used in URLs.
+                              </p>
+                            </div>
+
+                            <div>
+                              <label className={`block text-sm font-medium mb-2 ${isDarkTheme ? 'text-gray-300' : 'text-gray-700'}`}>
+                                Description
+                              </label>
+                              <textarea
+                                name="description"
+                                value={formData.description}
+                                onChange={handleInputChange}
+                                placeholder="Brief description of the sub category..."
+                                rows={3}
+                                className={`w-full px-4 py-2 rounded-lg border transition-colors ${
+                                  isDarkTheme
+                                    ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-500'
+                                    : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400'
+                                } focus:outline-none focus:ring-2 focus:ring-[#E94E8B] resize-none`}
+                              />
+                            </div>
+
+                            <div className="flex items-center">
+                              <input
+                                type="checkbox"
+                                id="is_active_sub"
+                                name="is_active"
+                                checked={formData.is_active}
+                                onChange={(e) => setFormData(prev => ({ ...prev, is_active: e.target.checked }))}
+                                className="w-4 h-4 text-[#E94E8B] bg-gray-100 border-gray-300 rounded focus:ring-[#E94E8B] focus:ring-2"
+                              />
+                              <label
+                                htmlFor="is_active_sub"
+                                className={`ml-2 text-sm font-medium ${isDarkTheme ? 'text-gray-300' : 'text-gray-700'}`}
+                              >
+                                Active
+                              </label>
+                            </div>
+                          </div>
+
+                          {/* Sub Category Image */}
+                          <div>
+                            <label className={`block text-sm font-medium mb-2 ${isDarkTheme ? 'text-gray-300' : 'text-gray-700'}`}>
+                              Sub Category Image
+                            </label>
+                            {!formData.imagePreview ? (
+                              <div
+                                className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+                                  isDarkTheme ? 'border-gray-600 hover:border-gray-500' : 'border-gray-300 hover:border-gray-400'
+                                }`}
+                                onDragOver={handleDragOver}
+                                onDrop={handleDrop}
+                              >
+                                <ImageIcon
+                                  className={`w-12 h-12 mx-auto mb-4 ${isDarkTheme ? 'text-gray-400' : 'text-gray-400'}`}
+                                />
+                                <p className={`mb-2 ${isDarkTheme ? 'text-gray-300' : 'text-gray-700'}`}>
+                                  <span className="font-semibold">Click to upload</span> or drag and drop
+                                </p>
+                                <p className={`text-sm ${isDarkTheme ? 'text-gray-400' : 'text-gray-500'}`}>
+                                  PNG, JPG, WEBP up to 5MB
+                                </p>
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  onChange={handleImageUpload}
+                                  className="hidden"
+                                  id="sub-category-image-upload"
+                                />
+                                <label
+                                  htmlFor="sub-category-image-upload"
+                                  className="mt-4 inline-block px-4 py-2 bg-[#E94E8B] text-white rounded-lg cursor-pointer hover:bg-[#d43d75] transition-colors"
+                                >
+                                  Select Image
+                                </label>
+                              </div>
+                            ) : (
+                              <div className="relative">
+                                <img
+                                  src={formData.imagePreview}
+                                  alt="Sub category preview"
+                                  className="w-full h-48 object-cover rounded-lg border"
+                                />
+                                <button
+                                  type="button"
+                                  onClick={removeImage}
+                                  className="absolute top-2 right-2 p-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
+                                >
+                                  <DeleteIcon className="w-4 h-4" />
+                                </button>
+                                <div className={`mt-2 text-sm ${isDarkTheme ? 'text-gray-400' : 'text-gray-600'}`}>
+                                  Image uploaded successfully
+                                </div>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Form Actions */}
+                          <div className="flex justify-end gap-4 pt-4 border-t border-gray-200">
+                            <button
+                              type="button"
+                              onClick={handleCancel}
+                              className={`px-6 py-2 rounded-lg font-medium transition-colors ${
+                                isDarkTheme
+                                  ? 'bg-gray-700 text-white hover:bg-gray-600'
+                                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                              }`}
+                            >
+                              Cancel
+                            </button>
+                            <button
+                              type="submit"
+                              disabled={submitting}
+                              className="px-6 py-2 bg-[#E94E8B] text-white rounded-lg font-medium hover:bg-[#d43d75] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              {submitting ? 'Saving...' : 'Add Sub Category'}
+                            </button>
+                          </div>
+                        </form>
+                      </div>
+                    </td>
+                  </tr>
+                </>
+              )}
+
         </React.Fragment>
     </>
   )

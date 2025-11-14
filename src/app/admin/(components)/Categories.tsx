@@ -511,7 +511,6 @@ export default function Categories({ isDarkTheme }: CategoriesProps) {
           </form>
         </div>
       )}
-
       {/* Categories List */}
       <div
         className={`${
