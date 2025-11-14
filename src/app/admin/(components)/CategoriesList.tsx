@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Category, createSubCategory } from '../actions/categories';
+import { uploadImageToCloudflare } from '@/app/utils/cloudflare';
 
 const PlusIcon = ({ className = 'w-5 h-5' }) => (
     <svg
@@ -86,10 +87,11 @@ export default function CategoriesList({ category, isDarkTheme, handleEdit, hand
     });
   };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const previewUrl = URL.createObjectURL(file);
+      const previewUrl =await  uploadImageToCloudflare(file)
+      console.log("image status after uploading to cloudflare", previewUrl)
       setFormData((prev) => ({
         ...prev,
         image: file,
