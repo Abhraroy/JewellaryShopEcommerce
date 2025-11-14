@@ -26,6 +26,8 @@ export default function LandingPage() {
     setCartId,
     setCartItems,
     CartId,
+    setCategories,
+    categories,
   } = useStore();
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
@@ -179,6 +181,21 @@ export default function LandingPage() {
   }, []);
 
 
+  useEffect(()=>{
+    const getAllCategories = async () =>{
+      const {data,error} = await supabase.from("categories").select("*");
+      if(error){
+        console.log("error",error)
+      }
+      else{
+        console.log("data",data)
+        setCategories(data);
+      }
+    }
+    getAllCategories();
+  },[])
+
+
   // Handler to open the cart
   const handleOpenCart = () => {
     setIsCartOpen(true);
@@ -192,9 +209,9 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen bg-white">
       {/* Navbar with cart click handler */}
-      <Navbar cartCount={0} onCartClick={handleOpenCart} />
+      {/* <Navbar cartCount={0} onCartClick={handleOpenCart} />
       {MobnoInputState && !OtpInputState && <PhoneNumberInput />}
-      {OtpInputState && !MobnoInputState && <OtpInput />}
+      {OtpInputState && !MobnoInputState && <OtpInput />} */}
 
       {/* Cart Component - receives isOpen state and onClose handler */}
       {isCartOpen && <Cart isOpen={isCartOpen} onClose={handleCloseCart} />}
@@ -204,7 +221,7 @@ export default function LandingPage() {
           autoSlideInterval={3000}
           className="h-[400px] md:h-[500px] lg:h-[600px]"
         />
-        <CategorySection />
+        {categories.length > 0 && <CategorySection categories={categories} />}
 
         {/* New Arrival Products Section */}
         <ProductCarousel

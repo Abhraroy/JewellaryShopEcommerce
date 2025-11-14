@@ -656,7 +656,7 @@ export default function ProductDisplay({
                   {productDetails[0]?.product_name}
                 </h1>
                 <p className="text-sm text-gray-500 mt-2">
-                  {productDetails[0]?.categories.category_name}
+                  {productDetails[0]?.categories?.category_name}
                 </p>
               </div>
 

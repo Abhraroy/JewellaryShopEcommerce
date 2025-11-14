@@ -197,7 +197,7 @@ export default function ProductPage() {
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
-      <Navbar cartCount={3} isAuthenticated={false} />
+      {/* <Navbar cartCount={3} isAuthenticated={false} /> */}
 
       {productDetails && <ProductDisplay productDetails={productDetails} />}
 

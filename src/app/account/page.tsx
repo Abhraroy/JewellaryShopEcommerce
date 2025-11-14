@@ -63,8 +63,6 @@ export default async function AccountPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navbar cartCount={0} />
-      
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
         {/* Page Header */}
         <div className="mb-8">
@@ -111,7 +109,7 @@ export default async function AccountPage() {
                     <div className="p-2 bg-amber-100 rounded-lg text-amber-600">
                       <CalendarIcon />
                     </div>
-                    <span className="text-sm font-medium text-gray-500">Member Since</span>
+                    <span className="text-sm font-medium text-gray-500">Customer Since</span>
                   </div>
                   <span className="text-gray-900 font-medium">{createdAt}</span>
                 </div>
@@ -147,7 +145,7 @@ export default async function AccountPage() {
               
               <div className="space-y-3">
                 <a 
-                  href="/collection" 
+                  href="/collections" 
                   className="block w-full px-4 py-3 bg-amber-50 hover:bg-amber-100 text-amber-700 font-medium rounded-lg transition-colors duration-200 text-center"
                 >
                   Browse Collections
@@ -172,6 +170,7 @@ export default async function AccountPage() {
                 <AddressIcon />
                 <p className="mt-4 text-sm text-gray-600">No saved addresses</p>
                 <button className="mt-4 px-4 py-2 text-amber-600 hover:text-amber-700 font-medium text-sm">
+                  
                   Add Address
                 </button>
               </div>

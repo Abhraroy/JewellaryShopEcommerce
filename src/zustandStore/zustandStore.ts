@@ -23,6 +23,10 @@ interface StoreState {
     setProductDetails: (productDetails: any) => void;
     productImages: any;
     setProductImages: (productImages: any) => void;
+    isCartOpen: boolean;
+    setIsCartOpen: (isCartOpen: boolean) => void;
+    categories: any;
+    setCategories: (categories: any) => void;
 }
 
 export const useStore = create<StoreState>((set) => ({
@@ -48,5 +52,9 @@ export const useStore = create<StoreState>((set) => ({
     setProductDetails: (productDetails: any) => set({ productDetails: productDetails }),
     productImages: null,
     setProductImages: (productImages: any) => set({ productImages: productImages }),
+    isCartOpen:false,
+    setIsCartOpen: (isCartOpen: boolean) => set({ isCartOpen: isCartOpen }),
+    categories: [],
+    setCategories: (categories: any) => set({ categories: categories }),
 }))
 

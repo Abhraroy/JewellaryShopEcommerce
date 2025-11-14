@@ -1,14 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ProductCard, {
-  Product as ProductCardProduct,
+  // Product as ProductCardProduct,
 } from "@/components/ProductCard";
 import Link from "next/link";
 import Image from "next/image";
 import { useParams } from "next/navigation";
+import { createClient } from "@/app/utils/supabase/client";
 
 // Product interface
 interface Product {
@@ -30,6 +31,7 @@ interface CategoryFilter {
 }
 
 export default function CollectionPage() {
+  const supabase = createClient();
   const params = useParams();
   const collectionid = params?.collectionid as string;
   const decodedCollectionId = decodeURIComponent(collectionid || "");
@@ -38,7 +40,7 @@ export default function CollectionPage() {
   const [selectedSort, setSelectedSort] = useState<string>("featured");
   const [wishlist, setWishlist] = useState<Set<string>>(new Set());
   const [isDropdownOpen, setIsDropdownOpen] = useState<boolean>(false);
-
+  const [products, setProducts] = useState<any>([]);
   // Sample categories based on the collection
   const categories: CategoryFilter[] = [
     {
@@ -224,18 +226,18 @@ export default function CollectionPage() {
   );
 
   // Sort products
-  const sortedProducts = [...filteredProducts].sort((a, b) => {
-    switch (selectedSort) {
-      case "price-low":
-        return a.price - b.price;
-      case "price-high":
-        return b.price - a.price;
-      case "newest":
-        return parseInt(b.id) - parseInt(a.id);
-      default:
-        return 0;
-    }
-  });
+  // const sortedProducts = [...products].sort((a, b) => {
+  //   switch (selectedSort) {
+  //     case "price-low":
+  //       return a.price - b.price;
+  //     case "price-high":
+  //       return b.price - a.price;
+  //     case "newest":
+  //       return parseInt(b.id) - parseInt(a.id);
+  //     default:
+  //       return 0;
+  //   }
+  // });
 
   // Wishlist toggle
   const toggleWishlist = (productId: string) => {
@@ -250,9 +252,61 @@ export default function CollectionPage() {
     });
   };
 
+
+  useEffect(()=>{
+    const getProducts = async()=>{
+      const {data,error}:any = await supabase.from("products")
+      .select(`
+      *,
+      categories!inner(*),
+      product_images(*)
+      `)
+      .filter("categories.slug", "eq", decodedCollectionId)
+      .order("updated_at", { ascending: false })
+      if(error){
+        console.log("error",error)
+      }
+      else{
+        console.log("products",data)
+        setProducts(data);
+      }
+    }
+    getProducts();
+  },[decodedCollectionId])
+
+  const sortedProducts = useMemo(() => {
+    // SORT
+    let sorted = [...products];
+  
+    switch (selectedSort) {
+      case "price-low":
+        sorted.sort((a, b) => a.final_price - b.final_price);
+        break;
+  
+      case "price-high":
+        sorted.sort((a, b) => b.final_price - a.final_price);
+        break;
+  
+      case "newest":
+        sorted.sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime());
+        break;
+      case "featured":
+        break;
+      default:
+        break;
+    }
+  
+    return sorted;
+  }, [ selectedSort, products]);
+
+
+  
+
+  console.log("sortedProducts",sortedProducts)
+
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navbar cartCount={0} />
+      {/* <Navbar cartCount={0} /> */}
 
       <main className="w-full">
         {/* Header with Title and Dropdown */}
@@ -311,6 +365,7 @@ export default function CollectionPage() {
                           <button
                             key={option.value}
                             onClick={() => {
+                              
                               setSelectedSort(option.value);
                               setIsDropdownOpen(false);
                             }}
@@ -396,27 +451,13 @@ export default function CollectionPage() {
 
           {/* Products Grid */}
           <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-            {sortedProducts.map((product) => {
+            {sortedProducts.map((product:any,index:number) => {
               // Map to ProductCard format
-              const productCardData: ProductCardProduct = {
-                id: product.id,
-                title: product.title,
-                imageUrl: product.imageUrl,
-                price: product.price,
-                originalPrice: product.originalPrice,
-                slug: product.slug,
-              };
-
+             
               return (
                 <ProductCard
-                  key={product.id}
-                  product={productCardData}
-                  isWishlisted={wishlist.has(product.id)}
-                  onWishlistToggle={(productId) => toggleWishlist(productId)}
-                  onAddToCart={(productId) =>
-                    console.log("Add to cart:", productId)
-                  }
-                  size="small"
+                  key={index}
+                  product={product}
                 />
               );
             })}
@@ -434,7 +475,8 @@ export default function CollectionPage() {
           {/* Load More Button */}
           {sortedProducts.length > 0 && (
             <div className="mt-12 text-center">
-              <button className="px-8 py-3 bg-white text-gray-900 font-semibold rounded-lg border-2 border-gray-300 hover:border-[#E94E8B] hover:text-[#E94E8B] transition-all">
+              <button className="px-8 py-3 bg-white text-gray-900 font-semibold rounded-lg border-2 border-gray-300 hover:border-[#E94E8B] hover:text-[#E94E8B] transition-all"
+              >
                 Load More Products
               </button>
             </div>

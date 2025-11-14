@@ -480,7 +480,7 @@ export default function ProductReview({ reviews }: { reviews: any }) {
           <div className="w-[90%] p-[1rem] rounded-lg flex flex-col ">
             {reviews.length > 0 ? (
               reviews.map((review: any) => (
-                <>
+                
                   <div
                     key={review.review_id}
                     className="flex flex-col gap-[1rem]  "
@@ -529,7 +529,7 @@ export default function ProductReview({ reviews }: { reviews: any }) {
                       </span>
                     </div>
                   </div>
-                </>
+                
               ))
             ) : (
               <span className="text-black text-sm font-bold ">

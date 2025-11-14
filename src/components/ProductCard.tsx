@@ -28,7 +28,7 @@ import { Product } from "@/utilityFunctions/TypeInterface";
 
 
 interface ProductCardProps {
-  product: Product;
+  product: any;
   onAddToCart?: (productId: string) => void;
   onWishlistToggle?: (productId: string) => void;
   isWishlisted?: boolean;
@@ -208,7 +208,7 @@ export default function ProductCard({
                   ? 'text-base md:text-lg' 
                   : 'text-xl md:text-2xl'
               }`}>
-                ₹{product.final_price.toFixed(2)}
+                ₹{product.final_price?.toFixed(2) ?? 0}
               </span>
               {product.base_price && product.base_price > product.final_price && (
                 <span className={`text-gray-400 line-through font-medium ${
