@@ -1,9 +1,9 @@
 'use client';
 
 import { useRef, useState, useEffect } from 'react';
-import ProductCard, { Product } from './ProductCard';
+import ProductCard from './ProductCard';
+import { Product } from '@/utilityFunctions/TypeInterface';
 
-export type { Product };
 
 interface ProductCarouselProps {
   sectionHeading: string;
@@ -106,9 +106,9 @@ export default function ProductCarousel({
           }}
         >
           <div className="flex gap-6 pb-12 pl-4 sm:pl-6 lg:pl-8 pr-4 sm:pr-6 lg:pr-8">
-            {products.map((product) => (
+            {products.map((product,index) => (
               <div
-                key={product.id}
+                key={product.product_id}
                 className="product-card flex-shrink-0 w-[calc(100vw/1.3-3rem)] sm:w-[calc(100vw/2-4rem)] md:w-[calc(100vw/2.5-5rem)] lg:w-[calc(100vw/3-6rem)] xl:w-[380px]"
               >
                 <ProductCard

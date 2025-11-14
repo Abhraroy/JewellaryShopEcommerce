@@ -19,6 +19,16 @@ interface StoreState {
     setAuthUserId: (userId: string) => void;
     CartId: string;
     setCartId: (cartId: string) => void;
+    productDetails: any;
+    setProductDetails: (productDetails: any) => void;
+    productImages: any;
+    setProductImages: (productImages: any) => void;
+    isCartOpen: boolean;
+    setIsCartOpen: (isCartOpen: boolean) => void;
+    categories: any;
+    setCategories: (categories: any) => void;
+    refresh: boolean;
+    setRefresh: () => void;
 }
 
 export const useStore = create<StoreState>((set) => ({
@@ -40,5 +50,15 @@ export const useStore = create<StoreState>((set) => ({
     setAuthUserId: (userId: string) => set({ AuthUserId: userId }),
     CartId:"",
     setCartId: (cartId: string) => set({ CartId: cartId }),
+    productDetails: null,
+    setProductDetails: (productDetails: any) => set({ productDetails: productDetails }),
+    productImages: null,
+    setProductImages: (productImages: any) => set({ productImages: productImages }),
+    isCartOpen:false,
+    setIsCartOpen: (isCartOpen: boolean) => set({ isCartOpen: isCartOpen }),
+    categories: [],
+    setCategories: (categories: any) => set({ categories: categories }),
+    refresh:false,
+    setRefresh: () => set((state) => ({ refresh: !state.refresh })),
 }))
 

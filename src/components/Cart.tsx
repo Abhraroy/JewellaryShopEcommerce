@@ -4,7 +4,7 @@ import Image from "next/image";
 import { useStore } from "@/zustandStore/zustandStore";
 import { useEffect, useState } from "react";
 import { createClient } from "@/app/utils/supabase/client";
-import { addToLocalCart, decreaseQuantityFromLocalCart, removeFromLocalCart } from "@/utilityFunctions/CartFunctions";
+import { addToDbCart, addToLocalCart, decreaseQuantityFromDbCart, decreaseQuantityFromLocalCart, getCartData, removeFromDbCart, removeFromLocalCart } from "@/utilityFunctions/CartFunctions";
 
 interface CartProps {
   isOpen?: boolean;
@@ -12,16 +12,18 @@ interface CartProps {
 }
 
 export default function Cart({ isOpen = false, onClose }: CartProps) {
-  const { AuthenticatedState, cartItems, setCartItems } = useStore();
+  const { AuthenticatedState, cartItems, setCartItems , setCartId,CartId } = useStore();
   const [subtotal, setSubtotal] = useState(0);
   // Sample cart items for UI demonstration
   const supabase = createClient();
+  console.log("Initializing supabase",supabase)
 
   if (cartItems && cartItems.length > 0) {
     const subtotal = cartItems.reduce(
-      (sum: number, item: any) => sum + item.price * item.quantity,
-      0
+      (sum: number, item: any) =>  sum + item.products.final_price * item.quantity,0
+  
     );
+    console.log("subtotal",subtotal)
     const shipping: number = 0;
     const total = subtotal + shipping;
   }
@@ -32,7 +34,46 @@ export default function Cart({ isOpen = false, onClose }: CartProps) {
       return 0;
     }
     else{
-      return cartItems.reduce((sum: number, item: any) => sum + item.price * item.quantity, 0);
+      return cartItems.reduce((sum: number, item: any) => sum + item.products.final_price * item.quantity, 0);
+    }
+  }
+
+  const handleDecreaseQuantity = async(product:any)=>{
+    if(AuthenticatedState){
+       const updatedItem = await decreaseQuantityFromDbCart(product,CartId,supabase)
+       console.log("updatedItem",updatedItem)
+        setCartItems(updatedItem);
+    }
+    else{
+      const updatedItem = await decreaseQuantityFromLocalCart(product)
+      setCartItems(updatedItem);
+    }
+  }
+
+  const handleRemoveItem = async(product:any)=>{
+    if(AuthenticatedState){
+      const updatedItem = await removeFromDbCart(product,CartId,supabase)
+      setCartItems(updatedItem);
+    }
+    else{
+      const updatedItem = await removeFromLocalCart(product)
+      setCartItems(updatedItem);
+    }
+  }
+  
+  const handleIncreaseQuantity = async(product:any)=>{
+    if(AuthenticatedState){
+      console.log("Adding to db cart")
+      console.log("product",product.product_id)
+      console.log("CartId",CartId)
+      console.log("supabase",supabase)
+      const updatedItem = await addToDbCart(product,CartId,supabase)
+      setCartItems(updatedItem);
+    }
+    else{
+      console.log("User is not authenticated adding to local cart")
+      const updatedItem = addToLocalCart(product.products)
+      setCartItems(updatedItem);
     }
   }
 
@@ -47,6 +88,9 @@ export default function Cart({ isOpen = false, onClose }: CartProps) {
 
   useEffect(() => {
     const getCartItems = async () => {
+
+
+
       if (!AuthenticatedState) {
         const localCartItems = localStorage.getItem("cartItems");
         console.log("cart items from local storage", localCartItems);
@@ -58,36 +102,47 @@ export default function Cart({ isOpen = false, onClose }: CartProps) {
           setCartItems(tempCartItems);
         }
       } else if (AuthenticatedState) {
-        let user_id: string | null = null;
-        const getuserdetails = async () => {
-          const { data, error } = await supabase.auth.getUser();
-          if (error) {
-            console.log("error", error);
+        // let user_id:any;
+        // const getuserdetails = async () => {
+        //   const { data, error } = await supabase.auth.getUser();
+        //   if (error) {
+        //     console.log("error", error);
+        //   }
+        //   if (data) {
+        //     console.log("data from cart", data.user?.phone);
+        //     const user_data = await supabase
+        //       .from("users")
+        //       .select("*")
+        //       .eq("phone_number", "+" + data?.user?.phone)
+        //       .maybeSingle();
+        //     console.log("user_data from cart", user_data);
+        //     return user_data.data?.user_id;
+        //   }
+        // };
+        // user_id = await getuserdetails();
+        // console.log("user_id 2nd from cart", user_id);
+    
+        if(CartId){
+          console.log("cart found",CartId)
+          const {success,data,message} = await getCartData(CartId,supabase)
+          if(success){
+            console.log("data from cart",data)
+            setCartItems(data)
           }
-          if (data) {
-            console.log("data from cart", data.user?.phone);
-            const user_data = await supabase
-              .from("users")
-              .select("*")
-              .eq("phone_number", "+" + data?.user?.phone)
-              .maybeSingle();
-            user_id = user_data.data?.user_id;
-            console.log("user_data from cart", user_data.data?.user_id);
+          else{
+            console.log("error",message)
           }
-        };
-        getuserdetails();
-
-        console.log("Inside authenticated state");
-        const res = await supabase
-          .from("cart_items")
-          .select("*")
-          .eq("user_id", user_id);
-        console.log("cart items from cart", res.data);
+      }else{
+        console.log("No cart found")
       }
     };
+}
     getCartItems()
-    console.log("cart items from cart", cartItems);
   }, [AuthenticatedState]);
+
+  useEffect(() => {
+    console.log("cart items from cart", cartItems);
+  }, [cartItems]);
 
   return (
     <>
@@ -178,8 +233,8 @@ export default function Cart({ isOpen = false, onClose }: CartProps) {
                       {/* Product Image */}
                       <div className="relative w-20 h-20 sm:w-24 sm:h-24 flex-shrink-0 bg-white rounded-lg overflow-hidden border border-gray-200">
                         <Image
-                          src={item.imageUrl}
-                          alt={item.title}
+                          src={item.products.thumbnail_image}
+                          alt={item.products.product_name}
                           fill
                           className="object-cover"
                           sizes="(max-width: 640px) 80px, 96px"
@@ -189,21 +244,24 @@ export default function Cart({ isOpen = false, onClose }: CartProps) {
                       {/* Product Details */}
                       <div className="flex-1 min-w-0">
                         <h3 className="text-sm font-semibold text-gray-900 line-clamp-2 mb-1">
-                          {item.title}
+                          {item.products.product_name}
                         </h3>
                         <p className="text-lg font-bold text-gray-900 mb-3">
-                          ₹{item.price}
+                          ₹{item.products.final_price}
                         </p>
 
                         {/* Quantity Controls */}
                         <div className="flex items-center gap-3">
                           <div className="flex items-center gap-2 border border-gray-300 rounded-lg bg-white">
                             <button
-                              className="p-1.5 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded transition-colors duration-200"
+                              className="p-1.5 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded transition-colors duration-200 
+                              disabled:opacity-50 disabled:cursor-not-allowed
+                              "
+                              disabled={item.quantity === 1?true:false}
                               aria-label="Decrease quantity"
                               onClick={() => {
-                                const updatedItem = decreaseQuantityFromLocalCart(item);
-                                setCartItems(updatedItem);
+                                handleDecreaseQuantity(item);
+                                
                               }}
                             >
                               <svg
@@ -228,9 +286,8 @@ export default function Cart({ isOpen = false, onClose }: CartProps) {
                               className="p-1.5 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded transition-colors duration-200"
                               aria-label="Increase quantity"
                               onClick={() => {
-                                const updatedItem =  addToLocalCart(item);
-                                setCartItems(updatedItem);
-                                setSubtotal(calculateSubTotal(updatedItem));
+                                handleIncreaseQuantity(item);
+                                
                               }
                             }
                             >
@@ -256,8 +313,7 @@ export default function Cart({ isOpen = false, onClose }: CartProps) {
                             className="p-1.5 text-red-600 hover:text-red-700 hover:bg-red-50 rounded transition-colors duration-200"
                             aria-label="Remove item"
                             onClick={() => {
-                              const updatedItem = removeFromLocalCart(item);
-                              setCartItems(updatedItem);
+                              handleRemoveItem(item);
                             }}
                           >
                             <svg

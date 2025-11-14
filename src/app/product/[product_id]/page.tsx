@@ -1,7 +1,12 @@
+"use client"
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import ProductDisplay from '@/components/ProductDisplay';
 import ProductReview from '@/components/ProductReview';
+import { useParams } from 'next/navigation';
+import { createClient } from '@/app/utils/supabase/client';
+import { useEffect, useState } from 'react';
+import { useStore } from '@/zustandStore/zustandStore';
 
 // Demo product data - will be replaced with actual data from Supabase
 const demoProduct = {
@@ -141,21 +146,63 @@ const demoRatingDistribution = {
   1: 2
 };
 
+
 export default function ProductPage() {
+  const {product_id} = useParams();
+  const [productDetails, setProductDetails] = useState<any>(null);
+  const [reviews, setReviews] = useState<any>([]);
+  const supabase = createClient();
+  
+  useEffect(()=>{
+    const getProductdetails = async()=>{
+      const {data,error} = await supabase
+      .from("products")
+      .select(`
+        *,
+        product_images!product_images_product_id_fkey(*),
+        reviews(*),
+        categories(*)
+        `).eq("product_id",product_id);
+      if(error){
+        console.log("error",error)
+      }
+      else{
+        console.log("product details",data)
+        setProductDetails(data);
+      }
+    }
+    getProductdetails();
+    const reviewData = async()=>{
+      const {data,error} = await supabase
+      .from("reviews")
+      .select(`
+      *,
+      review_images(*),
+      users(*)  
+      `)
+      .eq("product_id",product_id);
+      if(error){
+        console.log("error",error)
+      }
+      else{
+        console.log("product images",data)
+        setReviews(data);
+      }
+    }
+    reviewData();
+    
+  },[product_id])
+
+
+
   return (
     <div className="min-h-screen bg-white flex flex-col">
-      <Navbar cartCount={3} isAuthenticated={false} />
+  
+      {productDetails && <ProductDisplay productDetails={productDetails} />}
 
-      <ProductDisplay product={demoProduct} />
-
-      <ProductReview
-        reviews={demoReviews}
-        totalReviews={128}
-        averageRating={4.5}
-        ratingDistribution={demoRatingDistribution}
-      />
-
-      <Footer />
+      {reviews && <ProductReview
+        reviews={reviews}
+      />}
     </div>
   );
 }

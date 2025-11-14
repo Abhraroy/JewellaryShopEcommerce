@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useStore } from '../zustandStore/zustandStore';
+import { useRouter } from 'next/navigation';
 
 interface NavbarProps {
   cartCount?: number;
@@ -207,7 +208,8 @@ export default function Navbar({ cartCount = 0, isAuthenticated = false, onCartC
   const [searchQuery, setSearchQuery] = useState('');
   const [showMobileSearch, setShowMobileSearch] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const { setMobnoInputState } = useStore();
+  const { setMobnoInputState,AuthenticatedState } = useStore();
+  const router = useRouter();
   // Prevent body scroll when sidebar is open
   useEffect(() => {
     if (isSidebarOpen) {
@@ -271,7 +273,14 @@ export default function Navbar({ cartCount = 0, isAuthenticated = false, onCartC
       label: 'Account',
       icon: <UserIcon className="w-6 h-6 md:w-7 md:h-7" />,
       onClick: () => {
-        setMobnoInputState();
+        if(AuthenticatedState){
+          console.log("isAuthenticated",AuthenticatedState)
+          router.push('/account');
+        }
+        else{
+          console.log("not authenticated")
+          setMobnoInputState();
+        }
       },
     },
     {

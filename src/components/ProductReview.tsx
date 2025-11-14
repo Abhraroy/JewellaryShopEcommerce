@@ -1,8 +1,9 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import Image from 'next/image';
-
+import { useState, useEffect } from "react";
+import Image from "next/image";
+import { FaStar } from "react-icons/fa";
+import { IoIosClose } from "react-icons/io";
 interface ReviewData {
   id: string;
   userName: string;
@@ -23,63 +24,78 @@ interface ProductReviewProps {
   ratingDistribution: { [key: number]: number };
 }
 
-export default function ProductReview({
-  reviews,
-  totalReviews,
-  averageRating,
-  ratingDistribution
-}: ProductReviewProps) {
-  const [selectedRatingFilter, setSelectedRatingFilter] = useState<number | null>(null);
+export default function ProductReview({ reviews }: { reviews: any }) {
+  const [selectedRatingFilter, setSelectedRatingFilter] = useState<
+    number | null
+  >(null);
   const [showImageModal, setShowImageModal] = useState(false);
   const [modalImageIndex, setModalImageIndex] = useState(0);
-
+  const [modalImage, setModalImage] = useState<string>("");
   // Collect all review images
   const allReviewImages = reviews
-    .filter(review => review.images && review.images.length > 0)
-    .flatMap(review => review.images!);
+    .filter(
+      (review: any) => review.review_images && review.review_images.length > 0
+    )
+    .flatMap((review: any) => review.review_images!);
 
   const previewImages = allReviewImages.slice(0, 12); // Show first 12 images in preview
 
-  const handleImageClick = (images: string[], index: number) => {
+  const handleImageClick = (images: string, index: number) => {
+    setModalImage(images);
     setModalImageIndex(index);
     setShowImageModal(true);
   };
 
   const handleViewMoreImages = () => {
+    if (allReviewImages.length === 0) return;
+    setModalImage(allReviewImages[0].review_image_url);
     setModalImageIndex(0);
     setShowImageModal(true);
   };
 
   const handleModalClose = () => {
     setShowImageModal(false);
+    setModalImage("");
   };
 
-  const handleModalNavigate = (direction: 'prev' | 'next') => {
-    if (direction === 'prev') {
-      setModalImageIndex((prev) => (prev === 0 ? allReviewImages.length - 1 : prev - 1));
+  const handleModalNavigate = (direction: "prev" | "next") => {
+    if (direction === "prev") {
+      setModalImageIndex((prev) =>
+        prev === 0 ? allReviewImages.length - 1 : prev - 1
+      );
     } else {
-      setModalImageIndex((prev) => (prev === allReviewImages.length - 1 ? 0 : prev + 1));
+      setModalImageIndex((prev) =>
+        prev === allReviewImages.length - 1 ? 0 : prev + 1
+      );
     }
   };
 
+  const handleRatingFilter = (rating: number) => {
+    setSelectedRatingFilter((prev) => (prev === rating ? null : rating));
+  };
+
+  const handleClearFilter = () => {
+    setSelectedRatingFilter(null);
+  };
+
   const filteredReviews = selectedRatingFilter
-    ? reviews.filter(review => Math.floor(review.rating) === selectedRatingFilter)
+    ? reviews.filter(
+        (review: any) => Math.round(review.rating) === selectedRatingFilter
+      )
     : reviews;
 
-  const renderStars = (rating: number, size: 'sm' | 'md' | 'lg' = 'sm') => {
+  const renderStars = (rating: number, size: "sm" | "md" | "lg" = "sm") => {
     const sizeClasses = {
-      sm: 'w-4 h-4',
-      md: 'w-5 h-5',
-      lg: 'w-6 h-6'
+      sm: "w-4 h-4",
+      md: "w-5 h-5",
+      lg: "w-6 h-6",
     };
 
     return [...Array(5)].map((_, i) => (
       <svg
         key={i}
         className={`${sizeClasses[size]} ${
-          i < Math.floor(rating)
-            ? 'text-yellow-400'
-            : 'text-gray-300'
+          i < Math.floor(rating) ? "text-yellow-400" : "text-gray-300"
         }`}
         fill="currentColor"
         viewBox="0 0 20 20"
@@ -89,283 +105,449 @@ export default function ProductReview({
     ));
   };
 
-  return (
-    <>
-      <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-8 sm:py-12">
-        <div className="border-t border-black/10 pt-8 sm:pt-12">
-          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-6 sm:mb-8">Customer Reviews</h2>
+  const averageRating =
+    reviews.length > 0
+      ? reviews.reduce(
+          (sum: number, review: any) => sum + (review.rating || 0),
+          0
+        ) / reviews.length
+      : 0;
 
-          {/* Rating Overview and Review Images */}
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-6 sm:gap-8 mb-6 sm:mb-8">
-            {/* Overall Rating - Shortened */}
-            <div className="md:col-span-2">
-              <div className="bg-gray-50 p-3 sm:p-4 rounded-lg">
-                <div className="text-center">
-                  <div className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1">
-                    {averageRating.toFixed(1)}
-                  </div>
-                  <div className="flex items-center justify-center mb-1">
-                    {renderStars(averageRating, 'md')}
-                  </div>
-                  <div className="text-xs sm:text-sm text-gray-600">
-                    {totalReviews} reviews
-                  </div>
-                </div>
-              </div>
+  const reviewDistribution = new Array(6).fill(0);
+  reviews.forEach((review: any) => {
+    const roundedRating = Math.round(review.rating);
+    if (roundedRating >= 1 && roundedRating <= 5) {
+      reviewDistribution[roundedRating]++;
+    }
+  });
 
-              {/* Rating Distribution - Compact */}
-              <div className="mt-3 sm:mt-4 space-y-1.5 sm:space-y-1">
-                {[5, 4, 3, 2, 1].map((stars) => (
-                  <button
-                    key={stars}
-                    onClick={() => setSelectedRatingFilter(
-                      selectedRatingFilter === stars ? null : stars
-                    )}
-                    className={`flex items-center gap-1 sm:gap-2 text-xs sm:text-sm w-full transition-colors p-1 sm:p-0 rounded sm:rounded-none ${
-                      selectedRatingFilter === stars
-                        ? 'text-[#E94E8B] font-medium bg-[#E94E8B]/10 sm:bg-transparent'
-                        : 'text-gray-600 hover:text-[#E94E8B]'
-                    }`}
-                  >
-                    <span className="w-3 sm:w-auto">{stars}★</span>
-                    <div className="flex-1 bg-gray-200 rounded-full h-1.5 sm:h-1 mx-1">
-                      <div
-                        className="bg-[#E94E8B] h-1.5 sm:h-1 rounded-full transition-all duration-300"
-                        style={{
-                          width: `${totalReviews > 0 ? (ratingDistribution[stars] / totalReviews) * 100 : 0}%`
-                        }}
-                      />
-                    </div>
-                    <span className="text-xs min-w-[12px] text-right">{ratingDistribution[stars] || 0}</span>
-                  </button>
-                ))}
-                {selectedRatingFilter && (
-                  <button
-                    onClick={() => setSelectedRatingFilter(null)}
-                    className="text-xs sm:text-sm text-[#E94E8B] hover:text-[#d43e7a] font-medium mt-2 block w-full text-left sm:text-center"
-                  >
-                    Clear filter
-                  </button>
-                )}
-              </div>
+  const distributionData = [5, 4, 3, 2, 1].map((star) => {
+    const count = reviewDistribution[star] || 0;
+    const percent =
+      reviews.length > 0 ? Math.round((count / reviews.length) * 100) : 0;
+    return { star, count, percent };
+  });
+
+  const reviewsToRender = filteredReviews;
+  const formattedAverageRating = averageRating.toFixed(1);
+
+  const renderReviewCard = (review: any) => {
+    const user = review?.users ?? {};
+    const initial =
+      (user.email && user.email.charAt(0).toUpperCase()) ||
+      (user.first_name && user.first_name.charAt(0).toUpperCase()) ||
+      "U";
+    const reviewDate = review?.created_at
+      ? review.created_at.split("T")[0]
+      : "";
+    const firstReviewImage = review?.review_images?.[0];
+
+    return (
+      <div
+        key={review.review_id}
+        className="flex flex-col gap-4 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm"
+      >
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gray-500">
+              <span className="text-lg font-bold text-white">{initial}</span>
             </div>
-
-            {/* Review Images Gallery */}
-            <div className="md:col-span-3">
-              <div className="bg-gray-50 p-3 sm:p-4 rounded-lg">
-                <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3">Customer Photos</h3>
-                {previewImages.length > 0 ? (
-                  <>
-                    <div className="flex flex-wrap gap-1.5 sm:gap-2 mb-3">
-                      {previewImages.map((image, index) => (
-                        <button
-                          key={index}
-                          onClick={() => handleImageClick(allReviewImages, index)}
-                          className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden border-2 border-gray-200 hover:border-[#E94E8B] transition-colors shrink-0"
-                        >
-                          <Image
-                            src={image}
-                            alt={`Customer photo ${index + 1}`}
-                            fill
-                            className="object-cover"
-                          />
-                        </button>
-                      ))}
-                    </div>
-                    {allReviewImages.length > 12 && (
-                      <button
-                        onClick={handleViewMoreImages}
-                        className="w-full bg-white text-gray-900 font-semibold py-2.5 sm:py-3 px-3 sm:px-4 rounded-xl transition-all duration-300 shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] hover:shadow-[0_1px_3px_0_rgba(0,0,0,0.08)] transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2 group/btn text-sm sm:text-base"
-                      >
-                        <span>View All Photos ({allReviewImages.length})</span>
-                      </button>
-                    )}
-                  </>
-                ) : (
-                  <div className="text-center py-6 sm:py-8 text-gray-500">
-                    <svg className="w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                    <p className="text-xs sm:text-sm">No customer photos yet</p>
-                  </div>
-                )}
+            <div className="flex flex-col gap-1">
+              <span className="text-base font-semibold text-black">
+                {user.first_name} {user.last_name}
+              </span>
+              <div className="flex flex-wrap items-center gap-2 text-sm text-gray-600">
+                <div className="flex items-center gap-1">
+                  {renderStars(review.rating, "sm")}
+                </div>
+                {reviewDate && <span>{reviewDate}</span>}
               </div>
             </div>
           </div>
-
-          {/* Reviews List */}
-          <div className="space-y-4 sm:space-y-6">
-            {filteredReviews.map((review) => (
-              <div key={review.id} className="border border-black/5 rounded-lg p-3 sm:p-6">
-                {/* Review Header */}
-                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-3 sm:mb-4 gap-3 sm:gap-4">
-                  <div className="flex items-center gap-3 flex-1 min-w-0">
-                    <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gray-300 rounded-full flex items-center justify-center shrink-0">
-                      {review.userAvatar ? (
-                        <Image
-                          src={review.userAvatar}
-                          alt={review.userName}
-                          width={40}
-                          height={40}
-                          className="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover"
-                        />
-                      ) : (
-                        <span className="text-xs sm:text-sm font-medium text-gray-700">
-                          {review.userName.charAt(0).toUpperCase()}
-                        </span>
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
-                        <span className="font-medium text-gray-900 text-sm sm:text-base truncate">{review.userName}</span>
-                      </div>
-                      <div className="flex items-center gap-2 mt-0.5 sm:mt-1">
-                        <div className="flex items-center">
-                          {renderStars(review.rating)}
-                        </div>
-                        <span className="text-xs sm:text-sm text-gray-500 shrink-0">{review.date}</span>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  {/* Review Images on the right */}
-                  {review.images && review.images.length > 0 && (
-                    <div className="flex gap-1.5 sm:gap-2 shrink-0">
-                      {review.images.slice(0, 3).map((image, imgIndex) => (
-                        <button
-                          key={imgIndex}
-                          onClick={() => {
-                            const startIndex = allReviewImages.findIndex(img => img === image);
-                            if (startIndex !== -1) {
-                              handleImageClick(allReviewImages, startIndex);
-                            }
-                          }}
-                          className="relative w-12 h-12 sm:w-16 sm:h-16 rounded-lg overflow-hidden border-2 border-gray-200 hover:border-[#E94E8B] transition-colors shrink-0"
-                        >
-                          <Image
-                            src={image}
-                            alt={`Review photo ${imgIndex + 1}`}
-                            fill
-                            className="object-cover"
-                          />
-                        </button>
-                      ))}
-                      {review.images.length > 3 && (
-                        <button
-                          onClick={() => {
-                            const startIndex = allReviewImages.findIndex(img => img === review.images![0]);
-                            if (startIndex !== -1) {
-                              handleImageClick(allReviewImages, startIndex);
-                            }
-                          }}
-                          className="relative w-12 h-12 sm:w-16 sm:h-16 rounded-lg overflow-hidden border-2 border-gray-200 hover:border-[#E94E8B] transition-colors shrink-0 bg-gray-100 flex items-center justify-center text-xs font-medium text-gray-600"
-                        >
-                          +{review.images.length - 3}
-                        </button>
-                      )}
-                    </div>
-                  )}
-                </div>
-
-                {/* Review Content */}
-                <div>
-                  <h4 className="font-medium text-gray-900 mb-2 text-sm sm:text-base">{review.title}</h4>
-                  <p className="text-gray-700 leading-relaxed text-sm sm:text-base">{review.comment}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Load More Button */}
-          {filteredReviews.length > 3 && (
-            <div className="text-center mt-6 sm:mt-8">
-              <button className="px-4 sm:px-6 py-2.5 sm:py-3 bg-[#E94E8B] text-white rounded-lg hover:bg-[#d43e7a] transition-colors font-medium text-sm sm:text-base">
-                Load More Reviews
-              </button>
+          {firstReviewImage?.review_image_url && (
+            <div className="flex shrink-0 flex-row items-center gap-2 rounded-lg bg-gray-100 p-2">
+              <Image
+                src={firstReviewImage.review_image_url}
+                alt={firstReviewImage.review_image_url}
+                width={80}
+                height={80}
+                className="h-20 w-20 rounded-lg object-cover"
+              />
             </div>
           )}
         </div>
+        <div className="flex flex-col gap-2">
+          {review.title && (
+            <span className="text-base font-semibold text-black">
+              {review.title}
+            </span>
+          )}
+          {review.review_text && (
+            <span className="text-sm text-gray-600">{review.review_text}</span>
+          )}
+        </div>
       </div>
+    );
+  };
 
-      {/* Image Modal */}
-      {showImageModal && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-2 sm:p-4 overflow-y-auto">
-          <div className="relative max-w-4xl max-h-[90vh] w-full flex flex-col items-center overflow-visible">
-            {/* Close Button */}
-            <button
-              onClick={handleModalClose}
-              className="absolute top-2 sm:top-4 right-2 sm:right-4 z-10 w-8 h-8 sm:w-10 sm:h-10 bg-white/90 hover:bg-white rounded-full flex items-center justify-center text-gray-900 hover:text-gray-700 transition-all shadow-lg"
-              aria-label="Close"
-            >
-              <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-
-            {/* Navigation Buttons */}
-            {allReviewImages.length > 1 && (
-              <>
+  const renderResponsiveSection = ({
+    wrapperClass,
+    containerClass,
+    infoWrapperClass,
+    summaryCardClass,
+    photoCardClass,
+    imageGridClass,
+    reviewListClass,
+  }: {
+    wrapperClass: string;
+    containerClass: string;
+    infoWrapperClass: string;
+    summaryCardClass: string;
+    photoCardClass: string;
+    imageGridClass: string;
+    reviewListClass: string;
+  }) => (
+    <div className={wrapperClass}>
+      <div className={containerClass}>
+        <span className="w-full text-start text-2xl font-bold text-black">
+          CUSTOMER REVIEW
+        </span>
+        <div className={infoWrapperClass}>
+          <div className={summaryCardClass}>
+            <div className="flex flex-col gap-2">
+              <span className="text-3xl font-semibold text-black">
+                {reviews.length > 0 ? formattedAverageRating : "0.0"}
+              </span>
+              <div className="flex items-center gap-2">
+                {renderStars(averageRating, "md")}
+                <span className="text-sm text-gray-600">
+                  {reviews.length} reviews
+                </span>
+              </div>
+            </div>
+            <div className="flex flex-col gap-2">
+              {distributionData.map(({ star, percent, count }) => (
                 <button
-                  onClick={() => handleModalNavigate('prev')}
-                  className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 sm:w-12 sm:h-12 bg-white/90 hover:bg-white rounded-full flex items-center justify-center text-gray-900 hover:text-gray-700 transition-all shadow-lg"
-                  aria-label="Previous image"
+                  key={star}
+                  type="button"
+                  onClick={() => handleRatingFilter(star)}
+                  className={`flex items-center gap-3 rounded-xl border px-3 py-2 text-left transition ${
+                    selectedRatingFilter === star
+                      ? "border-gray-900 bg-gray-900 text-white"
+                      : "border-gray-200 bg-white text-gray-800"
+                  }`}
                 >
-                  <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
-                  </svg>
+                  <span className="w-12 shrink-0 text-sm font-semibold">
+                    {star}★
+                  </span>
+                  <div className="relative h-2 flex-1 overflow-hidden rounded-full bg-gray-200">
+                    <div
+                      className={`absolute inset-y-0 left-0 rounded-full ${
+                        selectedRatingFilter === star
+                          ? "bg-white"
+                          : "bg-gray-800"
+                      }`}
+                      style={{ width: `${percent}%` }}
+                    ></div>
+                  </div>
+                  <span className="w-16 text-right text-xs font-semibold">
+                    {percent}%
+                  </span>
+                  <span className="w-10 text-right text-xs">
+                    ({count})
+                  </span>
                 </button>
-                <button
-                  onClick={() => handleModalNavigate('next')}
-                  className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 sm:w-12 sm:h-12 bg-white/90 hover:bg-white rounded-full flex items-center justify-center text-gray-900 hover:text-gray-700 transition-all shadow-lg"
-                  aria-label="Next image"
-                >
-                  <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-                  </svg>
-                </button>
-              </>
+              ))}
+            </div>
+            {selectedRatingFilter && (
+              <button
+                type="button"
+                onClick={handleClearFilter}
+                className="mt-2 w-fit rounded-full border border-gray-300 px-4 py-2 text-xs font-semibold text-gray-600 transition hover:border-gray-900 hover:text-gray-900"
+              >
+                Clear filter
+              </button>
             )}
-
-            {/* Main Image */}
-            <div className="relative w-full aspect-square max-h-[80vh] bg-gray-100 rounded-lg overflow-hidden mx-auto">
-              <Image
-                src={allReviewImages[modalImageIndex]}
-                alt={`Customer photo ${modalImageIndex + 1}`}
-                fill
-                className="object-contain"
-                priority
-              />
-            </div>
-
-            {/* Image Counter */}
-            <div className="text-center mt-2 sm:mt-4 text-white text-sm sm:text-base">
-              {modalImageIndex + 1} of {allReviewImages.length}
-            </div>
-
-            {/* Thumbnail Navigation */}
-            {allReviewImages.length > 1 && (
-              <div className="flex justify-center mt-3 sm:mt-4 gap-1.5 sm:gap-2 overflow-x-auto overflow-y-visible pb-4 sm:pb-6 max-w-full px-1 sm:px-2 py-2">
-                {allReviewImages.map((image, index) => (
+          </div>
+          <div className={photoCardClass}>
+            <span className="text-lg font-semibold text-black">
+              Customer Photoes
+            </span>
+            {previewImages.length > 0 ? (
+              <div className={imageGridClass}>
+                {previewImages.map((image: any, index: number) => (
                   <button
-                    key={index}
-                    onClick={() => setModalImageIndex(index)}
-                    className={`shrink-0 w-10 h-10 sm:w-12 sm:h-12 rounded-lg overflow-hidden border-2 transition-all ${
-                      modalImageIndex === index
-                        ? 'border-white scale-110 z-10'
-                        : 'border-white border-opacity-50 hover:border-opacity-100'
-                    }`}
+                    key={image.review_image_id}
+                    type="button"
+                    className="relative aspect-square overflow-hidden rounded-lg bg-gray-200"
+                    onClick={() =>
+                      handleImageClick(image.review_image_url, index)
+                    }
                   >
                     <Image
-                      src={image}
-                      alt={`Thumbnail ${index + 1}`}
-                      width={48}
-                      height={48}
-                      className="object-cover w-full h-full"
+                      src={image.review_image_url}
+                      alt={image.review_image_url}
+                      fill
+                      className="object-cover"
                     />
                   </button>
                 ))}
               </div>
+            ) : (
+              <span className="text-sm text-gray-500">
+                No customer photos uploaded yet.
+              </span>
             )}
+            {allReviewImages.length > 12 && (
+              <button
+                type="button"
+                className="text-sm font-semibold text-blue-500 transition hover:text-blue-600"
+                onClick={handleViewMoreImages}
+              >
+                View all photoes({allReviewImages.length})
+              </button>
+            )}
+          </div>
+        </div>
+        <div className={reviewListClass}>
+          {reviewsToRender.length > 0 ? (
+            reviewsToRender.map((review: any) => renderReviewCard(review))
+          ) : (
+            <span className="text-sm font-semibold text-black">
+              No reviews found for this product
+            </span>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+  useEffect(() => {
+    console.log("reviews", reviews);
+    console.log("previewImages", previewImages);
+  }, [reviews]);
+
+  return (
+    <>
+      {renderResponsiveSection({
+        wrapperClass: "block sm:hidden py-6 px-4 box-border bg-white",
+        containerClass: "flex flex-col gap-6",
+        infoWrapperClass: "flex flex-col gap-6",
+        summaryCardClass:
+          "flex flex-col gap-4 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm",
+        photoCardClass:
+          "flex flex-col gap-4 rounded-2xl border border-gray-200 bg-gray-50 p-5 shadow-sm",
+        imageGridClass: "grid grid-cols-3 gap-2",
+        reviewListClass: "flex flex-col gap-4",
+      })}
+
+      {renderResponsiveSection({
+        wrapperClass: "hidden sm:block md:hidden py-8 px-6 box-border bg-white",
+        containerClass: "flex flex-col gap-6",
+        infoWrapperClass:
+          "flex flex-col gap-6 sm:flex-row sm:items-start sm:gap-6",
+        summaryCardClass:
+          "flex flex-1 flex-col gap-4 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm",
+        photoCardClass:
+          "flex flex-1 flex-col gap-4 rounded-2xl border border-gray-200 bg-gray-50 p-6 shadow-sm",
+        imageGridClass: "grid grid-cols-4 gap-3",
+        reviewListClass: "flex flex-col gap-5",
+      })}
+
+      {renderResponsiveSection({
+        wrapperClass: "hidden md:block lg:hidden py-8 px-8 box-border bg-white",
+        containerClass: "flex flex-col gap-8",
+        infoWrapperClass:
+          "flex flex-col gap-6 md:flex-row md:items-start md:gap-6",
+        summaryCardClass:
+          "flex flex-1 flex-col gap-4 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm",
+        photoCardClass:
+          "flex flex-1 flex-col gap-4 rounded-2xl border border-gray-200 bg-gray-50 p-6 shadow-sm",
+        imageGridClass: "grid grid-cols-4 gap-3",
+        reviewListClass: "flex flex-col gap-6",
+      })}
+
+      {renderResponsiveSection({
+        wrapperClass:
+          "hidden lg:block xl:hidden py-10 px-10 box-border bg-white",
+        containerClass: "flex flex-col gap-8",
+        infoWrapperClass:
+          "flex flex-col gap-8 lg:flex-row lg:items-start lg:gap-8",
+        summaryCardClass:
+          "flex flex-1 flex-col gap-4 rounded-2xl border border-gray-200 bg-white p-6 shadow-md",
+        photoCardClass:
+          "flex flex-1 flex-col gap-4 rounded-2xl border border-gray-200 bg-gray-50 p-6 shadow-md",
+        imageGridClass: "grid grid-cols-4 gap-4",
+        reviewListClass: "flex flex-col gap-6",
+      })}
+
+      {renderResponsiveSection({
+        wrapperClass:
+          "hidden xl:block 2xl:hidden py-12 px-12 box-border bg-white",
+        containerClass: "flex flex-col gap-8",
+        infoWrapperClass:
+          "flex flex-col gap-8 xl:flex-row xl:items-start xl:gap-8",
+        summaryCardClass:
+          "flex flex-1 flex-col gap-4 rounded-2xl border border-gray-200 bg-white p-7 shadow-md",
+        photoCardClass:
+          "flex flex-1 flex-col gap-4 rounded-2xl border border-gray-200 bg-gray-50 p-7 shadow-md",
+        imageGridClass: "grid grid-cols-4 gap-4",
+        reviewListClass: "flex flex-col gap-6",
+      })}
+
+      {/* Extra Large Desktop Parent Container (1536px+) */}
+      <div className="hidden 2xl:flex py-12 box-border  items-center justify-center ">
+        <div className="w-[90vw] gap-10 flex flex-col items-center justify-center ">
+          <span className=" w-full text-start text-2xl text-black font-bold ">
+            CUSTOMER REVIEW
+          </span>
+          <div className="w-full flex-row flex">
+            <div className="flex flex-col items-center w-1/2 gap-[0.7rem] ">
+              {averageRating && (
+                <span className="text-2xl text-black font-bold ">
+                  {averageRating}
+                </span>
+              )}
+              <div className="flex items-center justify-center mb-1">
+                {renderStars(averageRating, "md")}
+              </div>
+              <span className="text-xs sm:text-sm text-gray-600">
+                {reviews.length} reviews
+              </span>
+              <div className="w-full ">
+                {reviewDistribution
+                  .slice()
+                  .reverse()
+                  .map((value, index) => {
+                    if (5 - index === 0) return null;
+                    return (
+                      <div
+                        key={index}
+                        className="flex flex-row items-center justify-center gap-[1rem]"
+                      >
+                        <span className="text-xl text-black font-bold">
+                          {5 - index}⭐
+                        </span>
+                        <div className="w-[60%] h-[5px] bg-gray-200 shrink-0 relative">
+                          <div
+                            className="h-full bg-gray-800 absolute top-0 left-0 z-10"
+                            style={{
+                              width: `${
+                                reviews.length > 0
+                                  ? (value / reviews.length) * 100
+                                  : 0
+                              }%`,
+                            }}
+                          ></div>
+                          <span className="text-xs text-black font-bold">
+                            {(value / reviews.length) * 100}%
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+              </div>
+            </div>
+            <div className="w-1/2 p-[1rem] bg-gray-100 rounded-lg flex flex-col gap-[1rem] ">
+              <span className="text-lg text-black font-bold ">
+                Customer Photoes
+              </span>
+              <div className="flex w-full flex-wrap ">
+                {previewImages.map((image: any) => (
+                  <div
+                    key={image.review_image_id}
+                    className="w-[100px] h-[100px] bg-gray-500 rounded-lg "
+                  >
+                    <Image
+                      className="object-cover w-full h-full rounded-lg  "
+                      src={image.review_image_url}
+                      alt={image.review_image_url}
+                      width={100}
+                      height={100}
+                      onClick={() =>
+                        handleImageClick(image.review_image_url, 0)
+                      }
+                    />
+                  </div>
+                ))}
+              </div>
+              {allReviewImages.length > 12 && (
+                <button className="text-blue-500 text-sm font-bold ">
+                  View all photoes({allReviewImages.length})
+                </button>
+              )}
+            </div>
+          </div>
+          <div className="w-[90%] p-[1rem] rounded-lg flex flex-col ">
+            {reviews.length > 0 ? (
+              reviews.map((review: any) => (
+                
+                  <div
+                    key={review.review_id}
+                    className="flex flex-col gap-[1rem]  "
+                  >
+                    <div className="flex flex-row items-center justify-between">
+                      <div className="flex flex-row items-center gap-[1rem] ">
+                        <div className="w-10 h-10  bg-gray-500 rounded-full flex items-center justify-center ">
+                          <p className="text-white text-xl font-bold ">
+                            {review.users.email.charAt(0).toUpperCase()}
+                          </p>
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-black text-[1.2rem] font-bold ">
+                            {review.users.first_name} {review.users.last_name}
+                          </span>
+                          <div className="flex flex-row items-center gap-[0.5rem] ">
+                            <div className="flex flex-row items-center gap-[0.5rem] ">
+                              {renderStars(review.rating, "sm")}
+                            </div>
+                            <span className="text-gray-600 text-sm ">
+                              {review.created_at.split("T")[0]}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex flex-row items-center gap-[0.5rem] p-[0.5rem] bg-gray-200 rounded-lg">
+                        {review.review_images.length > 0 && (
+                          <div className="flex flex-row items-center gap-[0.5rem] ">
+                            <Image
+                              src={review.review_images[0].review_image_url}
+                              alt={review.review_images[0].review_image_url}
+                              width={100}
+                              height={100}
+                              className=" rounded-lg object-cover"
+                            />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex flex-col gap-[0.5rem] ">
+                      <span className="text-black text-[1.2rem] font-bold ">
+                        {review.title}
+                      </span>
+                      <span className="text-gray-600 text-sm ">
+                        {review.review_text}
+                      </span>
+                    </div>
+                  </div>
+                
+              ))
+            ) : (
+              <span className="text-black text-sm font-bold ">
+                No reviews found for this product
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+      {showImageModal && (
+        <div className="fixed z-50 backdrop-blur-2xl bg-black/50 inset-0 w-[100vw] h-[100vh] flex flex-col items-center justify-center " >
+          <div className="w-[58%] flex items-end justify-end" >
+            <IoIosClose className="text-white text-6xl"
+            onClick={handleModalClose}
+            />
+          </div>
+          <div className="w-[55%] flex items-center justify-center " >
+            <Image src={modalImage} alt={modalImage} width={1000} height={1000}  className="object-contain rounded-lg"  />
           </div>
         </div>
       )}
