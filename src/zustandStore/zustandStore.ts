@@ -27,6 +27,8 @@ interface StoreState {
     setIsCartOpen: (isCartOpen: boolean) => void;
     categories: any;
     setCategories: (categories: any) => void;
+    refresh: boolean;
+    setRefresh: () => void;
 }
 
 export const useStore = create<StoreState>((set) => ({
@@ -56,5 +58,7 @@ export const useStore = create<StoreState>((set) => ({
     setIsCartOpen: (isCartOpen: boolean) => set({ isCartOpen: isCartOpen }),
     categories: [],
     setCategories: (categories: any) => set({ categories: categories }),
+    refresh:false,
+    setRefresh: () => set((state) => ({ refresh: !state.refresh })),
 }))
 
