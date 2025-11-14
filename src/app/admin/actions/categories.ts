@@ -290,5 +290,32 @@ export async function deleteCategory(categoryId: string): Promise<{ success: boo
 
 
 export async function createSubCategory(formData:any){
+  try{
 
+    const supabase = await createClient()
+
+    const {data,error} = await supabase.from("sub_categories")
+    .insert(formData)
+    .select()
+
+    if(error){
+      console.error('Error creating sub category:', error)
+      return {
+        success: false,
+        error: error.message
+      }
+    }
+
+    return {
+      success: true,
+      data: data
+    }
+
+  }catch(error){
+    console.error('Create sub category error:', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to create sub category'
+    }
+  }
 }

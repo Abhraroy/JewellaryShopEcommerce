@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState, useEffect } from 'react';
-import { Category } from '../actions/categories';
+import { Category, createSubCategory } from '../actions/categories';
 
 const PlusIcon = ({ className = 'w-5 h-5' }) => (
     <svg
@@ -67,11 +67,9 @@ export default function CategoriesList({ category, isDarkTheme, handleEdit, hand
   const [showAddSubCategory, setShowAddSubCategory] = useState(false);
   const [subCategories, setSubCategories] = useState<[]>([]);
   const [formData, setFormData] = useState({
-    sub_category_name: '',
-    slug: '',
-    description: '',
-    image: null as File | null,
-    imagePreview: '',
+    subcategory_name: '',
+    category_id:'',
+    subcategory_image_url: null as File | null,
     is_active: true,
   });
   const [submitting, setSubmitting] = useState(false);
@@ -126,8 +124,7 @@ export default function CategoriesList({ category, isDarkTheme, handleEdit, hand
         const previewUrl = URL.createObjectURL(file);
         setFormData((prev) => ({
           ...prev,
-          image: file,
-          imagePreview: previewUrl,
+          subcategory_image_url: file,
         }));
       }
     }
@@ -138,21 +135,31 @@ export default function CategoriesList({ category, isDarkTheme, handleEdit, hand
       URL.revokeObjectURL(formData.imagePreview);
     }
     setFormData({
-      sub_category_name: '',
-      slug: '',
-      description: '',
-      image: null,
-      imagePreview: '',
+      subcategory_name: '',
+      category_id:'',
+      subcategory_image_url: null,
       is_active: true,
     });
     setShowAddSubCategory(false);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent, category_id: string) => {
     e.preventDefault();
     setSubmitting(true);
     // TODO: Add submit logic here
     console.log('Subcategory form data:', formData);
+    const formDataWithCategoryId = {
+        ...formData,
+        category_id: category_id
+    }
+
+    const result = await createSubCategory(formDataWithCategoryId)
+    if(result.success){
+    //   setSubCategories((prev) => [...prev, result.data as any])
+      setShowAddSubCategory(false)
+    }else{
+      alert(`Failed to create sub category: ${result.error}`)
+    }
     // After successful submission:
     // handleCancel();
     setSubmitting(false);
@@ -305,7 +312,7 @@ export default function CategoriesList({ category, isDarkTheme, handleEdit, hand
                           Add New Sub Category
                         </h3>
                         
-                        <form onSubmit={handleSubmit} className="space-y-6">
+                        <form onSubmit={(e) => handleSubmit(e, category.category_id)} className="space-y-6">
                           {/* Basic Information */}
                           <div className="space-y-4">
                             <div>
@@ -314,8 +321,8 @@ export default function CategoriesList({ category, isDarkTheme, handleEdit, hand
                               </label>
                               <input
                                 type="text"
-                                name="sub_category_name"
-                                value={formData.sub_category_name}
+                                name="subcategory_name"
+                                value={formData.subcategory_name}
                                 onChange={handleInputChange}
                                 placeholder="e.g., Gold Rings, Silver Necklaces"
                                 className={`w-full px-4 py-2 rounded-lg border transition-colors ${
@@ -324,46 +331,6 @@ export default function CategoriesList({ category, isDarkTheme, handleEdit, hand
                                     : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400'
                                 } focus:outline-none focus:ring-2 focus:ring-[#E94E8B]`}
                                 required
-                              />
-                            </div>
-
-                            <div>
-                              <label className={`block text-sm font-medium mb-2 ${isDarkTheme ? 'text-gray-300' : 'text-gray-700'}`}>
-                                Slug *
-                              </label>
-                              <input
-                                type="text"
-                                name="slug"
-                                value={formData.slug}
-                                onChange={handleInputChange}
-                                placeholder="e.g., gold-rings, silver-necklaces"
-                                className={`w-full px-4 py-2 rounded-lg border transition-colors ${
-                                  isDarkTheme
-                                    ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-500'
-                                    : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400'
-                                } focus:outline-none focus:ring-2 focus:ring-[#E94E8B]`}
-                                required
-                              />
-                              <p className={`text-xs mt-1 ${isDarkTheme ? 'text-gray-400' : 'text-gray-500'}`}>
-                                Auto-generated from sub category name. Used in URLs.
-                              </p>
-                            </div>
-
-                            <div>
-                              <label className={`block text-sm font-medium mb-2 ${isDarkTheme ? 'text-gray-300' : 'text-gray-700'}`}>
-                                Description
-                              </label>
-                              <textarea
-                                name="description"
-                                value={formData.description}
-                                onChange={handleInputChange}
-                                placeholder="Brief description of the sub category..."
-                                rows={3}
-                                className={`w-full px-4 py-2 rounded-lg border transition-colors ${
-                                  isDarkTheme
-                                    ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-500'
-                                    : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400'
-                                } focus:outline-none focus:ring-2 focus:ring-[#E94E8B] resize-none`}
                               />
                             </div>
 
