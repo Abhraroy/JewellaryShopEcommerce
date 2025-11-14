@@ -452,7 +452,7 @@ export default function ProductReview({ reviews }: { reviews: any }) {
                 Customer Photoes
               </span>
               <div className="flex w-full flex-wrap ">
-                {previewImages.map((image: any) => (
+                { previewImages.length > 0 ? previewImages.map((image: any) => (
                   <div
                     key={image.review_image_id}
                     className="w-[100px] h-[100px] bg-gray-500 rounded-lg "
@@ -468,7 +468,11 @@ export default function ProductReview({ reviews }: { reviews: any }) {
                       }
                     />
                   </div>
-                ))}
+                )) : (
+                  <span className="text-sm font-semibold text-black">
+                    No customer photos uploaded yet.
+                  </span>
+                )}
               </div>
               {allReviewImages.length > 12 && (
                 <button className="text-blue-500 text-sm font-bold ">

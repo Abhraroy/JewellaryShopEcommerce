@@ -25,10 +25,10 @@ import Link from 'next/link';
 
 export default function CategorySection({ 
   categories,
-  className = '' 
+  // className = '' 
 }: { categories: any }) {
   return (
-    <section className={`w-full bg-white py-8 md:py-12 ${className}`}>
+    <section className={`w-full bg-white py-8 md:py-12`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-6 md:mb-8 text-center">
           Shop by Category
