@@ -9,23 +9,31 @@ import { extractR2KeyFromUrl } from './utils'
  * Category Types and Interfaces
  */
 export interface Category {
+  [x: string]: any
   category_id: string
-  parent_category_id: string | null
   category_name: string
   slug: string
   description: string | null
-  image_url: string | null
+  category_image_url: string | null
   is_active: boolean
   display_order: number
 }
 
 export interface CreateCategoryData {
+  category_id: string
   category_name: string
   slug: string
   description?: string
-  image?: File
+  category_image_url?: File
+  sub_categories?: Array<{
+    sub_category_id: string
+    sub_category_name: string
+    slug: string
+    description?: string
+    sub_category_image?: File
+    is_active?: boolean
+  }>
   is_active?: boolean
-  display_order?: number
 }
 
 export interface UpdateCategoryData extends Partial<CreateCategoryData> {
@@ -42,9 +50,7 @@ export async function getCategories(): Promise<{ success: boolean; data?: Catego
 
     const { data, error } = await supabase
       .from('categories')
-      .select('*')
-      .is('parent_category_id', null) // Only main categories
-      .order('display_order', { ascending: true })
+      .select('*, sub_categories(*)')
 
     if (error) {
       console.error('Error fetching categories:', error)
@@ -104,8 +110,8 @@ export async function createCategory(formData: CreateCategoryData): Promise<{ su
     let uploadedImageKey: string | null = null
 
     // Upload image to Cloudflare R2 if provided
-    if (formData.image) {
-      const uploadResult = await uploadImageToCloudflare(formData.image, {
+    if (formData.category_image_url) {
+      const uploadResult = await uploadImageToCloudflare(formData.category_image_url, {
         folder: 'categories'
       })
 
@@ -122,10 +128,8 @@ export async function createCategory(formData: CreateCategoryData): Promise<{ su
       category_name: formData.category_name,
       slug: formData.slug,
       description: formData.description || null,
-      image_url: imageUrl,
+      category_image_url: imageUrl,
       is_active: formData.is_active ?? true,
-      display_order: formData.display_order ?? 0,
-      parent_category_id: null // Main categories only for now
     }
 
     const { data, error } = await supabase
