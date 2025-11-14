@@ -115,6 +115,23 @@ const AddressIcon = () => (
   </svg>
 );
 
+const LogoutIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    fill="none"
+    viewBox="0 0 24 24"
+    strokeWidth={1.5}
+    stroke="currentColor"
+    className="w-5 h-5"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15M12 9l-3 3m0 0 3 3m-3-3h12.75"
+    />
+  </svg>
+);
+
 export default function AccountPage() {
   const [userData, setUserData] = useState<any>(null);
   const [emailUpdateState, setEmailUpdateState] = useState(false);
@@ -363,11 +380,21 @@ export default function AccountPage() {
                 >
                   Continue Shopping
                 </a>
+                <button
+                  onClick={() => {
+                    // Logout functionality can be added here
+                    console.log("Logout clicked");
+                  }}
+                  className="w-full px-4 py-3 bg-red-50 hover:bg-red-100 text-red-700 font-medium rounded-lg transition-colors duration-200 flex items-center justify-center gap-2"
+                >
+                  <LogoutIcon />
+                  Logout
+                </button>
               </div>
             </div>
 
             {/* Addresses Card */}
-            {addresses.length > 0 && <AddressSection addresses={addresses} userId={userData} />}
+             <AddressSection addresses={addresses} userId={userData} />
           </div>
         </div>
       </main>
