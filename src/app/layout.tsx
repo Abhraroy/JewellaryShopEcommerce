@@ -6,6 +6,7 @@ import PhoneNumberInput from "@/components/PhoneNumberInput";
 import OtpInput from "@/components/OtpInput";
 import { useStore } from "@/zustandStore/zustandStore";
 import ParentNavbar from "@/components/ParentNavbar";
+import Footer from "@/components/Footer";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -35,6 +36,7 @@ export default function RootLayout({
       >
         <ParentNavbar />
         {children}
+        <Footer />
       </body>
     </html>
   );

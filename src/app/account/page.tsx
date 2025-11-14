@@ -381,9 +381,17 @@ export default function AccountPage() {
                   Continue Shopping
                 </a>
                 <button
-                  onClick={() => {
+                  onClick={async () => {
                     // Logout functionality can be added here
                     console.log("Logout clicked");
+                    const { error } = await supabase.auth.signOut();
+                    if (error) {
+                      console.log("error", error);
+                    }
+                    else{
+                      console.log("Logout successful");
+                      redirect("/");
+                    }
                   }}
                   className="w-full px-4 py-3 bg-red-50 hover:bg-red-100 text-red-700 font-medium rounded-lg transition-colors duration-200 flex items-center justify-center gap-2"
                 >
@@ -399,7 +407,7 @@ export default function AccountPage() {
         </div>
       </main>
 
-      <Footer />
+      
     </div>
   );
 }

@@ -241,8 +241,6 @@ export default function LandingPage() {
           onAddToCart={handleAddToCart}
           onWishlistToggle={handleWishlistToggle}
         />
-
-        <Footer />
       </main>
     </div>
   );
