@@ -1,63 +1,76 @@
-'use server'
+"use server";
 
-import { createClient } from '@/app/utils/supabase/server'
-import { revalidatePath } from 'next/cache'
-import { uploadImageToCloudflare, deleteImageFromCloudflare } from '@/app/utils/cloudflare'
-import { extractR2KeyFromUrl } from './utils'
+import { createClient } from "@/app/utils/supabase/server";
+import { revalidatePath } from "next/cache";
+import {
+  uploadImageToCloudflare,
+  deleteImageFromCloudflare,
+} from "@/app/utils/cloudflare";
+import { extractR2KeyFromUrl } from "./utils";
 
 /**
  * Category Types and Interfaces
  */
 export interface Category {
-  category_id: string
-  parent_category_id: string | null
-  category_name: string
-  slug: string
-  description: string | null
-  image_url: string | null
-  is_active: boolean
-  display_order: number
+  [x: string]: any;
+  category_id: string;
+  category_name: string;
+  slug: string;
+  description: string | null;
+  category_image_url: string | null;
+  is_active: boolean;
 }
 
 export interface CreateCategoryData {
-  category_name: string
-  slug: string
-  description?: string
-  image?: File
-  is_active?: boolean
-  display_order?: number
+  category_id: string;
+  category_name: string;
+  slug: string;
+  description?: string;
+  category_image_url?: File;
+  sub_categories?: Array<{
+    sub_category_id: string;
+    sub_category_name: string;
+    slug: string;
+    description?: string;
+    sub_category_image?: File;
+    is_active?: boolean;
+  }>;
+  is_active?: boolean;
 }
 
 export interface UpdateCategoryData extends Partial<CreateCategoryData> {
-  category_id: string
+  category_id: string;
 }
 
 /**
  * Get all main categories (categories without a parent)
  * @returns Promise with array of categories sorted by display_order
  */
-export async function getCategories(): Promise<{ success: boolean; data?: Category[]; error?: string }> {
+export async function getCategories(): Promise<{
+  success: boolean;
+  data?: Category[];
+  error?: string;
+}> {
   try {
-    const supabase = await createClient()
+    const supabase = await createClient();
 
     const { data, error } = await supabase
-      .from('categories')
-      .select('*')
-      .is('parent_category_id', null) // Only main categories
-      .order('display_order', { ascending: true })
+      .from("categories")
+      .select("*, sub_categories(*)");
 
     if (error) {
-      console.error('Error fetching categories:', error)
-      return { success: false, error: error.message }
+      console.error("Error fetching categories:", error);
+      return { success: false, error: error.message };
     }
 
-    return { success: true, data: data as Category[] }
+    return { success: true, data: data as Category[] };
   } catch (error) {
-    console.error('Get categories error:', error)
+    console.error("Get categories error:", error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Failed to fetch categories'
-    }
+      error:
+        error instanceof Error ? error.message : "Failed to fetch categories",
+    };
   }
 }
 
@@ -66,28 +79,31 @@ export async function getCategories(): Promise<{ success: boolean; data?: Catego
  * @param categoryId - The UUID of the category
  * @returns Promise with category data
  */
-export async function getCategory(categoryId: string): Promise<{ success: boolean; data?: Category; error?: string }> {
+export async function getCategory(
+  categoryId: string
+): Promise<{ success: boolean; data?: Category; error?: string }> {
   try {
-    const supabase = await createClient()
+    const supabase = await createClient();
 
     const { data, error } = await supabase
-      .from('categories')
-      .select('*')
-      .eq('category_id', categoryId)
-      .single()
+      .from("categories")
+      .select("*")
+      .eq("category_id", categoryId)
+      .single();
 
     if (error) {
-      console.error('Error fetching category:', error)
-      return { success: false, error: error.message }
+      console.error("Error fetching category:", error);
+      return { success: false, error: error.message };
     }
 
-    return { success: true, data: data as Category }
+    return { success: true, data: data as Category };
   } catch (error) {
-    console.error('Get category error:', error)
+    console.error("Get category error:", error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Failed to fetch category'
-    }
+      error:
+        error instanceof Error ? error.message : "Failed to fetch category",
+    };
   }
 }
 
@@ -96,25 +112,34 @@ export async function getCategory(categoryId: string): Promise<{ success: boolea
  * @param formData - Category data including optional image file
  * @returns Promise with created category data
  */
-export async function createCategory(formData: CreateCategoryData): Promise<{ success: boolean; data?: Category; error?: string }> {
+//working fine
+export async function createCategory(
+  formData: CreateCategoryData
+): Promise<{ success: boolean; data?: Category; error?: string }> {
   try {
-    const supabase = await createClient()
+    const supabase = await createClient();
 
-    let imageUrl: string | null = null
-    let uploadedImageKey: string | null = null
+    let imageUrl: string | null = null;
+    let uploadedImageKey: string | null = null;
 
     // Upload image to Cloudflare R2 if provided
-    if (formData.image) {
-      const uploadResult = await uploadImageToCloudflare(formData.image, {
-        folder: 'categories'
-      })
+    if (formData.category_image_url) {
+      const uploadResult = await uploadImageToCloudflare(
+        formData.category_image_url,
+        {
+          folder: "categories",
+        }
+      );
 
       if (!uploadResult.success) {
-        return { success: false, error: uploadResult.error || 'Failed to upload image' }
+        return {
+          success: false,
+          error: uploadResult.error || "Failed to upload image",
+        };
       }
 
-      imageUrl = uploadResult.url || null
-      uploadedImageKey = uploadResult.key || null
+      imageUrl = uploadResult.url || null;
+      uploadedImageKey = uploadResult.key || null;
     }
 
     // Create category in database
@@ -122,35 +147,34 @@ export async function createCategory(formData: CreateCategoryData): Promise<{ su
       category_name: formData.category_name,
       slug: formData.slug,
       description: formData.description || null,
-      image_url: imageUrl,
+      category_image_url: imageUrl,
       is_active: formData.is_active ?? true,
-      display_order: formData.display_order ?? 0,
-      parent_category_id: null // Main categories only for now
-    }
+    };
 
     const { data, error } = await supabase
-      .from('categories')
+      .from("categories")
       .insert(categoryData)
       .select()
-      .single()
+      .single();
 
     if (error) {
-      console.error('Error creating category:', error)
+      console.error("Error creating category:", error);
       // If database insert failed but image was uploaded, we should clean up the image
       if (uploadedImageKey) {
-        await deleteImageFromCloudflare(uploadedImageKey)
+        await deleteImageFromCloudflare(uploadedImageKey);
       }
-      return { success: false, error: error.message }
+      return { success: false, error: error.message };
     }
 
-    revalidatePath('/admin')
-    return { success: true, data: data as Category }
+    revalidatePath("/admin");
+    return { success: true, data: data as Category };
   } catch (error) {
-    console.error('Create category error:', error)
+    console.error("Create category error:", error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Failed to create category'
-    }
+      error:
+        error instanceof Error ? error.message : "Failed to create category",
+    };
   }
 }
 
@@ -159,78 +183,90 @@ export async function createCategory(formData: CreateCategoryData): Promise<{ su
  * @param formData - Category data to update, including category_id
  * @returns Promise with updated category data
  */
-export async function updateCategory(formData: UpdateCategoryData): Promise<{ success: boolean; data?: Category; error?: string }> {
+//working fine
+export async function updateCategory(
+  formData: UpdateCategoryData
+): Promise<{ success: boolean; data?: Category; error?: string }> {
   try {
-    const supabase = await createClient()
+    const supabase = await createClient();
 
-    const categoryId = formData.category_id
+    const categoryId = formData.category_id;
 
     // Get current category data to handle image cleanup if needed
     const { data: currentCategory, error: fetchError } = await supabase
-      .from('categories')
-      .select('image_url')
-      .eq('category_id', categoryId)
-      .single()
+      .from("categories")
+      .select("category_image_url")
+      .eq("category_id", categoryId)
+      .single();
 
     if (fetchError) {
-      console.error('Error fetching current category:', fetchError)
-      return { success: false, error: fetchError.message }
+      console.error("Error fetching current category:", fetchError);
+      return { success: false, error: fetchError.message };
     }
 
-    let imageUrl = currentCategory.image_url
+    let imageUrl = currentCategory.category_image_url;
 
     // Upload new image to Cloudflare if provided
-    if (formData.image) {
+    if (formData.category_image_url) {
       // Delete old image if it exists
-      if (currentCategory.image_url) {
+      if (currentCategory.category_image_url) {
         // Extract R2 key from URL
-        const r2Key = extractR2KeyFromUrl(currentCategory.image_url)
+        const r2Key = extractR2KeyFromUrl(currentCategory.category_image_url);
         if (r2Key) {
-          await deleteImageFromCloudflare(r2Key)
+          await deleteImageFromCloudflare(r2Key);
         }
       }
 
-      const uploadResult = await uploadImageToCloudflare(formData.image, {
-        folder: 'categories'
-      })
+      const uploadResult = await uploadImageToCloudflare(
+        formData.category_image_url,
+        {
+          folder: "categories",
+        }
+      );
 
       if (!uploadResult.success) {
-        return { success: false, error: uploadResult.error || 'Failed to upload image' }
+        return {
+          success: false,
+          error: uploadResult.error || "Failed to upload image",
+        };
       }
 
-      imageUrl = uploadResult.url || null
+      imageUrl = uploadResult.url || null;
     }
 
     // Update category in database
-    const updateData: Partial<Category> = {}
+    const updateData: Partial<Category> = {};
 
-    if (formData.category_name !== undefined) updateData.category_name = formData.category_name
-    if (formData.slug !== undefined) updateData.slug = formData.slug
-    if (formData.description !== undefined) updateData.description = formData.description
-    if (imageUrl !== undefined) updateData.image_url = imageUrl
-    if (formData.is_active !== undefined) updateData.is_active = formData.is_active
-    if (formData.display_order !== undefined) updateData.display_order = formData.display_order
+    if (formData.category_name !== undefined)
+      updateData.category_name = formData.category_name;
+    if (formData.slug !== undefined) updateData.slug = formData.slug;
+    if (formData.description !== undefined)
+      updateData.description = formData.description;
+    if (imageUrl !== undefined) updateData.category_image_url = imageUrl;
+    if (formData.is_active !== undefined)
+      updateData.is_active = formData.is_active;
 
     const { data, error } = await supabase
-      .from('categories')
+      .from("categories")
       .update(updateData)
-      .eq('category_id', categoryId)
+      .eq("category_id", categoryId)
       .select()
-      .single()
+      .single();
 
     if (error) {
-      console.error('Error updating category:', error)
-      return { success: false, error: error.message }
+      console.error("Error updating category:", error);
+      return { success: false, error: error.message };
     }
 
-    revalidatePath('/admin')
-    return { success: true, data: data as Category }
+    revalidatePath("/admin");
+    return { success: true, data: data as Category };
   } catch (error) {
-    console.error('Update category error:', error)
+    console.error("Update category error:", error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Failed to update category'
-    }
+      error:
+        error instanceof Error ? error.message : "Failed to update category",
+    };
   }
 }
 
@@ -239,49 +275,203 @@ export async function updateCategory(formData: UpdateCategoryData): Promise<{ su
  * @param categoryId - The UUID of the category to delete
  * @returns Promise with deletion result
  */
-export async function deleteCategory(categoryId: string): Promise<{ success: boolean; error?: string }> {
+//working fine
+export async function deleteCategory(
+  categoryId: string
+): Promise<{ success: boolean; error?: string }> {
   try {
-    const supabase = await createClient()
+    const supabase = await createClient();
 
     // Get category data to clean up image
     const { data: category, error: fetchError } = await supabase
-      .from('categories')
-      .select('image_url')
-      .eq('category_id', categoryId)
-      .single()
+      .from("categories")
+      .select("category_image_url")
+      .eq("category_id", categoryId)
+      .single();
 
     if (fetchError) {
-      console.error('Error fetching category for deletion:', fetchError)
-      return { success: false, error: fetchError.message }
+      console.error("Error fetching category for deletion:", fetchError);
+      return { success: false, error: fetchError.message };
     }
 
     // Delete from database first
     const { error } = await supabase
-      .from('categories')
+      .from("categories")
       .delete()
-      .eq('category_id', categoryId)
+      .eq("category_id", categoryId);
 
     if (error) {
-      console.error('Error deleting category:', error)
-      return { success: false, error: error.message }
+      console.error("Error deleting category:", error);
+      return { success: false, error: error.message };
     }
 
     // Delete image from Cloudflare R2 if it exists
-    if (category.image_url) {
-      const r2Key = extractR2KeyFromUrl(category.image_url)
+    if (category.category_image_url) {
+      const r2Key = extractR2KeyFromUrl(category.category_image_url);
       if (r2Key) {
-        await deleteImageFromCloudflare(r2Key)
+        await deleteImageFromCloudflare(r2Key);
       }
     }
 
-    revalidatePath('/admin')
-    return { success: true }
+    revalidatePath("/admin");
+    return { success: true };
   } catch (error) {
-    console.error('Delete category error:', error)
+    console.error("Delete category error:", error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Failed to delete category'
-    }
+      error:
+        error instanceof Error ? error.message : "Failed to delete category",
+    };
   }
 }
 
+export async function createSubCategory(formData: any) {
+  try {
+    const supabase = await createClient();
+    let imageUrl: string | null = null;
+    let uploadedImageKey: string | null = null;
+    if (formData.subcategory_image_url) {
+      const uploadResult = await uploadImageToCloudflare(
+        formData.subcategory_image_url,
+        {
+          folder: "sub_categories",
+        }
+      );
+
+      if (!uploadResult.success) {
+        return {
+          success: false,
+          error: uploadResult.error || "Failed to upload image",
+        };
+      }
+      imageUrl = uploadResult.url || null;
+      uploadedImageKey = uploadResult.key || null;
+    }
+
+    const subCategoryData = {
+      subcategory_name: formData.subcategory_name,
+      subcategory_image_url: imageUrl,
+      is_active: formData.is_active ?? true,
+      category_id: formData.category_id,
+    };
+
+    const { data, error } = await supabase
+      .from("sub_categories")
+      .insert(subCategoryData)
+      .select()
+      .single();
+
+    console.log("data of sub category", data);
+    console.log("error of sub category", error);
+
+    if (error) {
+      console.error("Error creating sub category:", error);
+      return {
+        success: false,
+        error: error.message,
+      };
+    }
+
+    return {
+      success: true,
+      data: data,
+    };
+  } catch (error) {
+    console.error("Create sub category error:", error);
+    return {
+      success: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : "Failed to create sub category",
+    };
+  }
+}
+
+export async function updateSubCategory(formData: any) {
+  console.log("formData of update sub category", formData);
+  console.log(
+    "type of subcategory_image_url",
+    typeof formData.subcategory_image_url
+  );
+  try {
+    const supabase = await createClient();
+
+    if (formData.subcategory_image_url instanceof File) {
+      console.log("subcategory_image_url is a file");
+      const uploadResult = await uploadImageToCloudflare(
+        formData.subcategory_image_url,
+        {
+          folder: "sub_categories",
+        }
+      );
+      if (!uploadResult.success) {
+        return {
+          success: false,
+          error: uploadResult.error || "Failed to upload image",
+        };
+      }
+      formData.subcategory_image_url = uploadResult.url || null;
+      console.log(
+        "formData of update sub category after upload image to cloudflare",
+        formData
+      );
+      const { data, error } = await supabase
+        .from("sub_categories")
+        .update(formData)
+        .eq("subcategory_id", formData.subcategory_id)
+        .select()
+        .single();
+      console.log(
+        "data of update sub category after update from function in backend ",
+        data
+      );
+      console.log("error of update sub category after update", error);
+      if (error) {
+        console.error("Error updating sub category:", error);
+        return {
+          success: false,
+          error: error.message,
+        };
+      }
+      return {
+        success: true,
+        data: data,
+      };
+    } else {
+      console.log("subcategory_image_url is not a file");
+      formData.subcategory_image_url = formData.subcategory_image_url;
+      const { data, error } = await supabase
+        .from("sub_categories")
+        .update(formData)
+        .eq("subcategory_id", formData.subcategory_id)
+        .select()
+        .single();
+      console.log(
+        "data of update sub category after update from function in backend ",
+        data
+      );
+      console.log("error of update sub category after update", error);
+      if (error) {
+        console.error("Error updating sub category:", error);
+        return {
+          success: false,
+          error: error.message,
+        };
+      }
+      return {
+        success: true,
+        data: data,
+      };
+    }
+  } catch (error) {
+    console.error("Update sub category error:", error);
+    return {
+      success: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : "Failed to update sub category",
+    };
+  }
+}

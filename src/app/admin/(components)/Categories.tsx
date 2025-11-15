@@ -2,6 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { getCategories, createCategory, updateCategory, deleteCategory, type Category, type CreateCategoryData, type UpdateCategoryData } from '../actions';
+import CategoriesList from './CategoriesList';
+import axios from 'axios';
 
 // Icon Components
 const PlusIcon = ({ className = 'w-5 h-5' }) => (
@@ -77,12 +79,6 @@ export default function Categories({ isDarkTheme }: CategoriesProps) {
     image: null as File | null,
     imagePreview: '',
     is_active: true,
-    display_order: 0,
-    subCategories: [] as Array<{
-      name: string;
-      image: File | null;
-      imagePreview: string;
-    }>,
   });
 
   // Fetch categories on component mount
@@ -93,6 +89,7 @@ export default function Categories({ isDarkTheme }: CategoriesProps) {
   const fetchCategories = async () => {
     try {
       const result = await getCategories();
+      console.log("result of getCategories",result)
       if (result.success && result.data) {
         setCategories(result.data);
       } else {
@@ -128,6 +125,7 @@ export default function Categories({ isDarkTheme }: CategoriesProps) {
     if (file) {
       // Create preview URL
       const previewUrl = URL.createObjectURL(file);
+      console.log('previewUrl of category image ', previewUrl);
       setFormData((prev) => ({
         ...prev,
         image: file,
@@ -170,94 +168,6 @@ export default function Categories({ isDarkTheme }: CategoriesProps) {
     }
   };
 
-  const handleSubCategoryChange = (index: number, value: string) => {
-    setFormData((prev) => {
-      const newSubCategories = [...prev.subCategories];
-      newSubCategories[index] = {
-        ...newSubCategories[index],
-        name: value
-      };
-      return { ...prev, subCategories: newSubCategories };
-    });
-  };
-
-  const handleSubCategoryImageUpload = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const previewUrl = URL.createObjectURL(file);
-      setFormData((prev) => {
-        const newSubCategories = [...prev.subCategories];
-        newSubCategories[index] = {
-          ...newSubCategories[index],
-          image: file,
-          imagePreview: previewUrl
-        };
-        return { ...prev, subCategories: newSubCategories };
-      });
-    }
-  };
-
-  const removeSubCategoryImage = (index: number) => {
-    setFormData((prev) => {
-      const newSubCategories = [...prev.subCategories];
-      if (newSubCategories[index].imagePreview) {
-        URL.revokeObjectURL(newSubCategories[index].imagePreview);
-      }
-      newSubCategories[index] = {
-        ...newSubCategories[index],
-        image: null,
-        imagePreview: ''
-      };
-      return { ...prev, subCategories: newSubCategories };
-    });
-  };
-
-  const handleSubCategoryDragOver = (e: React.DragEvent, index: number) => {
-    e.preventDefault();
-    e.stopPropagation();
-  };
-
-  const handleSubCategoryDrop = (e: React.DragEvent, index: number) => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    const files = e.dataTransfer.files;
-    if (files && files[0]) {
-      const file = files[0];
-      if (file.type.startsWith('image/')) {
-        const previewUrl = URL.createObjectURL(file);
-        setFormData((prev) => {
-          const newSubCategories = [...prev.subCategories];
-          newSubCategories[index] = {
-            ...newSubCategories[index],
-            image: file,
-            imagePreview: previewUrl
-          };
-          return { ...prev, subCategories: newSubCategories };
-        });
-      }
-    }
-  };
-
-  const addSubCategory = () => {
-    setFormData((prev) => ({
-      ...prev,
-      subCategories: [...prev.subCategories, { name: '', image: null, imagePreview: '' }]
-    }));
-  };
-
-  const removeSubCategory = (index: number) => {
-    setFormData((prev) => {
-      // Clean up object URL if it exists
-      if (prev.subCategories[index]?.imagePreview) {
-        URL.revokeObjectURL(prev.subCategories[index].imagePreview);
-      }
-      return {
-        ...prev,
-        subCategories: prev.subCategories.filter((_, i) => i !== index)
-      };
-    });
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -265,12 +175,12 @@ export default function Categories({ isDarkTheme }: CategoriesProps) {
 
     try {
       const categoryData: CreateCategoryData = {
+        category_id: editingCategory || '',
         category_name: formData.category_name,
         slug: formData.slug,
         description: formData.description || undefined,
-        image: formData.image || undefined,
+        category_image_url: formData.image || undefined,
         is_active: formData.is_active,
-        display_order: formData.display_order,
       };
 
       if (editingCategory) {
@@ -293,7 +203,6 @@ export default function Categories({ isDarkTheme }: CategoriesProps) {
           return;
         }
       } else {
-        // Add new category
         const result = await createCategory(categoryData);
         if (result.success && result.data) {
           setCategories((prev) => [...prev, result.data!]);
@@ -324,10 +233,8 @@ export default function Categories({ isDarkTheme }: CategoriesProps) {
         slug: category.slug,
         description: category.description || '',
         image: null, // We don't have the actual file, just the URL
-        imagePreview: category.image_url || '', // Use existing image as preview
+        imagePreview: category.category_image_url || '', // Use existing image as preview
         is_active: category.is_active,
-        display_order: category.display_order,
-        subCategories: [] // Keep empty for now as per requirements
       });
       setEditingCategory(categoryId);
       setShowAddCategory(true);
@@ -357,12 +264,6 @@ export default function Categories({ isDarkTheme }: CategoriesProps) {
     if (formData.imagePreview && formData.image) {
       URL.revokeObjectURL(formData.imagePreview);
     }
-    // Clean up all sub-category image previews
-    formData.subCategories.forEach(sub => {
-      if (sub.imagePreview && sub.image) {
-        URL.revokeObjectURL(sub.imagePreview);
-      }
-    });
     setFormData({
       category_name: '',
       slug: '',
@@ -370,8 +271,6 @@ export default function Categories({ isDarkTheme }: CategoriesProps) {
       image: null,
       imagePreview: '',
       is_active: true,
-      display_order: 0,
-      subCategories: []
     });
     setEditingCategory(null);
     setShowAddCategory(false);
@@ -397,7 +296,7 @@ export default function Categories({ isDarkTheme }: CategoriesProps) {
               : 'bg-[#E94E8B] text-white hover:bg-[#d43d75]'
           }`}
         >
-          <PlusIcon className="w-5 h-5" />
+          {!showAddCategory?<PlusIcon className="w-5 h-5" />:""}
           {showAddCategory ? 'Cancel' : 'Add Category'}
         </button>
       </div>
@@ -517,31 +416,6 @@ export default function Categories({ isDarkTheme }: CategoriesProps) {
                     Active
                   </label>
                 </div>
-
-                {/* Display Order */}
-                <div>
-                  <label
-                    className={`block text-sm font-medium mb-2 ${
-                      isDarkTheme ? 'text-gray-300' : 'text-gray-700'
-                    }`}
-                  >
-                    Display Order
-                  </label>
-                  <input
-                    type="number"
-                    name="display_order"
-                    value={formData.display_order}
-                    onChange={(e) => setFormData(prev => ({ ...prev, display_order: parseInt(e.target.value) || 0 }))}
-                    placeholder="0"
-                    min="0"
-                    className={`w-full px-4 py-2 rounded-lg border transition-colors ${
-                      isDarkTheme
-                        ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500'
-                        : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400'
-                    } focus:outline-none focus:ring-2 focus:ring-[#E94E8B]`}
-                  />
-                </div>
-
               </div>
             </div>
 
@@ -610,133 +484,6 @@ export default function Categories({ isDarkTheme }: CategoriesProps) {
               )}
             </div>
 
-            {/* Sub Categories */}
-            <div className="mb-8">
-              <div className="flex items-center justify-between mb-4">
-                <h3
-                  className={`text-lg font-semibold ${
-                    isDarkTheme ? 'text-white' : 'text-gray-900'
-                  }`}
-                >
-                  Sub Categories
-                </h3>
-                <button
-                  type="button"
-                  onClick={addSubCategory}
-                  className="flex items-center gap-2 px-3 py-1 text-sm bg-[#E94E8B] text-white rounded hover:bg-[#d43d75] transition-colors"
-                >
-                  <PlusIcon className="w-4 h-4" />
-                  Add Sub Category
-                </button>
-              </div>
-
-              <div className="space-y-4">
-                {formData.subCategories.map((subCategory, index) => (
-                  <div
-                    key={index}
-                    className={`${
-                      isDarkTheme ? 'bg-gray-800 border border-gray-700' : 'bg-gray-50 border border-gray-200'
-                    } rounded-lg p-4`}
-                  >
-                    <div className="flex items-start justify-between gap-4 mb-3">
-                      <div className="flex-1">
-                        <label
-                          className={`block text-sm font-medium mb-2 ${
-                            isDarkTheme ? 'text-gray-300' : 'text-gray-700'
-                          }`}
-                        >
-                          Sub Category Name
-                        </label>
-                        <input
-                          type="text"
-                          value={subCategory.name}
-                          onChange={(e) => handleSubCategoryChange(index, e.target.value)}
-                          placeholder={`Sub category ${index + 1}`}
-                          className={`w-full px-4 py-2 rounded-lg border transition-colors ${
-                            isDarkTheme
-                              ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-500'
-                              : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400'
-                          } focus:outline-none focus:ring-2 focus:ring-[#E94E8B]`}
-                        />
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => removeSubCategory(index)}
-                        className={`p-2 rounded-lg transition-colors mt-7 ${
-                          isDarkTheme
-                            ? 'text-red-400 hover:bg-red-900'
-                            : 'text-red-500 hover:bg-red-50'
-                        }`}
-                      >
-                        <DeleteIcon className="w-4 h-4" />
-                      </button>
-                    </div>
-
-                    {/* Sub Category Image Upload */}
-                    <div>
-                      <label
-                        className={`block text-sm font-medium mb-2 ${
-                          isDarkTheme ? 'text-gray-300' : 'text-gray-700'
-                        }`}
-                      >
-                        Sub Category Image
-                      </label>
-                      {!subCategory.imagePreview ? (
-                        <div
-                          className={`border-2 border-dashed rounded-lg p-4 text-center transition-colors ${
-                            isDarkTheme ? 'border-gray-600 hover:border-gray-500' : 'border-gray-300 hover:border-gray-400'
-                          }`}
-                          onDragOver={(e) => handleSubCategoryDragOver(e, index)}
-                          onDrop={(e) => handleSubCategoryDrop(e, index)}
-                        >
-                          <ImageIcon
-                            className={`w-8 h-8 mx-auto mb-2 ${
-                              isDarkTheme ? 'text-gray-400' : 'text-gray-400'
-                            }`}
-                          />
-                          <p className={`text-xs mb-1 ${isDarkTheme ? 'text-gray-400' : 'text-gray-600'}`}>
-                            Click to upload or drag and drop
-                          </p>
-                          <input
-                            type="file"
-                            accept="image/*"
-                            onChange={(e) => handleSubCategoryImageUpload(index, e)}
-                            className="hidden"
-                            id={`sub-category-image-${index}`}
-                          />
-                          <label
-                            htmlFor={`sub-category-image-${index}`}
-                            className="mt-2 inline-block px-3 py-1 text-xs bg-[#E94E8B] text-white rounded cursor-pointer hover:bg-[#d43d75] transition-colors"
-                          >
-                            Select Image
-                          </label>
-                        </div>
-                      ) : (
-                        <div className="relative">
-                          <img
-                            src={subCategory.imagePreview}
-                            alt={`Sub category ${index + 1} preview`}
-                            className="w-full h-32 object-cover rounded-lg border"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => removeSubCategoryImage(index)}
-                            className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
-                          >
-                            <DeleteIcon className="w-3 h-3" />
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ))}
-                {formData.subCategories.length === 0 && (
-                  <div className={`text-center py-8 ${isDarkTheme ? 'text-gray-400' : 'text-gray-500'}`}>
-                    No sub categories added yet. Click &quot;Add Sub Category&quot; to add one.
-                  </div>
-                )}
-              </div>
-            </div>
 
             {/* Form Actions */}
             <div className="flex justify-end gap-4">
@@ -762,7 +509,6 @@ export default function Categories({ isDarkTheme }: CategoriesProps) {
           </form>
         </div>
       )}
-
       {/* Categories List */}
       <div
         className={`${
@@ -773,7 +519,7 @@ export default function Categories({ isDarkTheme }: CategoriesProps) {
           Main Categories ({categories.length})
         </h2>
         <p className={`text-sm mb-4 ${isDarkTheme ? 'text-gray-400' : 'text-gray-600'}`}>
-          Manage your jewelry categories. Categories are sorted by display order.
+          Manage your jewelry categories.
         </p>
 
         {loading ? (
@@ -785,85 +531,40 @@ export default function Categories({ isDarkTheme }: CategoriesProps) {
             No categories added yet. Click &quot;Add Category&quot; to create your first category.
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {categories.map((category) => (
-              <div
-                key={category.category_id}
-                className={`${
-                  isDarkTheme ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-200'
-                } rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow`}
-              >
-                {/* Category Image */}
-                <div className={`relative h-48 ${category.image_url ? 'bg-gray-100' : isDarkTheme ? 'bg-gray-800' : 'bg-gray-100'}`}>
-                  {category.image_url ? (
-                    <img
-                      src={category.image_url}
-                      alt={category.category_name}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <div className="text-center">
-                        <ImageIcon className={`w-12 h-12 mx-auto mb-2 ${isDarkTheme ? 'text-gray-600' : 'text-gray-400'}`} />
-                        <p className={`text-xs ${isDarkTheme ? 'text-gray-500' : 'text-gray-500'}`}>
-                          No Image
-                        </p>
-                      </div>
-                    </div>
-                  )}
-                  <div className="absolute top-2 right-2 flex gap-2">
-                    <button
-                      onClick={() => handleEdit(category.category_id)}
-                      className="p-2 bg-white/80 backdrop-blur-sm rounded-full hover:bg-white transition-colors"
-                    >
-                      <EditIcon className="w-4 h-4 text-gray-700" />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(category.category_id)}
-                      className="p-2 bg-white/80 backdrop-blur-sm rounded-full hover:bg-white transition-colors"
-                    >
-                      <DeleteIcon className="w-4 h-4 text-red-600" />
-                    </button>
-                  </div>
-                  {/* Status Badge */}
-                  <div className="absolute top-2 left-2">
-                    <span className={`px-2 py-1 text-xs font-medium rounded ${
-                      category.is_active
-                        ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                        : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
-                    }`}>
-                      {category.is_active ? 'Active' : 'Inactive'}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Category Info */}
-                <div className="p-4">
-                  <h3 className={`font-semibold text-lg mb-2 ${isDarkTheme ? 'text-white' : 'text-gray-900'}`}>
-                    {category.category_name}
-                  </h3>
-
-                  {category.description && (
-                    <p className={`text-sm mb-2 ${isDarkTheme ? 'text-gray-300' : 'text-gray-600'}`}>
-                      {category.description}
-                    </p>
-                  )}
-
-                  <div className="flex items-center justify-between text-xs">
-                    <span className={isDarkTheme ? 'text-gray-400' : 'text-gray-500'}>
-                      Slug: {category.slug}
-                    </span>
-                    <span className={isDarkTheme ? 'text-gray-400' : 'text-gray-500'}>
-                      Order: {category.display_order}
-                    </span>
-                  </div>
-
-                  <div className={`text-xs mt-2 ${isDarkTheme ? 'text-gray-400' : 'text-gray-500'}`}>
-                    Used in: Landing Page • ID: {category.category_id.slice(0, 8)}...
-                  </div>
-                </div>
-              </div>
-            ))}
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className={`border-b ${isDarkTheme ? 'border-gray-700' : 'border-gray-200'}`}>
+                  <th className={`text-left py-3 px-4 font-semibold text-sm ${isDarkTheme ? 'text-gray-300' : 'text-gray-700'}`}>
+                    Image
+                  </th>
+                  <th className={`text-left py-3 px-4 font-semibold text-sm ${isDarkTheme ? 'text-gray-300' : 'text-gray-700'}`}>
+                    Category Name
+                  </th>
+                  <th className={`text-left py-3 px-4 font-semibold text-sm ${isDarkTheme ? 'text-gray-300' : 'text-gray-700'}`}>
+                    Slug
+                  </th>
+                  <th className={`text-left py-3 px-4 font-semibold text-sm ${isDarkTheme ? 'text-gray-300' : 'text-gray-700'}`}>
+                    Description
+                  </th>
+                  <th className={`text-left py-3 px-4 font-semibold text-sm ${isDarkTheme ? 'text-gray-300' : 'text-gray-700'}`}>
+                    Status
+                  </th>
+                  <th className={`text-left py-3 px-4 font-semibold text-sm ${isDarkTheme ? 'text-gray-300' : 'text-gray-700'}`}>
+                    Actions
+                  </th>
+                  <th className={`text-left py-3 px-4 font-semibold text-sm ${isDarkTheme ? 'text-gray-300' : 'text-gray-700'}`}>
+                    Sub Categories
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+              {categories.map((category : Category) => (
+              <CategoriesList key={category.category_id} category={category} isDarkTheme={isDarkTheme} handleEdit={handleEdit} handleDelete={handleDelete} fetchCategories={fetchCategories} setCategories={setCategories} />
+           
+          ))}
+              </tbody>
+            </table>
           </div>
         )}
       </div>
