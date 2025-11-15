@@ -13,6 +13,7 @@
 
 import * as crypto from 'crypto';
 
+
 interface UploadResult {
   success: boolean;
   url?: string;
@@ -57,6 +58,12 @@ export async function uploadImageToCloudflare(
     const endpoint = process.env.CLOUDFLARE_R2_ENDPOINT;
     const bucketName = process.env.CLOUDFLARE_R2_BUCKET_NAME;
     const publicUrl = process.env.CLOUDFLARE_R2_PUBLIC_URL;
+    console.log('accessKeyId', accessKeyId);
+    console.log('secretAccessKey', secretAccessKey);
+    console.log('endpoint', endpoint);
+    console.log('bucketName', bucketName);
+    console.log('publicUrl', publicUrl);
+
 
     if (!accessKeyId || !secretAccessKey || !endpoint || !bucketName) {
       throw new Error('R2 environment variables are not properly configured');

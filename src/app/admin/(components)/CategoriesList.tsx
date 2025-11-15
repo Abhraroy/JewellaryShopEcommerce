@@ -72,6 +72,7 @@ export default function CategoriesList({ category, isDarkTheme, handleEdit, hand
     category_id:'',
     subcategory_image_url: null as File | null,
     is_active: true,
+    subcategory_image_url_preview: '',
   });
   const [submitting, setSubmitting] = useState(false);
 
@@ -80,9 +81,9 @@ export default function CategoriesList({ category, isDarkTheme, handleEdit, hand
     setFormData((prev) => {
       const updated = { ...prev, [name]: value };
       // Auto-generate slug from sub category name
-      if (name === 'sub_category_name') {
-        updated.slug = value.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
-      }
+      // if (name === 'sub_category_name') {
+      //   updated.slug = value.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+      // }
       return updated;
     });
   };
@@ -90,24 +91,24 @@ export default function CategoriesList({ category, isDarkTheme, handleEdit, hand
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const previewUrl =await  uploadImageToCloudflare(file)
+      const previewUrl = URL.createObjectURL(file);
       console.log("image status after uploading to cloudflare", previewUrl)
       setFormData((prev) => ({
         ...prev,
-        image: file,
-        imagePreview: previewUrl,
+        subcategory_image_url: file,
+        subcategory_image_url_preview: previewUrl,
       }));
     }
   };
 
   const removeImage = () => {
-    if (formData.imagePreview) {
-      URL.revokeObjectURL(formData.imagePreview);
+    if (formData.subcategory_image_url) {
+      URL.revokeObjectURL(formData.subcategory_image_url.toString() || '');
     }
     setFormData((prev) => ({
       ...prev,
-      image: null,
-      imagePreview: '',
+      subcategory_image_url: null,
+      subcategory_image_url_preview: '',
     }));
   };
 
@@ -127,20 +128,22 @@ export default function CategoriesList({ category, isDarkTheme, handleEdit, hand
         setFormData((prev) => ({
           ...prev,
           subcategory_image_url: file,
+          subcategory_image_url_preview: previewUrl,
         }));
       }
     }
   };
 
   const handleCancel = () => {
-    if (formData.imagePreview) {
-      URL.revokeObjectURL(formData.imagePreview);
+    if (formData.subcategory_image_url) {
+      URL.revokeObjectURL(formData.subcategory_image_url.toString() || '');
     }
     setFormData({
       subcategory_name: '',
       category_id:'',
       subcategory_image_url: null,
       is_active: true,
+      subcategory_image_url_preview: '',
     });
     setShowAddSubCategory(false);
   };
@@ -148,16 +151,19 @@ export default function CategoriesList({ category, isDarkTheme, handleEdit, hand
   const handleSubmit = async (e: React.FormEvent, category_id: string) => {
     e.preventDefault();
     setSubmitting(true);
+    console.log("category_id",category_id)
     // TODO: Add submit logic here
     console.log('Subcategory form data:', formData);
     const formDataWithCategoryId = {
         ...formData,
         category_id: category_id
     }
-
+    console.log("formDataWithCategoryId",formDataWithCategoryId)
     const result = await createSubCategory(formDataWithCategoryId)
     if(result.success){
     //   setSubCategories((prev) => [...prev, result.data as any])
+     await fetchCategories();
+     handleCancel();
       setShowAddSubCategory(false)
     }else{
       alert(`Failed to create sub category: ${result.error}`)
@@ -269,24 +275,66 @@ export default function CategoriesList({ category, isDarkTheme, handleEdit, hand
                       </span>
                     </td>
                   </tr>
+                 
                     <tr>
-                    <td colSpan={7} className="py-4 px-4 pl-8 text-center">
-                      <div className="flex flex-col gap-2 items-center">
-                        {category?.sub_categories?.length > 0 ? (
+                    <td colSpan={1} className="py-4 px-4 pl-8 text-center">
+                      <div className="flex flex-col gap-2 justify-start items-start">
+                        {category?.sub_categories?.length > 0 ? 
                           <div className="flex flex-wrap gap-2 mt-2">
                             {/* Render subcategories here when available */}
                             <span className={`text-sm ${isDarkTheme ? 'text-gray-400' : 'text-gray-600'}`}>
                               {category.sub_categories.length} sub categor{category.sub_categories.length === 1 ? 'y' : 'ies'}
                             </span>
+                          
                           </div>
-                        ) : (
+                         : 
                           <span className={`text-sm ${isDarkTheme ? 'text-gray-500' : 'text-gray-500'}`}>
                             No sub categories added yet.
                           </span>
-                        )}
+                        }
                       </div>
                     </td>
                   </tr>
+                 {
+                  category?.sub_categories?.length > 0 && category?.sub_categories?.map((subCategory:any)=>(
+                    <tr key={subCategory.subcategory_id}>
+                      <td colSpan={7} className="py-4 px-4 text-center">
+                        <div className="flex flex-row items-center justify-around">
+                         <div className='w-1/4' > <img src={subCategory.subcategory_image_url} alt={subCategory.subcategory_name} className="w-20 h-20 rounded-full shrink-0 " /></div>
+                          <div className='w-1/4 flex items-center justify-center'>
+                            <span className={`text-[1rem] shrink-0 font-bold ${isDarkTheme ? 'text-gray-400' : 'text-gray-600'}`}>
+                              {subCategory.subcategory_name}
+                            </span>
+                          </div>
+                          <div className='w-1/4 flex items-center justify-center'>
+                            <span className={`text-sm shrink-0 ${isDarkTheme ? 'text-gray-400' : 'text-gray-600'} bg-green-400 px-2 py-1 rounded-md`}>
+                              {subCategory.is_active ? 'Active' : 'Inactive'}
+                            </span>
+                          </div>
+                          <div className="w-1/4 flex items-center justify-center shrink-0">
+                            <button className={`p-2 rounded-lg transition-colors ${
+                              isDarkTheme
+                                ? 'hover:bg-gray-700 text-gray-300 hover:text-white'
+                                : 'hover:bg-gray-100 text-gray-600 hover:text-gray-900'
+                            }`}
+                            >
+                              <EditIcon className="w-4 h-4" />
+                            </button>
+                            <button className={`p-2 rounded-lg transition-colors ${
+                              isDarkTheme
+                                ? 'hover:bg-red-900 text-red-400 hover:text-red-300'
+                                : 'hover:bg-red-50 text-red-600 hover:text-red-700'
+                            }`}
+                            >
+                              <DeleteIcon className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                 }
+                 
                   <tr>
                     <td colSpan={7} className="py-4 px-4 text-center">
                       <div className="flex flex-col gap-2 items-center">
@@ -359,7 +407,7 @@ export default function CategoriesList({ category, isDarkTheme, handleEdit, hand
                             <label className={`block text-sm font-medium mb-2 ${isDarkTheme ? 'text-gray-300' : 'text-gray-700'}`}>
                               Sub Category Image
                             </label>
-                            {!formData.imagePreview ? (
+                            {!formData.subcategory_image_url_preview ? (
                               <div
                                 className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
                                   isDarkTheme ? 'border-gray-600 hover:border-gray-500' : 'border-gray-300 hover:border-gray-400'
@@ -393,7 +441,7 @@ export default function CategoriesList({ category, isDarkTheme, handleEdit, hand
                             ) : (
                               <div className="relative">
                                 <img
-                                  src={formData.imagePreview}
+                                  src={formData.subcategory_image_url_preview}
                                   alt="Sub category preview"
                                   className="w-full h-48 object-cover rounded-lg border"
                                 />

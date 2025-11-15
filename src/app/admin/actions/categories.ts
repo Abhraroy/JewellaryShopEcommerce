@@ -102,6 +102,7 @@ export async function getCategory(categoryId: string): Promise<{ success: boolea
  * @param formData - Category data including optional image file
  * @returns Promise with created category data
  */
+//working fine
 export async function createCategory(formData: CreateCategoryData): Promise<{ success: boolean; data?: Category; error?: string }> {
   try {
     const supabase = await createClient()
@@ -163,6 +164,7 @@ export async function createCategory(formData: CreateCategoryData): Promise<{ su
  * @param formData - Category data to update, including category_id
  * @returns Promise with updated category data
  */
+//working fine
 export async function updateCategory(formData: UpdateCategoryData): Promise<{ success: boolean; data?: Category; error?: string }> {
   try {
     const supabase = await createClient()
@@ -194,7 +196,7 @@ export async function updateCategory(formData: UpdateCategoryData): Promise<{ su
         }
       }
 
-      const uploadResult = await uploadImageToCloudflare(formData.image, {
+      const uploadResult = await uploadImageToCloudflare(formData.category_image_url, {
         folder: 'categories'
       })
 
@@ -242,6 +244,7 @@ export async function updateCategory(formData: UpdateCategoryData): Promise<{ su
  * @param categoryId - The UUID of the category to delete
  * @returns Promise with deletion result
  */
+//working fine
 export async function deleteCategory(categoryId: string): Promise<{ success: boolean; error?: string }> {
   try {
     const supabase = await createClient()
@@ -249,7 +252,7 @@ export async function deleteCategory(categoryId: string): Promise<{ success: boo
     // Get category data to clean up image
     const { data: category, error: fetchError } = await supabase
       .from('categories')
-      .select('image_url')
+      .select('category_image_url')
       .eq('category_id', categoryId)
       .single()
 
@@ -270,8 +273,8 @@ export async function deleteCategory(categoryId: string): Promise<{ success: boo
     }
 
     // Delete image from Cloudflare R2 if it exists
-    if (category.image_url) {
-      const r2Key = extractR2KeyFromUrl(category.image_url)
+    if (category.category_image_url) {
+      const r2Key = extractR2KeyFromUrl(category.category_image_url)
       if (r2Key) {
         await deleteImageFromCloudflare(r2Key)
       }
@@ -293,10 +296,38 @@ export async function createSubCategory(formData:any){
   try{
 
     const supabase = await createClient()
+    let imageUrl: string | null = null
+    let uploadedImageKey: string | null = null
+    if (formData.subcategory_image_url) {
+      const uploadResult = await uploadImageToCloudflare(formData.subcategory_image_url, {
+        folder: 'sub_categories'
+      })
+    
+    if (!uploadResult.success) {
+      return {
+        success: false,
+        error: uploadResult.error || 'Failed to upload image'
+      }
+    }
+    imageUrl = uploadResult.url || null
+      uploadedImageKey = uploadResult.key || null
+    }
+
+    const subCategoryData = {
+      subcategory_name: formData.subcategory_name,
+      subcategory_image_url: imageUrl,
+      is_active: formData.is_active ?? true,
+      category_id: formData.category_id,
+    }
+
 
     const {data,error} = await supabase.from("sub_categories")
-    .insert(formData)
+    .insert(subCategoryData)
     .select()
+    .single()
+
+    console.log("data of sub category",data)
+    console.log("error of sub category",error)
 
     if(error){
       console.error('Error creating sub category:', error)
@@ -310,7 +341,6 @@ export async function createSubCategory(formData:any){
       success: true,
       data: data
     }
-
   }catch(error){
     console.error('Create sub category error:', error)
     return {

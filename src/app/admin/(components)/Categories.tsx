@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { getCategories, createCategory, updateCategory, deleteCategory, type Category, type CreateCategoryData, type UpdateCategoryData } from '../actions';
 import CategoriesList from './CategoriesList';
+import axios from 'axios';
 
 // Icon Components
 const PlusIcon = ({ className = 'w-5 h-5' }) => (
@@ -125,6 +126,7 @@ export default function Categories({ isDarkTheme }: CategoriesProps) {
     if (file) {
       // Create preview URL
       const previewUrl = URL.createObjectURL(file);
+      console.log('previewUrl of category image ', previewUrl);
       setFormData((prev) => ({
         ...prev,
         image: file,
@@ -202,7 +204,6 @@ export default function Categories({ isDarkTheme }: CategoriesProps) {
           return;
         }
       } else {
-        // Add new category
         const result = await createCategory(categoryData);
         if (result.success && result.data) {
           setCategories((prev) => [...prev, result.data!]);
