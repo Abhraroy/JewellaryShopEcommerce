@@ -79,7 +79,6 @@ export default function Categories({ isDarkTheme }: CategoriesProps) {
     image: null as File | null,
     imagePreview: '',
     is_active: true,
-    display_order: 0,
   });
 
   // Fetch categories on component mount
@@ -236,7 +235,6 @@ export default function Categories({ isDarkTheme }: CategoriesProps) {
         image: null, // We don't have the actual file, just the URL
         imagePreview: category.category_image_url || '', // Use existing image as preview
         is_active: category.is_active,
-        display_order: category.display_order,
       });
       setEditingCategory(categoryId);
       setShowAddCategory(true);
@@ -273,7 +271,6 @@ export default function Categories({ isDarkTheme }: CategoriesProps) {
       image: null,
       imagePreview: '',
       is_active: true,
-      display_order: 0,
     });
     setEditingCategory(null);
     setShowAddCategory(false);

@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState, useEffect } from 'react';
-import { Category, createSubCategory } from '../actions/categories';
+import { Category, createSubCategory, updateSubCategory } from '../actions/categories';
 import { uploadImageToCloudflare } from '@/app/utils/cloudflare';
 
 const PlusIcon = ({ className = 'w-5 h-5' }) => (
@@ -67,12 +67,14 @@ export default function CategoriesList({ category, isDarkTheme, handleEdit, hand
   const [showSubCategories, setShowSubCategories] = useState(false);
   const [showAddSubCategory, setShowAddSubCategory] = useState(false);
   const [subCategories, setSubCategories] = useState<[]>([]);
+  const [subcategory_image_url_preview, setSubcategoryImageUrlPreview] = useState<string | null>(null);
+  const [isEditingSubCategory, setIsEditingSubCategory] = useState<boolean>(false);
   const [formData, setFormData] = useState({
+    subcategory_id: '' as string | null,
     subcategory_name: '',
     category_id:'',
-    subcategory_image_url: null as File | null,
+    subcategory_image_url: null as File | string | null,
     is_active: true,
-    subcategory_image_url_preview: '',
   });
   const [submitting, setSubmitting] = useState(false);
 
@@ -96,8 +98,9 @@ export default function CategoriesList({ category, isDarkTheme, handleEdit, hand
       setFormData((prev) => ({
         ...prev,
         subcategory_image_url: file,
-        subcategory_image_url_preview: previewUrl,
+        
       }));
+      setSubcategoryImageUrlPreview(previewUrl)
     }
   };
 
@@ -108,8 +111,8 @@ export default function CategoriesList({ category, isDarkTheme, handleEdit, hand
     setFormData((prev) => ({
       ...prev,
       subcategory_image_url: null,
-      subcategory_image_url_preview: '',
     }));
+    setSubcategoryImageUrlPreview(null)
   };
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -139,12 +142,13 @@ export default function CategoriesList({ category, isDarkTheme, handleEdit, hand
       URL.revokeObjectURL(formData.subcategory_image_url.toString() || '');
     }
     setFormData({
+      subcategory_id: '',
       subcategory_name: '',
       category_id:'',
       subcategory_image_url: null,
       is_active: true,
-      subcategory_image_url_preview: '',
     });
+    setSubcategoryImageUrlPreview(null)
     setShowAddSubCategory(false);
   };
 
@@ -159,6 +163,20 @@ export default function CategoriesList({ category, isDarkTheme, handleEdit, hand
         category_id: category_id
     }
     console.log("formDataWithCategoryId",formDataWithCategoryId)
+   if(isEditingSubCategory){
+    const result = await updateSubCategory(formDataWithCategoryId)
+    console.log("result of update sub category",result)
+    if(result.success){
+       fetchCategories();
+      handleCancel();
+      setShowAddSubCategory(false)
+      return;
+    }else{
+      alert(`Failed to update sub category: ${result?.error}`)
+      return;
+    }
+   }
+
     const result = await createSubCategory(formDataWithCategoryId)
     if(result.success){
     //   setSubCategories((prev) => [...prev, result.data as any])
@@ -166,12 +184,27 @@ export default function CategoriesList({ category, isDarkTheme, handleEdit, hand
      handleCancel();
       setShowAddSubCategory(false)
     }else{
-      alert(`Failed to create sub category: ${result.error}`)
+      alert(`Failed to create sub category: ${result?.error}`)
     }
     // After successful submission:
     // handleCancel();
     setSubmitting(false);
   };
+
+  const handleEditSubCategory = (subcategory_id: string,subcategory_name: string,subcategory_image_url: string,subcategory_image_url_preview: string,is_active: boolean) => {
+    console.log("subcategory_id",subcategory_id)
+    if(subcategory_id){
+      setFormData({
+        subcategory_id: subcategory_id,
+        subcategory_name: subcategory_name,
+        category_id:'',
+        subcategory_image_url: subcategory_image_url,
+        is_active: is_active
+      })
+      setIsEditingSubCategory(true)
+      setShowAddSubCategory(true)
+    }
+  }
   return (
     <>
         <React.Fragment key={category.category_id}>
@@ -317,6 +350,7 @@ export default function CategoriesList({ category, isDarkTheme, handleEdit, hand
                                 ? 'hover:bg-gray-700 text-gray-300 hover:text-white'
                                 : 'hover:bg-gray-100 text-gray-600 hover:text-gray-900'
                             }`}
+                            onClick={() => handleEditSubCategory(subCategory.subcategory_id,subCategory.subcategory_name,subCategory.subcategory_image_url,subCategory.subcategory_image_url_preview,subCategory.is_active)}
                             >
                               <EditIcon className="w-4 h-4" />
                             </button>
@@ -325,6 +359,7 @@ export default function CategoriesList({ category, isDarkTheme, handleEdit, hand
                                 ? 'hover:bg-red-900 text-red-400 hover:text-red-300'
                                 : 'hover:bg-red-50 text-red-600 hover:text-red-700'
                             }`}
+                            // onClick={() => handleDeleteSubCategory(category.category_id,subCategory.subcategory_id)}
                             >
                               <DeleteIcon className="w-4 h-4" />
                             </button>
@@ -407,7 +442,7 @@ export default function CategoriesList({ category, isDarkTheme, handleEdit, hand
                             <label className={`block text-sm font-medium mb-2 ${isDarkTheme ? 'text-gray-300' : 'text-gray-700'}`}>
                               Sub Category Image
                             </label>
-                            {!formData.subcategory_image_url_preview ? (
+                            {!subcategory_image_url_preview ? (
                               <div
                                 className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
                                   isDarkTheme ? 'border-gray-600 hover:border-gray-500' : 'border-gray-300 hover:border-gray-400'
@@ -441,7 +476,7 @@ export default function CategoriesList({ category, isDarkTheme, handleEdit, hand
                             ) : (
                               <div className="relative">
                                 <img
-                                  src={formData.subcategory_image_url_preview}
+                                  src={subcategory_image_url_preview}
                                   alt="Sub category preview"
                                   className="w-full h-48 object-cover rounded-lg border"
                                 />
