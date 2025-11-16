@@ -7,6 +7,7 @@ export async function POST() {
   const supabase = await createClient();
   let totalAmount = 0
   let amountInPaise = 0
+  let user_id=null
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -20,6 +21,7 @@ export async function POST() {
       .single();
       console.log("userData",userData);
       if(userData.data.cart){
+        user_id = userData.data.user_id;
         const cartData = await supabase.from("cart_items").select(`*,products(*)`).eq("cart_id",userData.data.cart.cart_id);
         console.log("cartData",cartData);
         totalAmount = cartData.data?.reduce((sum: number, item: any) => sum + item.products.final_price * item.quantity, 0) ?? 0;
@@ -63,9 +65,9 @@ export async function POST() {
       amount:amountInPaise,
       expireAfter: 1200,
       metaInfo: {
-        udf1: "additional-information-1",
-        udf2: "additional-information-2",
-        udf3: "additional-information-3",
+        udf1: user_id,
+        udf2: merchantOrderId,
+        udf3: totalAmount,
         udf4: "additional-information-4",
         udf5: "additional-information-5",
         udf6: "additional-information-6",
