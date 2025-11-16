@@ -7,10 +7,13 @@ import {
   MdOutlineKeyboardArrowDown,
   MdOutlineKeyboardArrowUp,
 } from "react-icons/md";
+import PhoneNumberInput from "./PhoneNumberInput";
+import OtpInput from "./OtpInput";
 
 export default function PaymentGatewayComponent() {
   const [transacToken, setTransacToken] = useState<string | null>(null);
-  const { setInitiatingCheckout, cartItems } = useStore();
+  const { setInitiatingCheckout, cartItems, AuthenticatedState } = useStore();
+  const [showPhoneNumberInput, setShowPhoneNumberInput] = useState(true);
   const [showOrderdetails, setShowOrderdetails] = useState(false);
   const getAuthToken = async () => {
     const res = await axios.post("/api/payment/auth", {
@@ -32,7 +35,7 @@ export default function PaymentGatewayComponent() {
       />
 
       {/* Payment Gateway Modal */}
-      <div className="fixed inset-0 sm:inset-auto sm:top-[50%] sm:left-[50%] sm:transform sm:-translate-x-1/2 sm:-translate-y-1/2 w-full sm:w-[85vw] md:w-[75vw] lg:w-[65vw] xl:w-[55vw] 2xl:w-[45vw] sm:max-w-md h-full sm:h-[90vh] sm:max-h-[90vh] bg-white rounded-none sm:rounded-xl shadow-2xl z-[70] overflow-hidden flex flex-col">
+      <div className="fixed inset-0 sm:inset-auto sm:top-[50%] sm:left-[50%] sm:transform sm:-translate-x-1/2 sm:-translate-y-1/2 w-full sm:w-[85vw] md:w-[75vw] lg:w-[65vw] xl:w-[55vw] 2xl:w-[45vw] sm:max-w-md h-full sm:h-[90vh] sm:max-h-[90vh] bg-white rounded-none sm:rounded-xl shadow-2xl z-[70] overflow-hidden flex flex-col ">
         {/* Header */}
         <div className="pt-3 sm:pt-4 md:pt-6 pb-3 sm:pb-4 border-b border-gray-200 flex items-start justify-start gap-3 sm:gap-4 bg-amber-500">
           <button
@@ -61,8 +64,8 @@ export default function PaymentGatewayComponent() {
         </div>
 
         {/* Content Area - Scrollable */}
-        <div className="flex-1 overflow-y-auto px-1 sm:px-2 md:px-4 py-2 sm:py-4 md:py-6">
-          <div className="w-full h-full flex items-center justify-center">
+        <div className="flex-1 overflow-y-auto px-1 sm:px-2 md:px-4 py-2 sm:py-4 md:py-6 gap-2 flex flex-col items-center justify-center">
+          <div className="w-full  flex items-center justify-center">
             <div
               className="w-full max-w-full sm:max-w-md md:max-w-lg lg:max-w-xl xl:max-w-2xl h-full
                         flex flex-col items-start justify-start 
@@ -145,23 +148,50 @@ export default function PaymentGatewayComponent() {
               </div>
             </div>
           </div>
+          {!AuthenticatedState ?
+            <div className="w-full h-full   flex items-center justify-center overflow-x-hidden overflow-y-auto">
+              {showPhoneNumberInput ? (
+                <PhoneNumberInput
+                  containerClassName="w-full bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-200  shadow-sm flex items-center justify-center
+        transition-all duration-300"
+                  onClick={() => setShowPhoneNumberInput(false)}
+                />
+              ) : (
+                <OtpInput
+                  containerClassName="w-full bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-200  shadow-sm flex items-center justify-center
+        transition-all duration-300"
+        onClick={() => setShowPhoneNumberInput(true)}
+                />
+              )}
+            </div>:
+            <div className="w-full h-full   flex items-center justify-center overflow-x-hidden overflow-y-auto"></div>
+            
+          }
         </div>
 
         {/* Footer with Continue Button */}
-        <div className=" w-full px-4 sm:px-6 md:px-8 py-4 sm:py-6 border-t border-gray-200 bg-gray-50 space-y-4 sm:space-y-6
-        ">
-            {/* Get Auth Token Button */}
-            <div className="flex flex-col gap-3 sm:gap-4 w-full">
-             {!transacToken ? <button
+        <div
+          className=" w-full px-4 sm:px-6 md:px-8 py-4 sm:py-6 border-t border-gray-200 bg-gray-50 space-y-4 sm:space-y-6
+        "
+        >
+          {/* Get Auth Token Button */}
+          <div className="flex flex-col gap-3 sm:gap-4 w-full">
+            {!transacToken ? (
+              <button
                 onClick={() => {
                   getAuthToken();
                 }}
-                className="w-full px-4 sm:px-6 py-2 sm:py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg sm:rounded-xl transition-colors duration-200 text-sm sm:text-base"
+                className="w-full px-4 sm:px-6 py-2 sm:py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg sm:rounded-xl transition-colors duration-200 text-sm sm:text-base
+                disabled:opacity-50 disabled:cursor-not-allowed
+                "
+                disabled={!AuthenticatedState}
               >
-                Continue
+                {AuthenticatedState ? "Continue" : "Login to Continue"}
               </button>
-              : <PhonePe redirectUrl={transacToken ?? ""} />}
-            </div>
+            ) : (
+              <PhonePe redirectUrl={transacToken ?? ""} />
+            )}
+          </div>
         </div>
       </div>
     </>
