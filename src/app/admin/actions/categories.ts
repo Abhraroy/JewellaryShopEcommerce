@@ -399,6 +399,10 @@ export async function updateSubCategory(formData: any) {
 
     if (formData.subcategory_image_url instanceof File) {
       console.log("subcategory_image_url is a file");
+      const r2Key = extractR2KeyFromUrl(formData.subcategory_image_url);
+      if (r2Key) {
+        await deleteImageFromCloudflare(r2Key);
+      }
       const uploadResult = await uploadImageToCloudflare(
         formData.subcategory_image_url,
         {
@@ -474,4 +478,10 @@ export async function updateSubCategory(formData: any) {
           : "Failed to update sub category",
     };
   }
+}
+
+
+
+export async function deleteSubCategory(subcategoryId: string) {
+  
 }
