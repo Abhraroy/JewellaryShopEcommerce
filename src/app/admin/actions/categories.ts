@@ -482,6 +482,51 @@ export async function updateSubCategory(formData: any) {
 
 
 
-export async function deleteSubCategory(subcategoryId: string) {
-  
+export async function deleteSubCategory(
+  subcategoryId: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const supabase = await createClient();
+
+    // Get category data to clean up image
+    const { data: subcategory, error: fetchError } = await supabase
+      .from("sub_categories")
+      .select("subcategory_image_url")
+      .eq("subcategory_id", subcategoryId)
+      .single();
+
+    if (fetchError) {
+      console.error("Error fetching category for deletion:", fetchError);
+      return { success: false, error: fetchError.message };
+    }
+
+    // Delete from database first
+    const { error } = await supabase
+      .from("sub_categories")
+      .delete()
+      .eq("subcategory_id", subcategoryId);
+
+    if (error) {
+      console.error("Error deleting category:", error);
+      return { success: false, error: error.message };
+    }
+
+    // Delete image from Cloudflare R2 if it exists
+    if (subcategory.subcategory_image_url) {
+      const r2Key = extractR2KeyFromUrl(subcategory.subcategory_image_url);
+      if (r2Key) {
+        await deleteImageFromCloudflare(r2Key);
+      }
+    }
+
+    revalidatePath("/admin");
+    return { success: true };
+  } catch (error) {
+    console.error("Delete subcategory error:", error);
+    return {
+      success: false,
+      error:
+        error instanceof Error ? error.message : "Failed to delete category",
+    };
+  }
 }

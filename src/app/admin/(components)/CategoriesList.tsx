@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState, useEffect } from 'react';
-import { Category, createSubCategory, updateSubCategory } from '../actions/categories';
+import { Category, createSubCategory, updateSubCategory, deleteSubCategory } from '../actions/categories';
 import { uploadImageToCloudflare } from '@/app/utils/cloudflare';
 
 const PlusIcon = ({ className = 'w-5 h-5' }) => (
@@ -205,6 +205,14 @@ export default function CategoriesList({ category, isDarkTheme, handleEdit, hand
       setShowAddSubCategory(true)
     }
   }
+  const handleDeleteSubCategory = async (subcategory_id: string) => {
+    const result = await deleteSubCategory(subcategory_id)
+    if(result.success){
+      fetchCategories();
+    }else{
+      alert(`Failed to delete sub category: ${result?.error}`)
+    }
+  }
   return (
     <>
         <React.Fragment key={category.category_id}>
@@ -331,7 +339,7 @@ export default function CategoriesList({ category, isDarkTheme, handleEdit, hand
                  {
                   category?.sub_categories?.length > 0 && category?.sub_categories?.map((subCategory:any)=>(
                     <tr key={subCategory.subcategory_id}>
-                      <td colSpan={7} className="py-4 px-4 text-center">
+                      <td colSpan={7} className="py-4 px-4 text-center border-b-3 border-t-3 border-gray-200">
                         <div className="flex flex-row items-center justify-around">
                          <div className='w-1/4' > <img src={subCategory.subcategory_image_url} alt={subCategory.subcategory_name} className="w-20 h-20 rounded-full shrink-0 " /></div>
                           <div className='w-1/4 flex items-center justify-center'>
@@ -359,7 +367,7 @@ export default function CategoriesList({ category, isDarkTheme, handleEdit, hand
                                 ? 'hover:bg-red-900 text-red-400 hover:text-red-300'
                                 : 'hover:bg-red-50 text-red-600 hover:text-red-700'
                             }`}
-                            // onClick={() => handleDeleteSubCategory(category.category_id,subCategory.subcategory_id)}
+                             onClick={() => handleDeleteSubCategory(subCategory.subcategory_id)}
                             >
                               <DeleteIcon className="w-4 h-4" />
                             </button>
