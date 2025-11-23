@@ -12,7 +12,7 @@ interface CartProps {
 }
 
 export default function Cart({ isOpen = false, onClose }: CartProps) {
-  const { AuthenticatedState, cartItems, setCartItems , setCartId,CartId } = useStore();
+  const { AuthenticatedState, cartItems, setCartItems , setCartId,CartId,setInitiatingCheckout,initiatingCheckout } = useStore();
   const [subtotal, setSubtotal] = useState(0);
   // Sample cart items for UI demonstration
   const supabase = createClient();
@@ -374,8 +374,14 @@ export default function Cart({ isOpen = false, onClose }: CartProps) {
               </div>
 
               {/* Checkout Button */}
-              <button className="w-full bg-gray-900 text-white font-semibold py-3.5 px-6 rounded-xl hover:bg-gray-800 transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg">
-                Proceed to Checkout
+              <button className="w-full bg-gray-900 text-white font-semibold py-3.5 px-6 rounded-xl hover:bg-gray-800 transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg"
+              onClick={()=>{
+                setInitiatingCheckout(true);
+                onClose?.(); // Close the cart sidebar
+              }}
+              disabled={initiatingCheckout}
+              >
+                {initiatingCheckout ? "Proceeding to checkout..." : "Proceed to Checkout"}
               </button>
 
               {/* Continue Shopping Link */}

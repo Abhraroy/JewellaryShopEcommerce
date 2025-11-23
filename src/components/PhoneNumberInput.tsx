@@ -2,7 +2,12 @@ import { useStore } from '@/zustandStore/zustandStore';
 import { useState } from 'react';
 import { createClient } from '@/app/utils/supabase/client';
 
-export default function PhoneNumberInput() {
+interface PhoneNumberInputProps {
+    containerClassName?: string;
+    onClick?: () => void;
+}
+
+export default function PhoneNumberInput({ containerClassName = 'w-full bg-gradient-to-r from-amber-50 to-orange-50 border-b border-amber-200 fixed top-[70px] md:top-[80px] z-50 shadow-sm flex items-center justify-center transition-all duration-300', onClick }: PhoneNumberInputProps) {
     const { setOtpInputState, setMobnoInputState, setCustomerMobno } = useStore();
     const [phoneNumber, setPhoneNumber] = useState('');
     const [error, setError] = useState('');
@@ -26,6 +31,9 @@ export default function PhoneNumberInput() {
         setCustomerMobno(cleanedPhone);
         setMobnoInputState();
         setOtpInputState();
+        if (onClick) {
+          onClick();
+        }
       }
        else {
         setError('Please enter a valid 10-digit phone number');
@@ -57,9 +65,7 @@ export default function PhoneNumberInput() {
 
     return (
         <>
-        <div className='w-full bg-gradient-to-r from-amber-50 to-orange-50 border-b border-amber-200 fixed top-[70px] md:top-[80px] z-50 shadow-sm flex items-center justify-center
-        transition-all duration-300
-        '>
+        <div className={containerClassName}>
         <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 md:py-4'>
           <form onSubmit={handlePhoneSubmit} className='flex flex-col sm:flex-row sm:items-end gap-3 md:gap-4'>
             <div className='flex-1 w-full sm:w-auto max-w-md'>

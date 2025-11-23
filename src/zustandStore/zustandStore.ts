@@ -31,6 +31,8 @@ interface StoreState {
     setRefresh: () => void;
     wishListItems: any;
     setWishListItems: (wishListItems: any) => void;
+    initiatingCheckout: boolean;
+    setInitiatingCheckout: (initiatingCheckout: boolean) => void;
 }
 
 export const useStore = create<StoreState>((set) => ({
@@ -64,5 +66,7 @@ export const useStore = create<StoreState>((set) => ({
     setRefresh: () => set((state) => ({ refresh: !state.refresh })),
     wishListItems: [],
     setWishListItems: (wishListItems: any) => set({ wishListItems: wishListItems }),
+    initiatingCheckout:false,
+    setInitiatingCheckout: (initiatingCheckout: boolean) => set({ initiatingCheckout: initiatingCheckout }),
 }))
 
