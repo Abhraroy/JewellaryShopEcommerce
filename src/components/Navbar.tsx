@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useStore } from '../zustandStore/zustandStore';
 import { useRouter } from 'next/navigation';
+import { SearchResult } from '../utilityFunctions/TypeInterface';
 
 interface NavbarProps {
   cartCount?: number;
@@ -204,10 +205,90 @@ const AboutIcon = ({ className = 'w-5 h-5' }: IconProps) => (
   </svg>
 );
 
+// Search result item component
+const SearchResultItem = ({ result, onClick }: { result: SearchResult; onClick: () => void }) => {
+  if (result.type === 'category') {
+    return (
+      <button
+        onClick={onClick}
+        className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors text-left"
+      >
+        <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center shrink-0">
+          <span className="text-gray-600 font-medium text-sm">
+            {result.name.charAt(0).toUpperCase()}
+          </span>
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-medium text-gray-900 truncate">{result.name}</p>
+          <p className="text-xs text-gray-500">Category</p>
+        </div>
+      </button>
+    );
+  }
+
+  return (
+    <button
+      onClick={onClick}
+      className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors text-left"
+    >
+      <div className="w-10 h-10 bg-gray-100 rounded-lg overflow-hidden shrink-0">
+        {result.image ? (
+          <img
+            src={result.image}
+            alt={result.name}
+            className="w-full h-full object-cover"
+            onError={(e) => {
+              const target = e.target as HTMLImageElement;
+              target.style.display = 'none';
+              const parent = target.parentElement;
+              if (parent) {
+                parent.innerHTML = `<span class="text-gray-600 font-medium text-sm">${result.name.charAt(0).toUpperCase()}</span>`;
+                parent.className = 'w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0';
+              }
+            }}
+          />
+        ) : (
+          <span className="text-gray-600 font-medium text-sm">
+            {result.name.charAt(0).toUpperCase()}
+          </span>
+        )}
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-medium text-gray-900 truncate">{result.name}</p>
+        {result.category && (
+          <p className="text-xs text-gray-500 truncate">{result.category}</p>
+        )}
+        {result.price && (
+          <div className="flex items-center gap-2 mt-1">
+            <span className="text-sm font-semibold text-[#E94E8B]">
+              ₹{result.price.toLocaleString()}
+            </span>
+            {result.originalPrice && result.originalPrice > result.price && (
+              <span className="text-xs text-gray-500 line-through">
+                ₹{result.originalPrice.toLocaleString()}
+              </span>
+            )}
+            {result.discountPercentage && result.discountPercentage > 0 && (
+              <span className="text-xs text-green-600 font-medium">
+                {result.discountPercentage}% off
+              </span>
+            )}
+          </div>
+        )}
+      </div>
+    </button>
+  );
+};
+
 export default function Navbar({ cartCount = 0, isAuthenticated = false, onCartClick }: NavbarProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [showMobileSearch, setShowMobileSearch] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [showSearchDropdown, setShowSearchDropdown] = useState(false);
+  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const searchDropdownRef = useRef<HTMLDivElement>(null);
   const { setMobnoInputState,AuthenticatedState } = useStore();
   const router = useRouter();
   // Prevent body scroll when sidebar is open
@@ -221,6 +302,63 @@ export default function Navbar({ cartCount = 0, isAuthenticated = false, onCartC
       document.body.style.overflow = 'unset';
     };
   }, [isSidebarOpen]);
+
+  // Debounced search function
+  const performSearch = useCallback(async (query: string) => {
+    if (query.trim().length < 2) {
+      setSearchResults([]);
+      setShowSearchDropdown(false);
+      return;
+    }
+
+    setIsSearching(true);
+    try {
+      const response = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
+      const data = await response.json();
+
+      if (response.ok) {
+        setSearchResults(data.results || []);
+        setShowSearchDropdown(true);
+      } else {
+        console.error('Search failed:', data.error);
+        setSearchResults([]);
+      }
+    } catch (error) {
+      console.error('Search error:', error);
+      setSearchResults([]);
+    } finally {
+      setIsSearching(false);
+    }
+  }, []);
+
+  // Debounced search effect
+  useEffect(() => {
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+
+    searchTimeoutRef.current = setTimeout(() => {
+      performSearch(searchQuery);
+    }, 300); // 300ms debounce
+
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
+  }, [searchQuery, performSearch]);
+
+  // Click outside handler to close dropdown
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (searchDropdownRef.current && !searchDropdownRef.current.contains(event.target as Node)) {
+        setShowSearchDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   // Sidebar menu items configuration
   const menuItems: MenuItem[] = [
@@ -301,7 +439,13 @@ export default function Navbar({ cartCount = 0, isAuthenticated = false, onCartC
     {
       label: 'Search',
       icon: <SearchIcon className="w-6 h-6" />,
-      onClick: () => setShowMobileSearch(!showMobileSearch),
+      onClick: () => {
+        setShowMobileSearch(!showMobileSearch);
+        if (!showMobileSearch) {
+          // Opening search, close dropdown if open
+          setShowSearchDropdown(false);
+        }
+      },
     },
     {
       label: 'Account',
@@ -342,17 +486,77 @@ export default function Navbar({ cartCount = 0, isAuthenticated = false, onCartC
 
           {/* Search Bar Section - Hidden on mobile, visible on tablet and up */}
           <div className="hidden md:flex flex-1 max-w-2xl mx-4 md:mx-8">
-            <div className="relative w-full">
+            <div ref={searchDropdownRef} className="relative w-full">
               <input
                 type="text"
                 placeholder="Search for products"
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  if (e.target.value.length < 2) {
+                    setShowSearchDropdown(false);
+                  }
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && searchQuery.trim()) {
+                    router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+                    setShowSearchDropdown(false);
+                  }
+                }}
+                onFocus={() => {
+                  if (searchResults.length > 0) {
+                    setShowSearchDropdown(true);
+                  }
+                }}
                 className="w-full h-10 md:h-12 px-4 pr-10 bg-gray-100 rounded-lg border-none outline-none text-gray-700 placeholder-gray-400 text-sm md:text-base focus:bg-gray-200 transition-colors"
               />
-              <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                <SearchIcon className="w-5 h-5 text-gray-700" />
+              <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                {isSearching && (
+                  <div className="w-4 h-4 border-2 border-gray-300 border-t-[#E94E8B] rounded-full animate-spin"></div>
+                )}
+                <button
+                  onClick={() => {
+                    if (searchQuery.trim()) {
+                      router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+                      setShowSearchDropdown(false);
+                    }
+                  }}
+                  className="p-1 text-gray-700 hover:text-[#E94E8B] transition-colors"
+                  aria-label="Search"
+                >
+                  <SearchIcon className="w-5 h-5" />
+                </button>
               </div>
+
+              {/* Search Results Dropdown */}
+              {showSearchDropdown && (
+                <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-96 overflow-y-auto">
+                  {searchResults.length > 0 ? (
+                    <div className="py-2">
+                      {searchResults.map((result) => (
+                        <SearchResultItem
+                          key={`${result.type}-${result.id}`}
+                          result={result}
+                          onClick={() => {
+                            if (result.type === 'product') {
+                              router.push(`/product/${result.id}`);
+                            } else {
+                              router.push(`/collection/${result.slug}`);
+                            }
+                            setShowSearchDropdown(false);
+                            setSearchQuery('');
+                          }}
+                        />
+                      ))}
+                    </div>
+                  ) : searchQuery.length >= 2 && !isSearching ? (
+                    <div className="px-4 py-8 text-center text-gray-500">
+                      <p className="text-sm">No products found for "{searchQuery}"</p>
+                      <p className="text-xs mt-1">Try searching for something else</p>
+                    </div>
+                  ) : null}
+                </div>
+              )}
             </div>
           </div>
 
@@ -398,18 +602,81 @@ export default function Navbar({ cartCount = 0, isAuthenticated = false, onCartC
         {/* Mobile Search Bar - Shows when search icon is clicked */}
         {showMobileSearch && (
           <div className="md:hidden pb-4">
-            <div className="relative">
+            <div ref={searchDropdownRef} className="relative">
               <input
                 type="text"
                 placeholder="Search for products"
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  if (e.target.value.length < 2) {
+                    setShowSearchDropdown(false);
+                  }
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && searchQuery.trim()) {
+                    router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+                    setShowSearchDropdown(false);
+                    setShowMobileSearch(false);
+                  }
+                }}
+                onFocus={() => {
+                  if (searchResults.length > 0) {
+                    setShowSearchDropdown(true);
+                  }
+                }}
                 className="w-full h-10 px-4 pr-10 bg-gray-100 rounded-lg border-none outline-none text-gray-700 placeholder-gray-400 text-sm focus:bg-gray-200 transition-colors"
                 autoFocus
               />
-              <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                <SearchIcon className="w-5 h-5 text-gray-700" />
+              <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                {isSearching && (
+                  <div className="w-4 h-4 border-2 border-gray-300 border-t-[#E94E8B] rounded-full animate-spin"></div>
+                )}
+                <button
+                  onClick={() => {
+                    if (searchQuery.trim()) {
+                      router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+                      setShowSearchDropdown(false);
+                      setShowMobileSearch(false);
+                    }
+                  }}
+                  className="p-1 text-gray-700 hover:text-[#E94E8B] transition-colors"
+                  aria-label="Search"
+                >
+                  <SearchIcon className="w-5 h-5" />
+                </button>
               </div>
+
+              {/* Mobile Search Results Dropdown */}
+              {showSearchDropdown && (
+                <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-80 overflow-y-auto">
+                  {searchResults.length > 0 ? (
+                    <div className="py-2">
+                      {searchResults.map((result) => (
+                        <SearchResultItem
+                          key={`${result.type}-${result.id}`}
+                          result={result}
+                          onClick={() => {
+                            if (result.type === 'product') {
+                              router.push(`/product/${result.id}`);
+                            } else {
+                              router.push(`/collection/${result.slug}`);
+                            }
+                            setShowSearchDropdown(false);
+                            setSearchQuery('');
+                            setShowMobileSearch(false);
+                          }}
+                        />
+                      ))}
+                    </div>
+                  ) : searchQuery.length >= 2 && !isSearching ? (
+                    <div className="px-4 py-6 text-center text-gray-500">
+                      <p className="text-sm">No products found for "{searchQuery}"</p>
+                      <p className="text-xs mt-1">Try searching for something else</p>
+                    </div>
+                  ) : null}
+                </div>
+              )}
             </div>
           </div>
         )}
