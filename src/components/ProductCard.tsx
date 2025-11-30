@@ -1,13 +1,13 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useStore } from "@/zustandStore/zustandStore";
 import { addToDbCart, addToLocalCart } from "@/utilityFunctions/CartFunctions";
 import { createClient } from "@/app/utils/supabase/client";
 import { Product } from "@/utilityFunctions/TypeInterface";
-import { addToLocalWishList } from "@/utilityFunctions/WishListFunctions";
+import { addToLocalWishList, addToWishlist, removeFromWishlist, removeFromLocalWishList } from "@/utilityFunctions/WishListFunctions";
 
 
 // export interface Product {
@@ -47,15 +47,93 @@ export default function ProductCard({
   const [imageError, setImageError] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [isCartClicked, setIsCartClicked] = useState(false);
-  const { cartItems, setCartItems,AuthenticatedState,AuthUserId,CartId } = useStore();
+  const [isWishlistLoading, setIsWishlistLoading] = useState(false);
+  const { cartItems, setCartItems,AuthenticatedState,AuthUserId,CartId, wishListItems, setWishListItems } = useStore();
+
+  // Check if product is in wishlist on component mount and when wishlist changes
+  useEffect(() => {
+    if (AuthenticatedState && AuthUserId) {
+      // For authenticated users, check if product exists in wishListItems
+      const isInWishlist = wishListItems.some((item: any) =>
+        item.product_id === product.product_id
+      );
+      setIsWishlistActive(isInWishlist);
+    } else {
+      // For non-authenticated users, check localStorage
+      const localWishListItems = localStorage.getItem('wishListItems');
+      if (localWishListItems) {
+        const parsedItems = JSON.parse(localWishListItems);
+        const isInWishlist = parsedItems.some((item: any) =>
+          item.products.product_id === product.product_id
+        );
+        setIsWishlistActive(isInWishlist);
+      }
+    }
+  }, [wishListItems, AuthenticatedState, AuthUserId, product.product_id]);
   const supabase = createClient();
   const handleWishlistClick = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    setIsWishlistActive(!isWishlistActive);
+
+    // Prevent multiple clicks while loading
+    if (isWishlistLoading) return;
+
+    setIsWishlistLoading(true);
+    const wasActive = isWishlistActive;
+
+    // Optimistic update - update UI immediately
+    setIsWishlistActive(!wasActive);
     onWishlistToggle?.(product.product_id);
-    const updatedWishList = await addToLocalWishList(product)
-    console.log("updatedWishList",updatedWishList)
+
+    try {
+      if (AuthenticatedState && AuthUserId) {
+        // Handle authenticated user wishlist
+        if (wasActive) {
+          // Remove from wishlist
+          const result = await removeFromWishlist(AuthUserId, product.product_id, supabase);
+          if (result.success) {
+            // Update store by removing this product from wishlist items
+            const updatedWishList = wishListItems.filter((item: any) =>
+              item.product_id !== product.product_id
+            );
+            setWishListItems(updatedWishList);
+          } else {
+            // Revert optimistic update on failure
+            setIsWishlistActive(wasActive);
+            console.error('Failed to remove from wishlist:', result.error);
+          }
+        } else {
+          // Add to wishlist
+          const result = await addToWishlist(AuthUserId, product.product_id, supabase);
+          if (result.success) {
+            // Update store by adding this product to wishlist items
+            const updatedWishList = [...wishListItems, product];
+            setWishListItems(updatedWishList);
+          } else {
+            // Revert optimistic update on failure
+            setIsWishlistActive(wasActive);
+            console.error('Failed to add to wishlist:', result.error);
+          }
+        }
+      } else {
+        // Handle non-authenticated user wishlist (localStorage)
+        if (wasActive) {
+          // Remove from local wishlist
+          const updatedWishList = removeFromLocalWishList(product);
+          setWishListItems(updatedWishList);
+        } else {
+          // Add to local wishlist
+          const updatedWishList = addToLocalWishList(product);
+          setWishListItems(updatedWishList);
+        }
+      }
+    } catch (error) {
+      // Revert optimistic update on error
+      setIsWishlistActive(wasActive);
+      console.error('Wishlist operation failed:', error);
+    } finally {
+      setIsWishlistLoading(false);
+    }
   };
 
   const handleAddToCart = async (e: React.MouseEvent) => {
@@ -97,7 +175,7 @@ export default function ProductCard({
       onMouseLeave={() => setIsHovered(false)}
     >
       {/* Image Container with Gradient Overlay */}
-      <div className="relative w-full aspect-square bg-gradient-to-br from-gray-50 to-gray-100 overflow-hidden">
+      <div className="relative w-full aspect-square bg-linear-to-br from-gray-50 to-gray-100 overflow-hidden">
         {!imageError ? (
           <>
             <Image
@@ -112,13 +190,13 @@ export default function ProductCard({
             />
             {/* Gradient Overlay on Hover */}
             <div
-              className={`absolute inset-0 bg-gradient-to-t from-black/0 via-black/0 to-black/0 transition-all duration-500 ${
+              className={`absolute inset-0 bg-linear-to-t from-black/0 via-black/0 to-black/0 transition-all duration-500 ${
                 isHovered ? "via-black/5 to-black/10" : ""
               }`}
             />
           </>
         ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
+          <div className="w-full h-full flex items-center justify-center bg-linear-to-br from-gray-50 to-gray-100">
             <svg
               className="w-20 h-20 text-gray-300"
               fill="none"
@@ -137,7 +215,7 @@ export default function ProductCard({
 
         {/* Discount Badge - Redesigned */}
         {discountPercentage > 0 && (
-          <div className="absolute top-3 left-3 bg-gradient-to-r from-red-500 to-red-600 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg transform transition-all duration-300 hover:scale-110">
+          <div className="absolute top-3 left-3 bg-linear-to-r from-red-500 to-red-600 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg transform transition-all duration-300 hover:scale-110">
             <span className="flex items-center gap-1">
               <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                 <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
@@ -150,28 +228,53 @@ export default function ProductCard({
         {/* Wishlist Button - Enhanced */}
         <button
           onClick={handleWishlistClick}
-          className="absolute top-3 right-3 p-2.5 bg-white/95 backdrop-blur-sm hover:bg-white rounded-full shadow-lg z-10"
+          disabled={isWishlistLoading}
+          className={`absolute top-3 right-3 p-2.5 bg-white/95 backdrop-blur-sm hover:bg-white rounded-full shadow-lg z-10 transition-all duration-200 ${
+            isWishlistLoading ? 'opacity-70 cursor-not-allowed' : 'hover:scale-110'
+          }`}
           aria-label={
             isWishlistActive ? "Remove from wishlist" : "Add to wishlist"
           }
 
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill={isWishlistActive ? "currentColor" : "none"}
-            viewBox="0 0 24 24"
-            strokeWidth={2.5}
-            stroke="currentColor"
-            className={`w-5 h-5 ${
-              isWishlistActive ? "text-red-500 fill-red-500" : "text-gray-700"
-            }`}
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z"
-            />
-          </svg>
+          {isWishlistLoading ? (
+            <svg
+              className="w-5 h-5 text-gray-500 animate-spin"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              />
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              />
+            </svg>
+          ) : (
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill={isWishlistActive ? "currentColor" : "none"}
+              viewBox="0 0 24 24"
+              strokeWidth={2.5}
+              stroke="currentColor"
+              className={`w-5 h-5 transition-colors duration-200 ${
+                isWishlistActive ? "text-red-500 fill-red-500" : "text-gray-700"
+              }`}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z"
+              />
+            </svg>
+          )}
         </button>
 
         {/* Quick View Overlay - Appears on Hover */}

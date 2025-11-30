@@ -286,7 +286,7 @@ export default function Navbar({ cartCount = 0, isAuthenticated = false, onCartC
     {
       label: 'Wishlist',
       icon: <WishlistIcon className="w-6 h-6 md:w-7 md:h-7" />,
-      onClick: () => {},
+      onClick: () => router.push('/wishlist'),
     },
     {
       label: 'Shopping Cart',
@@ -332,7 +332,7 @@ export default function Navbar({ cartCount = 0, isAuthenticated = false, onCartC
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 md:h-20">
           {/* Logo Section */}
-          <div className="flex-shrink-0">
+          <div className="shrink-0">
             <a href="/" className="flex items-center">
               <span className="text-2xl md:text-3xl font-bold text-[#E94E8B] tracking-tight">
                 JWEL
