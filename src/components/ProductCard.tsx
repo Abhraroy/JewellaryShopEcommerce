@@ -59,21 +59,21 @@ export default function ProductCard({
       );
       setIsWishlistActive(isInWishlist);
     } else {
-      // For non-authenticated users, check localStorage
-      const localWishListItems = localStorage.getItem('wishListItems');
-      if (localWishListItems) {
-        const parsedItems = JSON.parse(localWishListItems);
-        const isInWishlist = parsedItems.some((item: any) =>
-          item.products.product_id === product.product_id
-        );
-        setIsWishlistActive(isInWishlist);
-      }
+      // For non-authenticated users, wishlist is not available
+      setIsWishlistActive(false);
     }
   }, [wishListItems, AuthenticatedState, AuthUserId, product.product_id]);
   const supabase = createClient();
   const handleWishlistClick = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+
+    // Only allow wishlist functionality for authenticated users
+    if (!AuthenticatedState || !AuthUserId) {
+      // Could show a login prompt here
+      console.log('Please login to use wishlist');
+      return;
+    }
 
     // Prevent multiple clicks while loading
     if (isWishlistLoading) return;
@@ -86,45 +86,31 @@ export default function ProductCard({
     onWishlistToggle?.(product.product_id);
 
     try {
-      if (AuthenticatedState && AuthUserId) {
-        // Handle authenticated user wishlist
-        if (wasActive) {
-          // Remove from wishlist
-          const result = await removeFromWishlist(AuthUserId, product.product_id, supabase);
-          if (result.success) {
-            // Update store by removing this product from wishlist items
-            const updatedWishList = wishListItems.filter((item: any) =>
-              item.product_id !== product.product_id
-            );
-            setWishListItems(updatedWishList);
-          } else {
-            // Revert optimistic update on failure
-            setIsWishlistActive(wasActive);
-            console.error('Failed to remove from wishlist:', result.error);
-          }
+      if (wasActive) {
+        // Remove from wishlist
+        const result = await removeFromWishlist(AuthUserId, product.product_id, supabase);
+        if (result.success) {
+          // Update store by removing this product from wishlist items
+          const updatedWishList = wishListItems.filter((item: any) =>
+            item.product_id !== product.product_id
+          );
+          setWishListItems(updatedWishList);
         } else {
-          // Add to wishlist
-          const result = await addToWishlist(AuthUserId, product.product_id, supabase);
-          if (result.success) {
-            // Update store by adding this product to wishlist items
-            const updatedWishList = [...wishListItems, product];
-            setWishListItems(updatedWishList);
-          } else {
-            // Revert optimistic update on failure
-            setIsWishlistActive(wasActive);
-            console.error('Failed to add to wishlist:', result.error);
-          }
+          // Revert optimistic update on failure
+          setIsWishlistActive(wasActive);
+          console.error('Failed to remove from wishlist:', result.error);
         }
       } else {
-        // Handle non-authenticated user wishlist (localStorage)
-        if (wasActive) {
-          // Remove from local wishlist
-          const updatedWishList = removeFromLocalWishList(product);
+        // Add to wishlist
+        const result = await addToWishlist(AuthUserId, product.product_id, supabase);
+        if (result.success) {
+          // Update store by adding this product to wishlist items
+          const updatedWishList = [...wishListItems, product];
           setWishListItems(updatedWishList);
         } else {
-          // Add to local wishlist
-          const updatedWishList = addToLocalWishList(product);
-          setWishListItems(updatedWishList);
+          // Revert optimistic update on failure
+          setIsWishlistActive(wasActive);
+          console.error('Failed to add to wishlist:', result.error);
         }
       }
     } catch (error) {
@@ -228,12 +214,18 @@ export default function ProductCard({
         {/* Wishlist Button - Enhanced */}
         <button
           onClick={handleWishlistClick}
-          disabled={isWishlistLoading}
-          className={`absolute top-3 right-3 p-2.5 bg-white/95 backdrop-blur-sm hover:bg-white rounded-full shadow-lg z-10 transition-all duration-200 ${
-            isWishlistLoading ? 'opacity-70 cursor-not-allowed' : 'hover:scale-110'
+          disabled={isWishlistLoading || (!AuthenticatedState || !AuthUserId)}
+          className={`absolute top-3 right-3 p-2.5 bg-white/95 backdrop-blur-sm rounded-full shadow-lg z-10 transition-all duration-200 ${
+            isWishlistLoading || (!AuthenticatedState || !AuthUserId)
+              ? 'opacity-50 cursor-not-allowed'
+              : 'hover:bg-white hover:scale-110'
           }`}
           aria-label={
-            isWishlistActive ? "Remove from wishlist" : "Add to wishlist"
+            !AuthenticatedState || !AuthUserId
+              ? "Login required for wishlist"
+              : isWishlistActive
+                ? "Remove from wishlist"
+                : "Add to wishlist"
           }
 
         >

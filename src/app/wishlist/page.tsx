@@ -56,17 +56,9 @@ export default function WishlistPage() {
             setWishListItems([]); // Clear global store
           }
         } else {
-          // Load from localStorage for non-authenticated users
-          const localWishListItems = localStorage.getItem('wishListItems');
-          if (localWishListItems) {
-            const parsedItems = JSON.parse(localWishListItems);
-            const products = parsedItems.map((item: any) => item.products);
-            setWishlistProducts(products);
-            setWishListItems(products); // Update global store
-          } else {
-            setWishlistProducts([]);
-            setWishListItems([]); // Clear global store
-          }
+          // Not authenticated - no wishlist functionality
+          setWishlistProducts([]);
+          setWishListItems([]);
         }
       } catch (error) {
         console.error("Error in fetchWishlistProducts:", error);
@@ -87,39 +79,36 @@ export default function WishlistPage() {
   const handleWishlistToggle = async (productId: string) => {
     console.log("Wishlist toggle:", productId);
 
+    // Only allow for authenticated users
+    if (!AuthenticatedState || !AuthUserId) {
+      console.log('Login required to modify wishlist');
+      return;
+    }
+
     // Add to removing items for animation
     setRemovingItems(prev => new Set(prev).add(productId));
 
     // Small delay for animation
     setTimeout(async () => {
       try {
-        if (AuthenticatedState && AuthUserId) {
-          // Remove from database for authenticated users
-          const { removeFromWishlist } = await import('@/utilityFunctions/WishListFunctions');
-          const result = await removeFromWishlist(AuthUserId, productId, supabase);
+        // Remove from database for authenticated users
+        const { removeFromWishlist } = await import('@/utilityFunctions/WishListFunctions');
+        const result = await removeFromWishlist(AuthUserId, productId, supabase);
 
-          if (result.success) {
-            // Update local state and global store
-            const updatedProducts = wishlistProducts.filter(product => product.product_id !== productId);
-            setWishlistProducts(updatedProducts);
-            setWishListItems(updatedProducts);
-          } else {
-            // Revert on failure
-            setRemovingItems(prev => {
-              const newSet = new Set(prev);
-              newSet.delete(productId);
-              return newSet;
-            });
-            console.error('Failed to remove from wishlist:', result.error);
-            // Could add toast notification here
-          }
-        } else {
-          // Remove from localStorage for non-authenticated users
-          const { removeFromLocalWishList } = await import('@/utilityFunctions/WishListFunctions');
-          const updatedWishList = removeFromLocalWishList({ product_id: productId });
+        if (result.success) {
+          // Update local state and global store
           const updatedProducts = wishlistProducts.filter(product => product.product_id !== productId);
           setWishlistProducts(updatedProducts);
-          setWishListItems(updatedWishList);
+          setWishListItems(updatedProducts);
+        } else {
+          // Revert on failure
+          setRemovingItems(prev => {
+            const newSet = new Set(prev);
+            newSet.delete(productId);
+            return newSet;
+          });
+          console.error('Failed to remove from wishlist:', result.error);
+          // Could add toast notification here
         }
       } catch (error) {
         // Revert on error
@@ -134,7 +123,7 @@ export default function WishlistPage() {
   };
 
   return (
-    <div className={`${wishlistProducts.length === 0 ? '' : 'min-h-screen'} bg-white`}>
+    <div className={`${(!AuthenticatedState || wishlistProducts.length === 0) ? '' : 'min-h-screen'} bg-white`}>
       {/* Phone Number Input Modal */}
       {MobnoInputState && !OtpInputState && <PhoneNumberInput />}
 
@@ -147,21 +136,22 @@ export default function WishlistPage() {
       <main className="w-full">
         {/* Content Section */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
-          {!AuthenticatedState && wishlistProducts.length === 0 ? (
-            // Not authenticated and no local wishlist
+          {!AuthenticatedState ? (
+            // Not authenticated - show login prompt
             <div className="text-center py-16 md:py-24">
               <div className="max-w-md mx-auto">
-                <div className="space-y-4">
-                  <a
-                    href="/"
-                    className="inline-block bg-[#E94E8B] text-white px-8 py-4 rounded-full font-semibold hover:shadow-lg transition-all duration-300"
-                  >
-                    Explore Collection
-                  </a>
-                  <p className="text-sm text-gray-500">
-                    Discover rings, necklaces, earrings, and more
-                  </p>
-                </div>
+                <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4">
+                  Login Required
+                </h3>
+                <p className="text-gray-600 mb-8 text-lg">
+                  Please login to view and manage your wishlist
+                </p>
+                <button
+                  onClick={() => setMobnoInputState()}
+                  className="inline-block bg-[#E94E8B] text-white px-8 py-4 rounded-full font-semibold hover:shadow-lg transition-all duration-300"
+                >
+                  Login to Continue
+                </button>
               </div>
             </div>
           ) : loading ? (
