@@ -134,7 +134,7 @@ export default function WishlistPage() {
   };
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-pink-50 via-white to-purple-50">
+    <div className={`${wishlistProducts.length === 0 ? '' : 'min-h-screen'} bg-white`}>
       {/* Phone Number Input Modal */}
       {MobnoInputState && !OtpInputState && <PhoneNumberInput />}
 
@@ -145,25 +145,12 @@ export default function WishlistPage() {
       {isCartOpen && <Cart isOpen={isCartOpen} onClose={handleCloseCart} />}
 
       <main className="w-full">
-        {/* Simple Header */}
-        <div className="py-12 md:py-16 text-center">
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900">
-            My Wishlist
-          </h1>
-        </div>
-
         {/* Content Section */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
           {!AuthenticatedState && wishlistProducts.length === 0 ? (
             // Not authenticated and no local wishlist
             <div className="text-center py-16 md:py-24">
               <div className="max-w-md mx-auto">
-                <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4">
-                  Your wishlist is empty
-                </h3>
-                <p className="text-gray-600 mb-8 text-lg">
-                  Start exploring our beautiful collection and save your favorite pieces here
-                </p>
                 <div className="space-y-4">
                   <a
                     href="/"
@@ -225,13 +212,6 @@ export default function WishlistPage() {
             /* Empty State */
             <div className="text-center py-16 md:py-24">
               <div className="max-w-md mx-auto">
-                <div className="text-6xl mb-6">❤️</div>
-                <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4">
-                  Your wishlist is empty
-                </h3>
-                <p className="text-gray-600 mb-8 text-lg">
-                  Start exploring our beautiful collection and save your favorite pieces here
-                </p>
                 <div className="space-y-4">
                   <a
                     href="/"
