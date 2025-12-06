@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { createClient } from "@/app/utils/supabase/client";
 import { getProducts } from "../actions/Product";
+import { Category, getCategories } from "../actions/categories";
 
 interface ProductsProps {
   isDarkTheme: boolean;
@@ -113,6 +114,7 @@ const RightArrowIcon = ({ className = "w-4 h-4" }) => (
 
 export default function Products({ isDarkTheme }: ProductsProps) {
   const [showAddProduct, setShowAddProduct] = useState(false);
+  const [categoriesList, setCategoriesList] = useState<Category[]>([]);
   const [formData, setFormData] = useState({
     product_name: "",
     description: "",
@@ -205,7 +207,20 @@ export default function Products({ isDarkTheme }: ProductsProps) {
       }
     };
     fetchProducts();
+    const fetchCategories = async () => {
+      const result = await getCategories();
+      if (result.success && result.data) {
+        setCategoriesList(result.data as Category[]);
+      }
+      else{
+        console.error('Failed to fetch categories:', result.error);
+        alert(`Failed to load categories: ${result.error}`);
+      }
+    };
+    fetchCategories();
   }, []);
+
+
 
   // Keyboard navigation for image viewer
   useEffect(() => {
@@ -574,9 +589,9 @@ export default function Products({ isDarkTheme }: ProductsProps) {
                     } focus:outline-none focus:ring-2 focus:ring-[#E94E8B]`}
                   >
                     <option value="">Select Category</option>
-                    {categories.map((cat) => (
-                      <option key={cat.value} value={cat.value}>
-                        {cat.label}
+                    {categoriesList.map((cat) => (
+                      <option key={cat.category_id} value={cat.category_id}>
+                        {cat.category_name}
                       </option>
                     ))}
                   </select>
