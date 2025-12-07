@@ -2,8 +2,9 @@
 
 import React, { useState, useEffect } from "react";
 import { createClient } from "@/app/utils/supabase/client";
-import { getProducts } from "../actions/Product";
+import { getProducts, uploadProductImages, createProduct, updateProduct, deleteProduct } from "../actions/Product";
 import { Category, getCategories } from "../actions/categories";
+import { uploadImageToCloudflare } from "@/app/utils/cloudflare";
 
 interface ProductsProps {
   isDarkTheme: boolean;
@@ -115,6 +116,7 @@ const RightArrowIcon = ({ className = "w-4 h-4" }) => (
 export default function Products({ isDarkTheme }: ProductsProps) {
   const [showAddProduct, setShowAddProduct] = useState(false);
   const [categoriesList, setCategoriesList] = useState<Category[]>([]);
+  const [subCategoriesList, setSubCategoriesList] = useState<any[]>([]);
   const [formData, setFormData] = useState({
     product_name: "",
     description: "",
@@ -135,64 +137,11 @@ export default function Products({ isDarkTheme }: ProductsProps) {
   const [showImageViewer, setShowImageViewer] = useState(false);
   const [viewerImages, setViewerImages] = useState<string[]>([]);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [isEditingProduct, setIsEditingProduct] = useState(false);
+  const [editingProductId, setEditingProductId] = useState<string | null>(null);
 
   // Categories and their subcategories
-  const categories = [
-    { value: "ring", label: "Ring" },
-    { value: "necklace", label: "Necklace" },
-    { value: "earring", label: "Earring" },
-    { value: "bracelet", label: "Bracelet" },
-    { value: "chain", label: "Chain" },
-    { value: "pendant", label: "Pendant" },
-    { value: "bangle", label: "Bangle" },
-  ];
-
-  const subCategories: { [key: string]: { value: string; label: string }[] } = {
-    ring: [
-      { value: "hallmark", label: "Hallmark Ring" },
-      { value: "american", label: "American Diamond Ring" },
-      { value: "gold-plated", label: "Gold Plated Ring" },
-      { value: "silver", label: "Silver Ring" },
-      { value: "oxidized", label: "Oxidized Ring" },
-    ],
-    necklace: [
-      { value: "hallmark", label: "Hallmark Necklace" },
-      { value: "american", label: "American Diamond Necklace" },
-      { value: "gold-plated", label: "Gold Plated Necklace" },
-      { value: "silver", label: "Silver Necklace" },
-      { value: "oxidized", label: "Oxidized Necklace" },
-      { value: "choker", label: "Choker Necklace" },
-    ],
-    earring: [
-      { value: "hallmark", label: "Hallmark Earring" },
-      { value: "american", label: "American Diamond Earring" },
-      { value: "gold-plated", label: "Gold Plated Earring" },
-      { value: "silver", label: "Silver Earring" },
-      { value: "jhumka", label: "Jhumka" },
-      { value: "stud", label: "Stud Earring" },
-    ],
-    bracelet: [
-      { value: "hallmark", label: "Hallmark Bracelet" },
-      { value: "american", label: "American Diamond Bracelet" },
-      { value: "gold-plated", label: "Gold Plated Bracelet" },
-      { value: "silver", label: "Silver Bracelet" },
-    ],
-    chain: [
-      { value: "gold-plated", label: "Gold Plated Chain" },
-      { value: "silver", label: "Silver Chain" },
-      { value: "stainless-steel", label: "Stainless Steel Chain" },
-    ],
-    pendant: [
-      { value: "hallmark", label: "Hallmark Pendant" },
-      { value: "american", label: "American Diamond Pendant" },
-      { value: "gold-plated", label: "Gold Plated Pendant" },
-    ],
-    bangle: [
-      { value: "hallmark", label: "Hallmark Bangle" },
-      { value: "gold-plated", label: "Gold Plated Bangle" },
-      { value: "silver", label: "Silver Bangle" },
-    ],
-  };
+  
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -221,7 +170,16 @@ export default function Products({ isDarkTheme }: ProductsProps) {
   }, []);
 
 
-
+  const fetchSubCategories = async (categoryId: string) => {
+    const supabase = await createClient();
+    const result = await supabase.from("sub_categories").select("*").eq("category_id", categoryId);
+    if(result.data){
+      console.log("Sub categories fetched successfully");
+      setSubCategoriesList(result.data as any[]);
+    }else{
+      console.error("Error fetching sub categories:", result.error);
+    }
+  }
   // Keyboard navigation for image viewer
   useEffect(() => {
     if (!showImageViewer) return;
@@ -323,13 +281,22 @@ export default function Products({ isDarkTheme }: ProductsProps) {
       // 3. Refresh the products list
       
       // Placeholder for now
-      alert(`Uploading ${files.length} image(s) for product ${productId}. This functionality needs to be implemented.`);
+      const result = await uploadProductImages(productId, files);
+      if(result.success){
+        console.log("Images uploaded successfully and is availiable in the database");
+        const result = await getProducts();
+        if(result.success){
+          console.log("Products fetched successfully");
+          setProducts(result.data as any[]);
+        }else{
+          console.error("Error fetching products:", result.message);
+          alert("Failed to fetch products. Please try again.");
+        }
+      }else{
+        console.error("Error uploading images:", result.error);
+        alert("Failed to upload images. Please try again.");
+      }
       
-      // After successful upload, refresh products
-      // const result = await getProducts();
-      // if (result.success) {
-      //   setProducts(result.data as any[]);
-      // }
     } catch (error) {
       console.error("Error uploading images:", error);
       alert("Failed to upload images. Please try again.");
@@ -361,11 +328,123 @@ export default function Products({ isDarkTheme }: ProductsProps) {
     setThumbnailImagePreview(null);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     console.log("Product Data:", formData);
-    // Handle form submission here
+    const result  = await createProduct(formData);
+    if(result.success){
+      console.log("Product created successfully");
+      alert("Product created successfully");
+      setShowAddProduct(false);
+      setFormData({
+        product_name: "",
+        description: "",
+        category_id: "",
+        subcategory_id: "",
+        base_price: "",
+        discount_percentage: "0",
+        final_price: "",
+        stock_quantity: "0",
+        weight_grams: "",
+        thumbnail_image: null,
+        size: [],
+      });
+      setThumbnailImagePreview(null);
+      const result = await getProducts();
+      if(result.success){
+        console.log("Products fetched successfully");
+        setProducts(result.data as any[]);
+      }else{
+        console.error("Error fetching products:", result.message);
+        alert("Failed to fetch products. Please try again.");
+      }
+
+    }else{
+      console.error("Error creating product:", result.error);
+      alert("Failed to create product. Please try again.");
+    }
   };
+  
+  const handleEditProduct = (product:any) => {
+    console.log("Edit product:", product);
+    setIsEditingProduct(true);
+    setShowAddProduct(true);
+    setFormData({
+      product_name: product.product_name,
+      description: product.description,
+      category_id: product.category_id,
+      subcategory_id: product.subcategory_id,
+      base_price: product.base_price,
+      discount_percentage: product.discount_percentage,
+      final_price: product.final_price,
+      stock_quantity: product.stock_quantity,
+      weight_grams: product.weight_grams,
+      thumbnail_image: product.thumbnail_image,
+      size: product.size,
+    });
+    setThumbnailImagePreview(product.thumbnail_image);
+    setEditingProductId(product.product_id);
+    
+  }
+
+  const handleUpdateProduct = async () => {
+    console.log("Update product:", formData);
+    const result = await updateProduct(editingProductId as string, formData);
+    if(result && result.success){
+      console.log("Product updated successfully");
+      alert("Product updated successfully");
+      setIsEditingProduct(false);
+      setShowAddProduct(false);
+      setFormData({
+        product_name: "",
+        description: "",
+        category_id: "",
+        subcategory_id: "",
+        base_price: "",
+        discount_percentage: "0",
+        final_price: "",
+        stock_quantity: "0",
+        weight_grams: "",
+        thumbnail_image: null,
+        size: [],
+      });
+      setThumbnailImagePreview(null);
+      setEditingProductId(null);
+      const result = await getProducts();
+      if(result.success){
+        console.log("Products fetched successfully");
+        setProducts(result.data as any[]);
+      }else{
+        console.error("Error fetching products:", result.message);
+        alert("Failed to fetch products. Please try again.");
+      }
+    }else{
+      console.error("Error updating product:", result?.error);
+      alert("Failed to update product. Please try again.");
+    }
+  }
+
+  const handleDeleteProduct = async (productId: string) => {
+    console.log("Delete product:", productId);
+    const result = await deleteProduct(productId);
+    if(result && result.success){
+      console.log("Product deleted successfully");
+      alert("Product deleted successfully");
+      const result = await getProducts();
+      if(result.success){
+        console.log("Products fetched successfully");
+        setProducts(result.data as any[]);
+      }else{
+        console.error("Error fetching products:", result.message);
+        alert("Failed to fetch products. Please try again.");
+      }
+    }else{
+      console.error("Error deleting product:", result?.error);
+      alert("Failed to delete product. Please try again.");
+    }
+  }
+
+
 
   return (
     <div className="p-6">
@@ -581,7 +660,10 @@ export default function Products({ isDarkTheme }: ProductsProps) {
                   <select
                     name="category_id"
                     value={formData.category_id}
-                    onChange={handleInputChange}
+                    onChange={(e)=>{
+                      handleInputChange(e);
+                      fetchSubCategories(e.target.value);
+                    }}
                     className={`w-full px-4 py-2 rounded-lg border transition-colors ${
                       isDarkTheme
                         ? "bg-gray-800 border-gray-700 text-white"
@@ -618,10 +700,10 @@ export default function Products({ isDarkTheme }: ProductsProps) {
                     } focus:outline-none focus:ring-2 focus:ring-[#E94E8B] disabled:opacity-50`}
                   >
                     <option value="">Select Sub Category</option>
-                    {formData.category_id &&
-                      subCategories[formData.category_id]?.map((subCat) => (
-                        <option key={subCat.value} value={subCat.value}>
-                          {subCat.label}
+                    {formData.category_id && subCategoriesList.length > 0 &&
+                      subCategoriesList.map((subCat) => (
+                        <option key={subCat.subcategory_id} value={subCat.subcategory_id}>
+                          {subCat.subcategory_name}
                         </option>
                       ))}
                   </select>
@@ -673,7 +755,7 @@ export default function Products({ isDarkTheme }: ProductsProps) {
                   <input
                     type="text"
                     name="size"
-                    value={formData.size.join(", ")}
+                    value={(formData.size!==null && formData.size!==undefined) ? formData.size.join(", ") : ""}
                     onChange={(e) => {
                       const sizes = e.target.value
                         .split(",")
@@ -827,12 +909,18 @@ export default function Products({ isDarkTheme }: ProductsProps) {
               >
                 Cancel
               </button>
-              <button
+              {isEditingProduct ? <button
+                type="button"
+                onClick={handleUpdateProduct}
+                className="px-6 py-2 bg-[#E94E8B] text-white rounded-lg font-medium hover:bg-[#d43d75] transition-colors"
+              >
+                Update Product
+              </button> : <button
                 type="submit"
                 className="px-6 py-2 bg-[#E94E8B] text-white rounded-lg font-medium hover:bg-[#d43d75] transition-colors"
               >
                 Add Product
-              </button>
+              </button>}
             </div>
           </form>
         </div>
@@ -1222,10 +1310,7 @@ export default function Products({ isDarkTheme }: ProductsProps) {
                     >
                       <div className="flex items-center justify-center gap-2">
                         <button
-                          onClick={() => {
-                            // TODO: Implement edit functionality
-                            console.log("Edit product:", product.product_id);
-                          }}
+                          onClick={() => handleEditProduct(product)}
                           className={`p-2 rounded-lg transition-colors ${
                             isDarkTheme
                               ? "hover:bg-gray-700 text-gray-300 hover:text-white"
@@ -1239,6 +1324,7 @@ export default function Products({ isDarkTheme }: ProductsProps) {
                           onClick={() => {
                             // TODO: Implement delete functionality
                             console.log("Delete product:", product.product_id);
+                            handleDeleteProduct(product.product_id);
                           }}
                           className={`p-2 rounded-lg transition-colors ${
                             isDarkTheme
