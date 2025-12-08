@@ -116,15 +116,9 @@ export default function ProductDisplay({
               <div className="relative aspect-square w-full max-w-[90vw] overflow-hidden rounded-2xl bg-gray-100">
                 <Image
                   src={
-                    productDetails[0]?.product_images?.[selectedImage]
-                      ?.image_url ??
-                    productDetails[0]?.product_images?.[0]?.image_url ??
-                    "/placeholder.png"
+                    productImages[selectedImage]?.image_url
                   }
-                  alt={
-                    productDetails[0]?.product_images?.[selectedImage]
-                      ?.image_url ?? "product-image"
-                  }
+                  alt={productImages[selectedImage]?.image_url}
                   fill
                   className="object-cover"
                   priority
@@ -373,8 +367,8 @@ export default function ProductDisplay({
                 onMouseLeave={handleMouseLeave}
               >
                 <Image
-                  src={selectedImageUrl}
-                  alt={selectedImageUrl}
+                  src={productImages[selectedImage]?.image_url}
+                  alt={productImages[selectedImage]?.image_url}
                   fill
                   className="object-cover"
                   priority
@@ -395,7 +389,7 @@ export default function ProductDisplay({
                 <div
                   className="absolute inset-0"
                   style={{
-                    backgroundImage: `url(${selectedImageUrl})`,
+                    backgroundImage: `url(${productImages[selectedImage]?.image_url})`,
                     backgroundSize: "250%",
                     backgroundPosition: `${zoomPosition.x}% ${zoomPosition.y}%`,
                     backgroundRepeat: "no-repeat",
@@ -617,8 +611,8 @@ export default function ProductDisplay({
                 onMouseLeave={handleMouseLeave}
               >
                 <Image
-                  src={productDetails[0]?.product_images[0]?.image_url}
-                  alt={productDetails[0]?.product_images[0]?.image_url}
+                  src={productDetails[0]?.product_images[selectedImage]?.image_url}
+                  alt={productDetails[0]?.product_images[selectedImage]?.image_url}
                   fill
                   className="object-cover"
                   priority
@@ -639,7 +633,7 @@ export default function ProductDisplay({
                 <div
                   className="absolute inset-0"
                   style={{
-                    backgroundImage: `url(${productDetails[0]?.product_images[0]?.image_url})`,
+                    backgroundImage: `url(${productDetails[0]?.product_images[selectedImage]?.image_url})`,
                     backgroundSize: "250%",
                     backgroundPosition: `${zoomPosition.x}% ${zoomPosition.y}%`,
                     backgroundRepeat: "no-repeat",
@@ -747,7 +741,7 @@ export default function ProductDisplay({
                   Select Size
                 </span>
                 <div className="flex flex-wrap gap-2">
-                  {productDetails[0]?.size.map((size: any, index: any) => (
+                  {productDetails[0]?.size && productDetails[0]?.size.length > 0 && productDetails[0]?.size.map((size: any, index: any) => (
                     <button
                       key={index}
                       onClick={() => setSelectedSize(index)}

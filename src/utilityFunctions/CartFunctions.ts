@@ -135,7 +135,7 @@ export const addToDbCart = async(product:any,CartId:string,supabase:any)=>{
     console.log("supabase",supabase)
     const productExistsInCart = await supabase.from("cart_items").select("*").eq("cart_id",CartId).eq("product_id",product.product_id)
     console.log("Existence of product in cart",productExistsInCart)
-    if(productExistsInCart.data.length > 0){
+    if(productExistsInCart.data && productExistsInCart.data.length > 0){
         console.log("product exists in cart")
         console.log("quantity before updating",productExistsInCart.data[0].quantity)
         const {data,error} = await supabase.from("cart_items").update({

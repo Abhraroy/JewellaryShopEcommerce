@@ -438,9 +438,13 @@ export default function ProductReview({ reviews }: { reviews: any }) {
                               }%`,
                             }}
                           ></div>
+                          {reviews && reviews.length > 0 ? <span className="text-xs text-black font-bold">
+                            {Math.round((value / reviews.length) * 100)}%
+                          </span>:
                           <span className="text-xs text-black font-bold">
-                            {(value / reviews.length) * 100}%
-                          </span>
+                              
+                            </span>
+                          }
                         </div>
                       </div>
                     );
