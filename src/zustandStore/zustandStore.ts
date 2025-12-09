@@ -33,6 +33,10 @@ interface StoreState {
     setWishListItems: (wishListItems: any) => void;
     initiatingCheckout: boolean;
     setInitiatingCheckout: (initiatingCheckout: boolean) => void;
+    paymentConcluded: boolean;
+    setPaymentConcluded: (paymentConcluded: boolean) => void;
+    showPaymentConcluded: boolean;
+    setShowPaymentConcluded: (showPaymentConcluded: boolean) => void;
 }
 
 export const useStore = create<StoreState>((set) => ({
@@ -68,5 +72,9 @@ export const useStore = create<StoreState>((set) => ({
     setWishListItems: (wishListItems: any) => set({ wishListItems: wishListItems }),
     initiatingCheckout:false,
     setInitiatingCheckout: (initiatingCheckout: boolean) => set({ initiatingCheckout: initiatingCheckout }),
+    paymentConcluded:true,
+    setPaymentConcluded: (paymentConcluded: boolean) => set({ paymentConcluded: paymentConcluded }),
+    showPaymentConcluded:true,
+    setShowPaymentConcluded: (showPaymentConcluded: boolean) => set({ showPaymentConcluded: showPaymentConcluded }),
 }))
 

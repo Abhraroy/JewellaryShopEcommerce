@@ -2,9 +2,11 @@
 
 import Script from "next/script";
 import { useEffect, useState } from "react";
+import { useStore } from "@/zustandStore/zustandStore";
 
 export default function PhonePe({ redirectUrl }: { redirectUrl: string }) {
   const [sdkReady, setSdkReady] = useState(false);
+  const {initiatingCheckout,setInitiatingCheckout} = useStore();
 
   /** Callback handler from PhonePe */
   const callback = (response: string) => {
@@ -16,6 +18,7 @@ export default function PhonePe({ redirectUrl }: { redirectUrl: string }) {
     }
     if (response === "CONCLUDED") {
       console.log("Payment concluded");
+      setInitiatingCheckout(false);
       return;
     }
   };

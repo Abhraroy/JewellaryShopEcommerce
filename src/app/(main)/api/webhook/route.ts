@@ -40,7 +40,40 @@ export async function POST(request: NextRequest) {
         console.log("error",error);
         return NextResponse.json({ message: "Error creating order" }, { status: 500 });
     }
-    console.log("data",data);
+    const orderId = data.order_id;
+    const cartId = body.payload.metaInfo.udf5;
+    const lastAddedProductTime = body.payload.metaInfo.udf4;
+    const cartData = await supabase.from("cart_items")
+    .select("*,products(*)")
+    .eq("cart_id",cartId)
+    .order("added_at", { ascending: false });
+    if(cartData.error){
+      console.log("error in the cart, no order items to be created")
+    }else{
+      if(cartData.data[0].added_at === lastAddedProductTime){
+        cartData.data.forEach(async (item: any) => {
+          const orderItemsPayload = {
+            order_id:orderId,
+            product_id:item.product_id,
+            quantity:item.quantity,
+            unit_price:item.products.final_price,
+            total_price:item.products.final_price * item.quantity,
+          }
+          const { data, error } = await supabase.from("order_items")
+          .insert(orderItemsPayload)
+          .select("*")
+          .single();
+          if(error){
+            console.log("error",error);
+            return NextResponse.json({ message: "Error creating order items" }, { status: 500 });
+          }
+          console.log("order items created",data);
+        });
+      }else{
+        console.log("cart data is different, no order items to be created somebody messed with the cart")
+      }
+    }
+    
     return NextResponse.json({ message: "Webhook received" }, { status: 200 });
   }
 }

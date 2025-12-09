@@ -324,30 +324,30 @@ export default function AccountPage() {
               </h2>
 
               <div className="text-center py-12">
-                {
-                  orders.length > 0 ?
+                {orders && orders.length > 0 ? (
                   <>
-                  {orders.map((order) => (
-                    <div key={order.order_id}>
-                      <p>{order.order_id}</p>
-                      <p>{order.order_date}</p>
-                      <p>{order.order_total}</p>
-                      <p>{order.order_status}</p>
-                      <p>{order.order_items}</p>
-                      <p>{order.order_items.product_name}</p>
-                      <p>{order.order_items.product_price}</p>
-                      <p>{order.order_items.product_quantity}</p>
-                    </div>
-
-                  ))}
-                  </>:<>
-                  <OrderIcon />
+                    {orders.map((order) => (
+                      <div key={order.order_id}>
+                        <p>{order.order_id}</p>
+                        <p>{order.order_date}</p>
+                        <p>{order.order_total}</p>
+                        <p>{order.order_status}</p>
+                        <p>{order.order_items}</p>
+                        <p>{order.order_items.product_name}</p>
+                        <p>{order.order_items.product_price}</p>
+                        <p>{order.order_items.product_quantity}</p>
+                      </div>
+                    ))}
+                  </>
+                ) : (
+                  <>
+                    <OrderIcon />
                     <p className="mt-4 text-gray-600">No orders yet</p>
                     <p className="text-sm text-gray-500 mt-2">
                       Your order history will appear here
                     </p>
                   </>
-                }
+                )}
                 
                 <a
                   href="/"

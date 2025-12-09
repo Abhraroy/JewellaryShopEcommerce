@@ -8,6 +8,8 @@ export async function POST() {
   let totalAmount = 0
   let amountInPaise = 0
   let user_id=null
+  let cart_id=null
+  let lastAddedProductTime=null
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -22,11 +24,31 @@ export async function POST() {
       console.log("userData",userData);
       if(userData.data.cart){
         user_id = userData.data.user_id;
-        const cartData = await supabase.from("cart_items").select(`*,products(*)`).eq("cart_id",userData.data.cart.cart_id);
+        cart_id = userData.data.cart.cart_id;
+        const cartData = await supabase
+          .from("cart_items")
+          .select(`
+            *,
+            products(*)
+          `)
+          .eq("cart_id",userData.data.cart.cart_id)
+          .order("added_at", { ascending: false });
         console.log("cartData",cartData);
-        totalAmount = cartData.data?.reduce((sum: number, item: any) => sum + item.products.final_price * item.quantity, 0) ?? 0;
-        console.log("totalAmount",totalAmount);
-         amountInPaise = Math.round(totalAmount * 100);
+        console.log("cartdata products",cartData?.data?.[0]?.products);
+        lastAddedProductTime = cartData?.data?.[0]?.added_at;
+        if(cartData.error) {
+          console.error("Error fetching cart data:", cartData.error);
+        }
+        if(cartData.data && cartData.data.length > 0) {
+          totalAmount = cartData.data.reduce((sum: number, item: any) => {
+            if(item.products && item.products.final_price) {
+              return sum + item.products.final_price * item.quantity;
+            }
+            return sum;
+          }, 0);
+          console.log("totalAmount",totalAmount);
+          amountInPaise = Math.round(totalAmount * 100);
+        }
       }
   }
 
@@ -68,8 +90,8 @@ export async function POST() {
         udf1: user_id,
         udf2: merchantOrderId,
         udf3: totalAmount,
-        udf4: "additional-information-4",
-        udf5: "additional-information-5",
+        udf4: lastAddedProductTime,
+        udf5: cart_id,
         udf6: "additional-information-6",
         udf7: "additional-information-7",
         udf8: "additional-information-8",
@@ -85,7 +107,7 @@ export async function POST() {
         type: "PG_CHECKOUT",
         message: "Payment message used for collect requests",
         merchantUrls: {
-          redirectUrl: "https://a39ef8683b4e.ngrok-free.app/",
+          redirectUrl: "https://98c30ff0f032.ngrok-free.app/",
         },
       },
 

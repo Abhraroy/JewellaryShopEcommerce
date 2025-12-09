@@ -15,7 +15,7 @@ import Cart from "@/components/Cart";
 import { addToDbCart, createCart } from "@/utilityFunctions/CartFunctions";
 import { Product } from "@/utilityFunctions/TypeInterface";
 import PaymentGatewayComponent from "@/components/PaymentGatewayComponent";
-import YTpayment from "@/components/YTpayment";
+import PaymentStatusShowComponent from "@/components/PaymentStatusShowComponent";
 
 export default function LandingPage() {
   const {
@@ -32,6 +32,10 @@ export default function LandingPage() {
     categories,
     initiatingCheckout,
     setInitiatingCheckout,
+    paymentConcluded,
+    setPaymentConcluded,
+    showPaymentConcluded,
+    setShowPaymentConcluded,
   } = useStore();
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
@@ -246,9 +250,7 @@ export default function LandingPage() {
           onWishlistToggle={handleWishlistToggle}
         />
         {initiatingCheckout && <PaymentGatewayComponent />}
-        {/* {
-          initiatingCheckout && <YTpayment />
-        } */}
+        {showPaymentConcluded && <PaymentStatusShowComponent />}
       </main>
     </div>
   );
