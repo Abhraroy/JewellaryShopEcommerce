@@ -28,7 +28,7 @@ export default function CategorySection({
   // className = '' 
 }: { categories: any }) {
   return (
-    <section className={`w-full bg-white py-8 md:py-12`}>
+    <section className={`w-full bg-theme-cream py-8 md:py-12`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-6 md:mb-8 text-center">
           Shop by Category
@@ -40,11 +40,11 @@ export default function CategorySection({
             {categories.map((category: any) => (
               <Link
                 key={category.category_id}
-                href={`/collection/${category.slug}`}
+                href={`/category/${category.slug}`}
                 className="flex flex-col items-center group flex-shrink-0 w-20 md:w-24 lg:w-28"
               >
                 {/* Circular Image Container */}
-                <div className="relative w-20 h-20 md:w-24 md:h-24 lg:w-28 lg:h-28 rounded-full overflow-hidden bg-gray-100 ring-2 ring-gray-200 group-hover:ring-gray-400 transition-all duration-300 mb-2 md:mb-3 shadow-sm group-hover:shadow-md">
+                <div className="relative w-20 h-20 md:w-24 md:h-24 lg:w-28 lg:h-28 rounded-full overflow-hidden bg-white ring-2 ring-theme-sage/30 group-hover:ring-theme-olive transition-all duration-300 mb-2 md:mb-3 shadow-sm group-hover:shadow-md">
                   <Image
                     src={category.category_image_url}
                     alt={category.category_name}
@@ -55,7 +55,7 @@ export default function CategorySection({
                 </div>
                 
                 {/* Category Name */}
-                <span className="text-xs md:text-sm font-medium text-gray-700 group-hover:text-gray-900 text-center transition-colors duration-200 leading-tight">
+                <span className="text-xs md:text-sm font-medium text-theme-olive group-hover:text-theme-sage text-center transition-colors duration-200 leading-tight">
                   {category.category_name}
                 </span>
               </Link>

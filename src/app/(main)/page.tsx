@@ -16,6 +16,7 @@ import { addToDbCart, createCart } from "@/utilityFunctions/CartFunctions";
 import { Product } from "@/utilityFunctions/TypeInterface";
 import PaymentGatewayComponent from "@/components/PaymentGatewayComponent";
 import PaymentStatusShowComponent from "@/components/PaymentStatusShowComponent";
+import Collection from "@/components/Collection";
 
 export default function LandingPage() {
   const {
@@ -38,7 +39,8 @@ export default function LandingPage() {
     setShowPaymentConcluded,
   } = useStore();
   const [isCartOpen, setIsCartOpen] = useState(false);
-  const [products, setProducts] = useState<Product[]>([]);
+  const [newArrivals, setNewArrivals] = useState<Product[]>([]);
+  const [bestSellers, setBestSellers] = useState<Product[]>([]);
   const supabase = createClient();
   // Create multiple slides with the same image
   const carouselItems = Array.from({ length: 3 }, (_, index) => (
@@ -92,7 +94,7 @@ export default function LandingPage() {
             console.log("Setting CartId", data?.cart_id);
             setCartId(data?.cart_id);
             const localCartItems = localStorage.getItem("cartItems");
-            if(localCartItems){
+            if (localCartItems) {
               let localCartItemsArray = localCartItems
                 ? JSON.parse(localCartItems)
                 : [];
@@ -115,18 +117,14 @@ export default function LandingPage() {
                   );
                   setCartItems(updatedItem);
                 }
-                
               } else {
                 console.log("No cart items from local storage");
               }
-            
-            }
-            else{
+            } else {
               console.log("No cart items from local storage");
             }
             localStorage.removeItem("cartItems");
-          } 
-          else {
+          } else {
             const { success, data, error } = await createCart(
               userData.data?.user_id,
               supabase
@@ -176,33 +174,45 @@ export default function LandingPage() {
   }, [AuthenticatedState]);
 
   useEffect(() => {
-    const getProducts = async () => {
+    const getBestSellers = async () => {
       const supabase = createClient();
-      const { data, error }: any = await supabase.from("products").select("*");
+      const { data, error }: any = await supabase.from("products")
+      .select("*")
+      .contains("tags",["best-sellers"]);
       if (error) {
         console.log("error", error);
       } else {
-        setProducts(data);
+        console.log("data", data);
+        setBestSellers(data);
       }
     };
-    getProducts();
+    getBestSellers();
+    const getNewArrivals = async () => {
+      const { data, error }: any = await supabase.from("products")
+      .select("*")
+      .contains("tags",["new-arrivals"]);
+      if (error) {
+        console.log("error", error);
+      } else {
+        console.log("data", data);
+        setNewArrivals(data);
+      }
+    };
+    getNewArrivals();
   }, []);
 
-
-  useEffect(()=>{
-    const getAllCategories = async () =>{
-      const {data,error} = await supabase.from("categories").select("*");
-      if(error){
-        console.log("error",error)
-      }
-      else{
-        console.log("data",data)
+  useEffect(() => {
+    const getAllCategories = async () => {
+      const { data, error } = await supabase.from("categories").select("*");
+      if (error) {
+        console.log("error", error);
+      } else {
+        console.log("data", data);
         setCategories(data);
       }
-    }
+    };
     getAllCategories();
-  },[])
-
+  }, []);
 
   // Handler to open the cart
   const handleOpenCart = () => {
@@ -215,7 +225,7 @@ export default function LandingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-theme-cream">
       {/* Navbar with cart click handler */}
       {/* <Navbar cartCount={0} onCartClick={handleOpenCart} />
       {MobnoInputState && !OtpInputState && <PhoneNumberInput />}
@@ -233,19 +243,19 @@ export default function LandingPage() {
 
         {/* New Arrival Products Section */}
         <ProductCarousel
-          sectionHeading="New Arrival"
-          products={products}
+          sectionHeading="Best Sellers"
+          products={bestSellers}
           onAddToCart={handleAddToCart}
           onWishlistToggle={handleWishlistToggle}
         />
 
         {/* Bento Grid Category Section */}
-        <BentoGrid />
+        <Collection />
 
         {/* You can add more ProductCarousel sections with different data */}
         <ProductCarousel
-          sectionHeading="Best Sellers"
-          products={products}
+          sectionHeading="New Arrivals"
+          products={newArrivals}
           onAddToCart={handleAddToCart}
           onWishlistToggle={handleWishlistToggle}
         />

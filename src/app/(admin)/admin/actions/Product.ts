@@ -94,6 +94,10 @@ export async function createProduct(productData: any) {
       weight_grams: productData.weight_grams,
       metal_type: productData.metal_type,
       thumbnail_image: imageUrl,
+      size: productData.size || [],
+      tags: productData.tags || [],
+      occasion: productData.occasion || "",
+      collection: productData.collection || "",
     };
     const { data, error } = await supabase
       .from("products")
@@ -163,7 +167,10 @@ export async function updateProduct(productId: string, productData: any) {
       weight_grams: productData.weight_grams,
       metal_type: productData.metal_type,
       thumbnail_image: productData.thumbnail_image,
-      size: productData.size,
+      size: productData.size || [],
+      tags: productData.tags || [],
+      occasion: productData.occasion || "",
+      collection: productData.collection || "",
     };
     const { data: updatedData, error: updateError } = await supabase
       .from("products")

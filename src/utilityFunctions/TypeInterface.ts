@@ -14,4 +14,6 @@ product_id: string;
   thumbnail_image: string;
   sub_images_id: string;
   size: string;
+  collection: string;
+  occasion: string;
 }

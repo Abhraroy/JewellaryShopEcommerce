@@ -163,13 +163,13 @@ export default function Cart({ isOpen = false, onClose }: CartProps) {
       >
         <div className="flex flex-col h-full">
           {/* Cart Header */}
-          <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200 bg-white sticky top-0 z-10">
-            <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
+          <div className="flex items-center justify-between p-4 sm:p-6 border-b border-theme-sage/20 bg-theme-cream sticky top-0 z-10">
+            <h2 className="text-xl sm:text-2xl font-bold text-theme-olive">
               Shopping Cart
             </h2>
             <button
               onClick={onClose}
-              className="p-2 text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-full transition-colors duration-200"
+              className="p-2 text-theme-olive hover:text-theme-sage hover:bg-theme-sage/20 rounded-full transition-colors duration-200"
               aria-label="Close cart"
             >
               <svg
@@ -193,14 +193,14 @@ export default function Cart({ isOpen = false, onClose }: CartProps) {
           <div className="flex-1 overflow-y-auto py-4 px-4 sm:px-6">
             {cartItems && cartItems.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-center py-12">
-                <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                <div className="w-24 h-24 bg-theme-sage/20 rounded-full flex items-center justify-center mb-4">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
                     viewBox="0 0 24 24"
                     strokeWidth={1.5}
                     stroke="currentColor"
-                    className="w-12 h-12 text-gray-400"
+                    className="w-12 h-12 text-theme-sage"
                   >
                     <path
                       strokeLinecap="round"
@@ -209,15 +209,15 @@ export default function Cart({ isOpen = false, onClose }: CartProps) {
                     />
                   </svg>
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                <h3 className="text-lg font-semibold text-theme-olive mb-2">
                   Your cart is empty
                 </h3>
-                <p className="text-gray-500 text-sm mb-6">
+                <p className="text-theme-sage text-sm mb-6">
                   Looks like you haven't added anything to your cart yet.
                 </p>
                 <button
                   onClick={onClose}
-                  className="px-6 py-2.5 bg-gray-900 text-white font-medium rounded-lg hover:bg-gray-800 transition-colors duration-200"
+                  className="px-6 py-2.5 bg-theme-sage text-white font-medium rounded-lg hover:bg-theme-olive transition-colors duration-200"
                 >
                   Continue Shopping
                 </button>
@@ -228,7 +228,7 @@ export default function Cart({ isOpen = false, onClose }: CartProps) {
                   cartItems.map((item: any, index: number) => (
                     <div
                       key={index}
-                      className="flex gap-4 p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors duration-200"
+                      className="flex gap-4 p-4 bg-theme-cream rounded-xl hover:bg-theme-sage/10 transition-colors duration-200"
                     >
                       {/* Product Image */}
                       <div className="relative w-20 h-20 sm:w-24 sm:h-24 flex-shrink-0 bg-white rounded-lg overflow-hidden border border-gray-200">
@@ -254,7 +254,7 @@ export default function Cart({ isOpen = false, onClose }: CartProps) {
                         <div className="flex items-center gap-3">
                           <div className="flex items-center gap-2 border border-gray-300 rounded-lg bg-white">
                             <button
-                              className="p-1.5 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded transition-colors duration-200 
+                              className="p-1.5 text-theme-olive hover:text-theme-sage hover:bg-theme-sage/20 rounded transition-colors duration-200 
                               disabled:opacity-50 disabled:cursor-not-allowed
                               "
                               disabled={item.quantity === 1?true:false}
@@ -283,7 +283,7 @@ export default function Cart({ isOpen = false, onClose }: CartProps) {
                               {item.quantity}
                             </span>
                             <button
-                              className="p-1.5 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded transition-colors duration-200"
+                              className="p-1.5 text-theme-olive hover:text-theme-sage hover:bg-theme-sage/20 rounded transition-colors duration-200"
                               aria-label="Increase quantity"
                               onClick={() => {
                                 handleIncreaseQuantity(item);
@@ -341,7 +341,7 @@ export default function Cart({ isOpen = false, onClose }: CartProps) {
 
           {/* Cart Footer - Summary & Checkout */}
           {cartItems && cartItems.length > 0 && (
-            <div className="border-t border-gray-200 bg-white p-4 sm:p-6 space-y-4 sticky bottom-0">
+            <div className="border-t border-theme-sage/20 bg-theme-cream p-4 sm:p-6 space-y-4 sticky bottom-0">
               {/* Price Summary */}
               <div className="space-y-3">
                 <div className="flex justify-between text-sm">
@@ -374,7 +374,7 @@ export default function Cart({ isOpen = false, onClose }: CartProps) {
               </div>
 
               {/* Checkout Button */}
-              <button className="w-full bg-gray-900 text-white font-semibold py-3.5 px-6 rounded-xl hover:bg-gray-800 transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg"
+              <button className="w-full bg-theme-sage text-white font-semibold py-3.5 px-6 rounded-xl hover:bg-theme-olive transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg"
               onClick={()=>{
                 setInitiatingCheckout(true);
                 onClose?.(); // Close the cart sidebar
@@ -387,7 +387,7 @@ export default function Cart({ isOpen = false, onClose }: CartProps) {
               {/* Continue Shopping Link */}
               <button
                 onClick={onClose}
-                className="w-full text-center text-sm text-gray-600 hover:text-gray-900 font-medium transition-colors duration-200"
+                className="w-full text-center text-sm text-theme-olive hover:text-theme-sage font-medium transition-colors duration-200"
               >
                 Continue Shopping
               </button>

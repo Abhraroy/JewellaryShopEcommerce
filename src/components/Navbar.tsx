@@ -328,13 +328,13 @@ export default function Navbar({ cartCount = 0, isAuthenticated = false, onCartC
   };
 
   return (
-    <nav className="w-full bg-white border-b border-gray-100 sticky top-0 z-50">
+    <nav className="w-full bg-theme-cream border-b border-theme-sage/20 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 md:h-20">
           {/* Logo Section */}
           <div className="flex-shrink-0">
             <a href="/" className="flex items-center">
-              <span className="text-2xl md:text-3xl font-bold text-[#E94E8B] tracking-tight">
+              <span className="text-2xl md:text-3xl font-bold text-theme-olive tracking-tight">
                 JWEL
               </span>
             </a>
@@ -348,10 +348,10 @@ export default function Navbar({ cartCount = 0, isAuthenticated = false, onCartC
                 placeholder="Search for products"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full h-10 md:h-12 px-4 pr-10 bg-gray-100 rounded-lg border-none outline-none text-gray-700 placeholder-gray-400 text-sm md:text-base focus:bg-gray-200 transition-colors"
+                className="w-full h-10 md:h-12 px-4 pr-10 bg-white/80 rounded-lg border border-theme-sage/30 outline-none text-gray-700 placeholder-gray-500 text-sm md:text-base focus:bg-white focus:border-theme-sage transition-colors"
               />
               <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                <SearchIcon className="w-5 h-5 text-gray-700" />
+                <SearchIcon className="w-5 h-5 text-theme-olive" />
               </div>
             </div>
           </div>
@@ -362,12 +362,12 @@ export default function Navbar({ cartCount = 0, isAuthenticated = false, onCartC
               <button
                 key={index}
                 onClick={iconItem.onClick}
-                className="p-2 text-gray-700 hover:text-gray-900 transition-colors relative"
+                className="p-2 text-theme-olive hover:text-theme-sage transition-colors relative"
                 aria-label={iconItem.label}
               >
                 {iconItem.icon}
                 {iconItem.badge !== undefined && (
-                  <span className="absolute top-0 right-0 w-5 h-5 bg-black text-white text-xs font-medium rounded-full flex items-center justify-center">
+                  <span className="absolute top-0 right-0 w-5 h-5 bg-theme-olive text-white text-xs font-medium rounded-full flex items-center justify-center">
                     {iconItem.badge > 0 ? iconItem.badge : 0}
                   </span>
                 )}
@@ -381,12 +381,12 @@ export default function Navbar({ cartCount = 0, isAuthenticated = false, onCartC
               <button
                 key={index}
                 onClick={iconItem.onClick}
-                className="p-2 text-gray-700 hover:text-gray-900 transition-colors relative"
+                className="p-2 text-theme-olive hover:text-theme-sage transition-colors relative"
                 aria-label={iconItem.label}
               >
                 {iconItem.icon}
                 {iconItem.badge !== undefined && (
-                  <span className="absolute top-0 right-0 w-5 h-5 bg-black text-white text-xs font-medium rounded-full flex items-center justify-center">
+                  <span className="absolute top-0 right-0 w-5 h-5 bg-theme-olive text-white text-xs font-medium rounded-full flex items-center justify-center">
                     {iconItem.badge > 0 ? iconItem.badge : 0}
                   </span>
                 )}
@@ -404,11 +404,11 @@ export default function Navbar({ cartCount = 0, isAuthenticated = false, onCartC
                 placeholder="Search for products"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full h-10 px-4 pr-10 bg-gray-100 rounded-lg border-none outline-none text-gray-700 placeholder-gray-400 text-sm focus:bg-gray-200 transition-colors"
+                className="w-full h-10 px-4 pr-10 bg-white/80 rounded-lg border border-theme-sage/30 outline-none text-gray-700 placeholder-gray-500 text-sm focus:bg-white focus:border-theme-sage transition-colors"
                 autoFocus
               />
               <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                <SearchIcon className="w-5 h-5 text-gray-700" />
+                <SearchIcon className="w-5 h-5 text-theme-olive" />
               </div>
             </div>
           </div>
@@ -425,14 +425,14 @@ export default function Navbar({ cartCount = 0, isAuthenticated = false, onCartC
           />
 
           {/* Sidebar */}
-          <div className="fixed top-0 right-0 h-full w-80 bg-white shadow-xl z-50 transform translate-x-0 transition-transform duration-300 ease-in-out md:hidden">
+          <div className="fixed top-0 right-0 h-full w-80 bg-theme-cream shadow-xl z-50 transform translate-x-0 transition-transform duration-300 ease-in-out md:hidden">
             <div className="flex flex-col h-full">
               {/* Sidebar Header */}
-              <div className="flex items-center justify-between p-4 border-b border-gray-200">
-                <h2 className="text-xl font-bold text-gray-900">Menu</h2>
+              <div className="flex items-center justify-between p-4 border-b border-theme-sage/30">
+                <h2 className="text-xl font-bold text-theme-olive">Menu</h2>
                 <button
                   onClick={handleCloseSidebar}
-                  className="p-2 text-gray-700 hover:text-gray-900 transition-colors"
+                  className="p-2 text-theme-olive hover:text-theme-sage transition-colors"
                   aria-label="Close menu"
                 >
                   <CloseIcon />
@@ -446,7 +446,7 @@ export default function Navbar({ cartCount = 0, isAuthenticated = false, onCartC
                     <li key={index}>
                       <a
                         href={item.href}
-                        className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                        className="flex items-center gap-3 px-4 py-3 text-theme-olive hover:bg-theme-sage/20 rounded-lg transition-colors"
                         onClick={handleCloseSidebar}
                       >
                         {item.icon}

@@ -77,7 +77,7 @@ export default function AddressSection({addresses, userId}: {addresses: any[], u
           )}
           <button 
             onClick={handleAddAddress}
-            className="mt-4 px-4 py-2 text-amber-600 hover:text-amber-700 font-medium text-sm"
+            className="mt-4 px-4 py-2 text-theme-olive hover:text-theme-sage font-medium text-sm"
           >
             Add Address
           </button>

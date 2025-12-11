@@ -129,6 +129,9 @@ export default function Products({ isDarkTheme }: ProductsProps) {
     weight_grams: "",
     thumbnail_image: null as File | string | null,
     size: [] as string[],
+    tags: [] as string[],
+    occasion: "" as string,
+    collection: "" as string,
   });
   const [products, setProducts] = useState<any[]>([]);
   const [thumbnailImagePreview, setThumbnailImagePreview] = useState<string | null>(null);
@@ -141,7 +144,9 @@ export default function Products({ isDarkTheme }: ProductsProps) {
   const [editingProductId, setEditingProductId] = useState<string | null>(null);
 
   // Categories and their subcategories
-  
+  const [tags, setTags] = useState<string[]>([]);
+
+  const providedTags = ["new-arrivals", "best-sellers", "featured", "limited edition", "on sale", "trending", "exclusive", "best value", "new arrival", "top rated"];
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -348,6 +353,9 @@ export default function Products({ isDarkTheme }: ProductsProps) {
         weight_grams: "",
         thumbnail_image: null,
         size: [],
+        tags: [],
+        occasion: "",
+        collection: "",
       });
       setThumbnailImagePreview(null);
       const result = await getProducts();
@@ -381,6 +389,9 @@ export default function Products({ isDarkTheme }: ProductsProps) {
       weight_grams: product.weight_grams,
       thumbnail_image: product.thumbnail_image,
       size: product.size,
+      tags: product.tags,
+      occasion: product.occasion,
+      collection: product.collection || "",
     });
     setThumbnailImagePreview(product.thumbnail_image);
     setEditingProductId(product.product_id);
@@ -407,6 +418,9 @@ export default function Products({ isDarkTheme }: ProductsProps) {
         weight_grams: "",
         thumbnail_image: null,
         size: [],
+        tags: [],
+        occasion: "",
+        collection: "",
       });
       setThumbnailImagePreview(null);
       setEditingProductId(null);
@@ -752,6 +766,27 @@ export default function Products({ isDarkTheme }: ProductsProps) {
                   >
                     Size (comma separated)
                   </label>
+                   <div className="flex flex-row items-center gap-2">
+                     {
+                       [24,26,28].map((size)=>(
+                         <button 
+                           key={size} 
+                           type="button"
+                           disabled={!formData.category_id || categoriesList.find(cat => cat.category_id === formData.category_id)?.category_name?.toLowerCase() !== "bangles"}
+                           className={`px-4 py-2 rounded-lg border transition-colors ${
+                             isDarkTheme
+                               ? "bg-gray-800 border-gray-700 text-white hover:bg-gray-700 hover:border-gray-600"
+                               : "bg-white border-gray-300 text-gray-900 hover:bg-gray-100 hover:border-gray-400"
+                           } focus:outline-none focus:ring-2 focus:ring-[#E94E8B]`}
+                           onClick={()=>{
+                             setFormData((prev)=>({...prev, size: [...prev.size, size.toString()]}));
+                           }}
+                         >
+                           {size}mm
+                         </button>
+                       ))
+                     }
+                   </div>
                   <input
                     type="text"
                     name="size"
@@ -763,7 +798,63 @@ export default function Products({ isDarkTheme }: ProductsProps) {
                         .filter((s) => s.length > 0);
                       setFormData((prev) => ({ ...prev, size: sizes }));
                     }}
-                    placeholder="Small, Medium, Large"
+                    placeholder="Select Size"
+                    disabled={!formData.category_id || categoriesList.find(cat => cat.category_id === formData.category_id)?.category_name?.toLowerCase() !== "bangles"}
+                    className={`w-full px-4 py-2 rounded-lg border transition-colors ${
+                      isDarkTheme
+                        ? "bg-gray-800 border-gray-700 text-white placeholder-gray-500"
+                        : "bg-white border-gray-300 text-gray-900 placeholder-gray-400"
+                    } focus:outline-none focus:ring-2 focus:ring-[#E94E8B] disabled:opacity-50 disabled:cursor-not-allowed`}
+                  />
+                  {(!formData.category_id || categoriesList.find(cat => cat.category_id === formData.category_id)?.category_name?.toLowerCase() !== "bangle") && (
+                    <p className={`text-xs mt-1 ${
+                      isDarkTheme ? "text-gray-400" : "text-gray-500"
+                    }`}>
+                      Size is only available for Bangle category
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label
+                    className={`block text-sm font-medium mb-2 ${
+                      isDarkTheme ? "text-gray-300" : "text-gray-700"
+                    }`}
+                  >
+                    Occasion *
+                  </label>
+                  <select
+                    name="occasion"
+                    value={formData.occasion}
+                    onChange={handleInputChange}
+                    className={`w-full px-4 py-2 rounded-lg border transition-colors ${
+                      isDarkTheme
+                        ? "bg-gray-800 border-gray-700 text-white"
+                        : "bg-white border-gray-300 text-gray-900"
+                    } focus:outline-none focus:ring-2 focus:ring-[#E94E8B]`}
+                    required
+                  >
+                    <option value="">Select Occasion</option>
+                    <option value="everydaywear">Everyday Wear</option>
+                    <option value="partywear">Party Wear</option>
+                    <option value="wedding">Wedding</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label
+                    className={`block text-sm font-medium mb-2 ${
+                      isDarkTheme ? "text-gray-300" : "text-gray-700"
+                    }`}
+                  >
+                    Collection
+                  </label>
+                  <input
+                    type="text"
+                    name="collection"
+                    value={formData.collection}
+                    onChange={handleInputChange}
+                    placeholder="Enter collection name"
                     className={`w-full px-4 py-2 rounded-lg border transition-colors ${
                       isDarkTheme
                         ? "bg-gray-800 border-gray-700 text-white placeholder-gray-500"
@@ -809,6 +900,84 @@ export default function Products({ isDarkTheme }: ProductsProps) {
               </div>
             </div>
 
+            {/* Tags */}
+            <div className="mb-8">
+              <h3
+                className={`text-lg font-semibold mb-4 ${
+                  isDarkTheme ? "text-white" : "text-gray-900"
+                }`}
+              >
+                Tags
+              </h3>
+              <div>
+                <label
+                  className={`block text-sm font-medium mb-2 ${
+                    isDarkTheme ? "text-gray-300" : "text-gray-700"
+                  }`}
+                >
+                  Tags (comma separated)
+                </label>
+                <div className="flex flex-row flex-wrap items-center gap-2 mb-3">
+                  {providedTags.map((tag) => {
+                    const isSelected = formData.tags.includes(tag);
+                    return (
+                      <button
+                        key={tag}
+                        type="button"
+                        className={`px-4 py-2 rounded-lg border transition-colors capitalize ${
+                          isSelected
+                            ? isDarkTheme
+                              ? "bg-[#E94E8B] border-[#E94E8B] text-white"
+                              : "bg-[#E94E8B] border-[#E94E8B] text-white"
+                            : isDarkTheme
+                            ? "bg-gray-800 border-gray-700 text-white hover:bg-gray-700 hover:border-gray-600"
+                            : "bg-white border-gray-300 text-gray-900 hover:bg-gray-100 hover:border-gray-400"
+                        } focus:outline-none focus:ring-2 focus:ring-[#E94E8B]`}
+                        onClick={() => {
+                          if (isSelected) {
+                            setFormData((prev) => ({
+                              ...prev,
+                              tags: prev.tags.filter((t) => t !== tag),
+                            }));
+                          } else {
+                            setFormData((prev) => ({
+                              ...prev,
+                              tags: [...prev.tags, tag],
+                            }));
+                          }
+                        }}
+                      >
+                        {tag}
+                      </button>
+                    );
+                  })}
+                </div>
+                <input
+                  type="text"
+                  name="tags"
+                  value={(formData.tags!==null && formData.tags!==undefined) ? formData.tags.join(", ") : ""}
+                  onChange={(e) => {
+                    const tags = e.target.value
+                      .split(",")
+                      .map((t) => t.trim())
+                      .filter((t) => t.length > 0);
+                    setFormData((prev) => ({ ...prev, tags: tags }));
+                  }}
+                  placeholder="Or enter custom tags separated by commas"
+                  className={`w-full px-4 py-2 rounded-lg border transition-colors ${
+                    isDarkTheme
+                      ? "bg-gray-800 border-gray-700 text-white placeholder-gray-500"
+                      : "bg-white border-gray-300 text-gray-900 placeholder-gray-400"
+                  } focus:outline-none focus:ring-2 focus:ring-[#E94E8B]`}
+                />
+                <p className={`text-xs mt-2 ${
+                  isDarkTheme ? "text-gray-400" : "text-gray-500"
+                }`}>
+                  Click buttons above to add tags or enter custom tags separated by commas
+                </p>
+              </div>
+            </div>
+
             {/* Product Thumbnail Image */}
             <div className="mb-8">
               <h3
@@ -850,6 +1019,7 @@ export default function Products({ isDarkTheme }: ProductsProps) {
                     onChange={handleImageUpload}
                     className="hidden"
                     id="thumbnail-image-upload"
+                    required
                   />
                   <label
                     htmlFor="thumbnail-image-upload"
@@ -1041,6 +1211,33 @@ export default function Products({ isDarkTheme }: ProductsProps) {
                         : "border-gray-300 text-gray-700 bg-gray-50"
                     }`}
                   >
+                    Tags
+                  </th>
+                  <th
+                    className={`text-center py-3 px-4 font-semibold text-sm border whitespace-nowrap ${
+                      isDarkTheme
+                        ? "border-gray-700 text-gray-300 bg-gray-800"
+                        : "border-gray-300 text-gray-700 bg-gray-50"
+                    }`}
+                  >
+                    Occasion
+                  </th>
+                  <th
+                    className={`text-center py-3 px-4 font-semibold text-sm border whitespace-nowrap ${
+                      isDarkTheme
+                        ? "border-gray-700 text-gray-300 bg-gray-800"
+                        : "border-gray-300 text-gray-700 bg-gray-50"
+                    }`}
+                  >
+                    Collection
+                  </th>
+                  <th
+                    className={`text-center py-3 px-4 font-semibold text-sm border whitespace-nowrap ${
+                      isDarkTheme
+                        ? "border-gray-700 text-gray-300 bg-gray-800"
+                        : "border-gray-300 text-gray-700 bg-gray-50"
+                    }`}
+                  >
                     Thumbnail Image
                   </th>
                   <th
@@ -1181,6 +1378,92 @@ export default function Products({ isDarkTheme }: ProductsProps) {
                             </span>
                           ))}
                         </div>
+                      ) : (
+                        <span
+                          className={`text-sm ${
+                            isDarkTheme ? "text-gray-400" : "text-gray-500"
+                          }`}
+                        >
+                          —
+                        </span>
+                      )}
+                    </td>
+                    <td
+                      className={`text-center py-3 px-4 border whitespace-nowrap ${
+                        isDarkTheme
+                          ? "border-gray-700 text-gray-300"
+                          : "border-gray-300 text-gray-900"
+                      }`}
+                    >
+                      {product.tags && product.tags.length > 0 ? (
+                        <div className="flex flex-wrap gap-1 justify-center">
+                          {product.tags.map((tag: string, index: number) => (
+                            <span
+                              key={index}
+                              className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${
+                                isDarkTheme
+                                  ? "bg-gray-700 text-gray-200"
+                                  : "bg-gray-100 text-gray-700"
+                              }`}
+                            >
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+                      ) : (
+                        <span
+                          className={`text-sm ${
+                            isDarkTheme ? "text-gray-400" : "text-gray-500"
+                          }`}
+                        >
+                          —
+                        </span>
+                      )}
+                    </td>
+                    <td
+                      className={`text-center py-3 px-4 border whitespace-nowrap ${
+                        isDarkTheme
+                          ? "border-gray-700 text-gray-300"
+                          : "border-gray-300 text-gray-900"
+                      }`}
+                    >
+                      {product.occasion ? (
+                        <span
+                          className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium capitalize ${
+                            isDarkTheme
+                              ? "bg-gray-700 text-gray-200"
+                              : "bg-gray-100 text-gray-700"
+                          }`}
+                        >
+                          {product.occasion}
+                        </span>
+                      ) : (
+                        <span
+                          className={`text-sm ${
+                            isDarkTheme ? "text-gray-400" : "text-gray-500"
+                          }`}
+                        >
+                          —
+                        </span>
+                      )}
+                    </td>
+                    <td
+                      className={`text-center py-3 px-4 border whitespace-nowrap ${
+                        isDarkTheme
+                          ? "border-gray-700 text-gray-300"
+                          : "border-gray-300 text-gray-900"
+                      }`}
+                    >
+                      {product.collection ? (
+                        <span
+                          className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium capitalize ${
+                            isDarkTheme
+                              ? "bg-gray-700 text-gray-200"
+                              : "bg-gray-100 text-gray-700"
+                          }`}
+                        >
+                          {product.collection}
+                        </span>
                       ) : (
                         <span
                           className={`text-sm ${

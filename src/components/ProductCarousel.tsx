@@ -85,12 +85,12 @@ export default function ProductCarousel({
   }
 
   return (
-    <section className={`w-full bg-white py-8 md:py-12 lg:py-16 ${className}`}>
+    <section className={`w-full bg-theme-cream py-8 md:py-12 lg:py-16 ${className}`}>
       {/* Section Heading */}
       <div className="flex items-center justify-center mb-6 md:mb-8 px-4 sm:px-6 lg:px-8">
-        <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 relative inline-block">
+        <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-theme-olive relative inline-block">
           {sectionHeading}
-          <span className="absolute -bottom-2 left-0 right-0 h-0.5 bg-gray-900"></span>
+          <span className="absolute -bottom-2 left-0 right-0 h-0.5 bg-theme-sage"></span>
         </h2>
       </div>
 
@@ -128,9 +128,9 @@ export default function ProductCarousel({
             <button
               onClick={() => scroll('left')}
               disabled={!canScrollLeft}
-              className={`absolute left-4 md:left-6 lg:left-8 top-1/2 -translate-y-1/2 bg-white border border-gray-200 hover:border-gray-400 text-gray-800 rounded-full p-2 md:p-3 shadow-lg transition-all duration-200 z-10 ${
+              className={`absolute left-4 md:left-6 lg:left-8 top-1/2 -translate-y-1/2 bg-white border border-theme-sage/30 hover:border-theme-olive text-theme-olive rounded-full p-2 md:p-3 shadow-lg transition-all duration-200 z-10 ${
                 canScrollLeft
-                  ? 'opacity-100 hover:bg-gray-50'
+                  ? 'opacity-100 hover:bg-theme-cream'
                   : 'opacity-50 cursor-not-allowed'
               } hidden md:flex items-center justify-center`}
               aria-label="Scroll left"
@@ -155,9 +155,9 @@ export default function ProductCarousel({
             <button
               onClick={() => scroll('right')}
               disabled={!canScrollRight}
-              className={`absolute right-4 md:right-6 lg:right-8 top-1/2 -translate-y-1/2 bg-white border border-gray-200 hover:border-gray-400 text-gray-800 rounded-full p-2 md:p-3 shadow-lg transition-all duration-200 z-10 ${
+              className={`absolute right-4 md:right-6 lg:right-8 top-1/2 -translate-y-1/2 bg-white border border-theme-sage/30 hover:border-theme-olive text-theme-olive rounded-full p-2 md:p-3 shadow-lg transition-all duration-200 z-10 ${
                 canScrollRight
-                  ? 'opacity-100 hover:bg-gray-50'
+                  ? 'opacity-100 hover:bg-theme-cream'
                   : 'opacity-50 cursor-not-allowed'
               } hidden md:flex items-center justify-center`}
               aria-label="Scroll right"

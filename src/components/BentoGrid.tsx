@@ -35,14 +35,14 @@ const defaultBentoCategories: BentoCategory[] = [
 ];
 
 export default function BentoGrid({
-  title = 'Shop by Category',
+  title = 'View Our Collections',
   categories = defaultBentoCategories,
   className = '',
 }: BentoGridProps) {
   return (
-    <section className={`w-full bg-white py-8 md:py-12 lg:py-16 ${className}`}>
+    <section className={`w-full bg-theme-cream py-8 md:py-12 lg:py-16 ${className}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 mb-8 md:mb-12 text-center">
+        <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-theme-olive mb-8 md:mb-12 text-center">
           {title}
         </h2>
 
@@ -52,7 +52,7 @@ export default function BentoGrid({
             <Link
               key={category.id}
               href={`/collection/${category.slug}`}
-              className={`group relative overflow-hidden rounded-2xl md:rounded-3xl bg-gray-100 aspect-[4/3] md:aspect-[3/2] lg:aspect-[4/3] transition-all duration-500 hover:shadow-2xl hover:scale-[1.02] ${category.span || ''}`}
+              className={`group relative overflow-hidden rounded-2xl md:rounded-3xl bg-theme-sage/10 aspect-[4/3] md:aspect-[3/2] lg:aspect-[4/3] transition-all duration-500 hover:shadow-2xl hover:scale-[1.02] ${category.span || ''}`}
             >
               {/* Image Container */}
               <div className="relative w-full h-full">

@@ -129,7 +129,7 @@ export default function AddressForm({ userId, onClose, onSuccess }: AddressFormP
               name="address_type"
               value={formData.address_type}
               onChange={handleInputChange}
-              className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent text-gray-900"
+              className="w-full px-4 py-2 rounded-lg border border-theme-sage/30 focus:outline-none focus:ring-2 focus:ring-theme-sage focus:border-transparent text-gray-900"
               required
             >
               <option value="shipping">Shipping Address</option>
@@ -229,7 +229,7 @@ export default function AddressForm({ userId, onClose, onSuccess }: AddressFormP
               id="is_default"
               checked={formData.is_default}
               onChange={handleInputChange}
-              className="w-4 h-4 text-amber-600 border-gray-300 rounded focus:ring-amber-500"
+              className="w-4 h-4 text-theme-olive border-theme-sage/30 rounded focus:ring-theme-sage"
             />
             <label htmlFor="is_default" className="ml-2 text-sm text-gray-700">
               Set as default address
@@ -248,7 +248,7 @@ export default function AddressForm({ userId, onClose, onSuccess }: AddressFormP
             <button
               type="submit"
               disabled={loading}
-              className="flex-1 px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 px-4 py-2 bg-theme-sage hover:bg-theme-olive text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? 'Saving...' : 'Save Address'}
             </button>

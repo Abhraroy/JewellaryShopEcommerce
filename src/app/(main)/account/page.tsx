@@ -212,7 +212,7 @@ export default function AccountPage() {
 
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-theme-cream">
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
         {/* Page Header */}
         <div className="mb-8">
@@ -237,7 +237,7 @@ export default function AccountPage() {
               <div className="space-y-4">
                 <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 pb-4 border-b border-gray-100">
                   <div className="flex items-center gap-3 min-w-[120px]">
-                    <div className="p-2 bg-amber-100 rounded-lg text-amber-600">
+                    <div className="p-2 bg-theme-sage/20 rounded-lg text-theme-olive">
                       <PhoneIcon />
                     </div>
                     <span className="text-sm font-medium text-gray-500">
@@ -266,7 +266,7 @@ export default function AccountPage() {
                   <div>
                     {!emailUpdateState ? (
                       <button
-                        className="text-amber-600 hover:text-amber-700 font-medium text-sm"
+                        className="text-theme-olive hover:text-theme-sage font-medium text-sm"
                         onClick={handleEmailUpdateState}
                         
                       >
@@ -281,13 +281,13 @@ export default function AccountPage() {
                           type="email"
                           name="email"
                           placeholder="Enter your email"
-                          className="border border-gray-300 rounded-md p-2 outline-0 focus:ring-2 focus:ring-amber-500 focus:border-transparent text-gray-900 placeholder-gray-400"
+                          className="border border-theme-sage/30 rounded-md p-2 outline-0 focus:ring-2 focus:ring-theme-sage focus:border-transparent text-gray-900 placeholder-gray-400"
                           required
                         />
                         <button
                           type="submit"
                           disabled={!emailUpdateState}
-                          className="bg-amber-600 hover:bg-amber-700 text-white font-medium rounded-md p-2"
+                          className="bg-theme-sage hover:bg-theme-olive text-white font-medium rounded-md p-2"
                         >
                           Update
                         </button>
@@ -351,7 +351,7 @@ export default function AccountPage() {
                 
                 <a
                   href="/"
-                  className="inline-block mt-4 px-6 py-2 bg-amber-600 hover:bg-amber-700 text-white font-medium rounded-lg transition-colors duration-200"
+                  className="inline-block mt-4 px-6 py-2 bg-theme-sage hover:bg-theme-olive text-white font-medium rounded-lg transition-colors duration-200"
                 >
                   Start Shopping
                 </a>
@@ -370,7 +370,7 @@ export default function AccountPage() {
               <div className="space-y-3">
                 <a
                   href="/collections"
-                  className="block w-full px-4 py-3 bg-amber-50 hover:bg-amber-100 text-amber-700 font-medium rounded-lg transition-colors duration-200 text-center"
+                  className="block w-full px-4 py-3 bg-theme-sage/20 hover:bg-theme-sage/30 text-theme-olive font-medium rounded-lg transition-colors duration-200 text-center"
                 >
                   Browse Collections
                 </a>

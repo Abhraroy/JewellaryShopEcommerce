@@ -72,9 +72,9 @@ export const useStore = create<StoreState>((set) => ({
     setWishListItems: (wishListItems: any) => set({ wishListItems: wishListItems }),
     initiatingCheckout:false,
     setInitiatingCheckout: (initiatingCheckout: boolean) => set({ initiatingCheckout: initiatingCheckout }),
-    paymentConcluded:true,
+    paymentConcluded:false,
     setPaymentConcluded: (paymentConcluded: boolean) => set({ paymentConcluded: paymentConcluded }),
-    showPaymentConcluded:true,
+    showPaymentConcluded:false,
     setShowPaymentConcluded: (showPaymentConcluded: boolean) => set({ showPaymentConcluded: showPaymentConcluded }),
 }))
 

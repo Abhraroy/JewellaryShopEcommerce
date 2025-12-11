@@ -137,7 +137,7 @@ export default function ProductCard({
 
         {/* Discount Badge - Redesigned */}
         {discountPercentage > 0 && (
-          <div className="absolute top-3 left-3 bg-gradient-to-r from-red-500 to-red-600 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg transform transition-all duration-300 hover:scale-110">
+          <div className="absolute top-3 left-3 bg-gradient-to-r from-theme-sage to-theme-olive text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg transform transition-all duration-300 hover:scale-110">
             <span className="flex items-center gap-1">
               <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                 <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
@@ -163,7 +163,7 @@ export default function ProductCard({
             strokeWidth={2.5}
             stroke="currentColor"
             className={`w-5 h-5 ${
-              isWishlistActive ? "text-red-500 fill-red-500" : "text-gray-700"
+              isWishlistActive ? "text-theme-olive fill-theme-olive" : "text-theme-sage"
             }`}
           >
             <path
@@ -225,7 +225,7 @@ export default function ProductCard({
               )}
             </div>
             {product.base_price && product.base_price > product.final_price && (
-              <span className={`font-semibold text-green-600 bg-green-50 rounded ${
+              <span className={`font-semibold text-theme-olive bg-theme-sage/20 rounded ${
                 size === 'small' 
                   ? 'text-[10px] md:text-xs px-1.5 py-0.5 w-full md:w-auto' 
                   : 'text-xs md:text-sm px-2 py-0.5'
@@ -238,7 +238,7 @@ export default function ProductCard({
           {/* Action Button - Redesigned */}
           <button
             onClick={handleAddToCart}
-            className="w-full bg-white text-gray-900 font-semibold py-3 px-4 rounded-xl transition-all duration-300 shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] hover:shadow-[0_1px_3px_0_rgba(0,0,0,0.08)] transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2 group/btn"
+            className="w-full bg-theme-sage text-white font-semibold py-3 px-4 rounded-xl transition-all duration-300 shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] hover:bg-theme-olive hover:shadow-[0_1px_3px_0_rgba(0,0,0,0.08)] transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2 group/btn"
           >
             <span className="transition-transform duration-300 group-hover/btn:translate-x-0.5 underline"
             

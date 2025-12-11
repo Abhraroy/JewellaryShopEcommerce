@@ -173,14 +173,14 @@ export default function Footer({ className = '' }: FooterProps) {
   ];
 
   return (
-    <footer className={`bg-white border-t border-gray-100 ${className}`}>
+    <footer className={`bg-theme-cream border-t border-theme-sage/20 ${className}`}>
       {/* Main Footer Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
           {/* Company Info Section */}
           <div className="lg:col-span-1">
             <Link href="/" className="inline-block mb-4">
-              <span className="text-2xl md:text-3xl font-bold text-[#E94E8B] tracking-tight">
+              <span className="text-2xl md:text-3xl font-bold text-theme-olive tracking-tight">
                 JWEL
               </span>
             </Link>
@@ -197,7 +197,7 @@ export default function Footer({ className = '' }: FooterProps) {
                   href={social.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-gray-600 hover:text-[#E94E8B] transition-colors duration-200 p-2 hover:bg-gray-50 rounded-full"
+                  className="text-theme-olive hover:text-theme-sage transition-colors duration-200 p-2 hover:bg-white/50 rounded-full"
                   aria-label={social.name}
                 >
                   {social.icon}
@@ -216,7 +216,7 @@ export default function Footer({ className = '' }: FooterProps) {
                 <li key={link.label}>
                   <Link
                     href={link.href}
-                    className="text-sm text-gray-600 hover:text-[#E94E8B] transition-colors duration-200 inline-block"
+                    className="text-sm text-theme-olive hover:text-theme-sage transition-colors duration-200 inline-block"
                   >
                     {link.label}
                   </Link>
@@ -235,7 +235,7 @@ export default function Footer({ className = '' }: FooterProps) {
                 <li key={link.label}>
                   <Link
                     href={link.href}
-                    className="text-sm text-gray-600 hover:text-[#E94E8B] transition-colors duration-200 inline-block"
+                    className="text-sm text-theme-olive hover:text-theme-sage transition-colors duration-200 inline-block"
                   >
                     {link.label}
                   </Link>
@@ -254,7 +254,7 @@ export default function Footer({ className = '' }: FooterProps) {
                 <li key={link.label}>
                   <Link
                     href={link.href}
-                    className="text-sm text-gray-600 hover:text-[#E94E8B] transition-colors duration-200 inline-block"
+                    className="text-sm text-theme-olive hover:text-theme-sage transition-colors duration-200 inline-block"
                   >
                     {link.label}
                   </Link>
@@ -269,25 +269,25 @@ export default function Footer({ className = '' }: FooterProps) {
               </h3>
               <div className="space-y-3">
                 <div className="flex items-start gap-3">
-                  <PhoneIcon className="w-5 h-5 text-[#E94E8B] flex-shrink-0 mt-0.5" />
+                  <PhoneIcon className="w-5 h-5 text-theme-olive flex-shrink-0 mt-0.5" />
                   <a
                     href="tel:+1234567890"
-                    className="text-sm text-gray-600 hover:text-[#E94E8B] transition-colors duration-200"
+                    className="text-sm text-theme-olive hover:text-theme-sage transition-colors duration-200"
                   >
                     +1 (234) 567-890
                   </a>
                 </div>
                 <div className="flex items-start gap-3">
-                  <MailIcon className="w-5 h-5 text-[#E94E8B] flex-shrink-0 mt-0.5" />
+                  <MailIcon className="w-5 h-5 text-theme-olive flex-shrink-0 mt-0.5" />
                   <a
                     href="mailto:support@jwel.com"
-                    className="text-sm text-gray-600 hover:text-[#E94E8B] transition-colors duration-200 break-all"
+                    className="text-sm text-theme-olive hover:text-theme-sage transition-colors duration-200 break-all"
                   >
                     support@jwel.com
                   </a>
                 </div>
                 <div className="flex items-start gap-3">
-                  <LocationIcon className="w-5 h-5 text-[#E94E8B] flex-shrink-0 mt-0.5" />
+                  <LocationIcon className="w-5 h-5 text-theme-olive flex-shrink-0 mt-0.5" />
                   <p className="text-sm text-gray-600 leading-relaxed">
                     123 Jewelry Street,<br />
                     New York, NY 10001
@@ -311,11 +311,11 @@ export default function Footer({ className = '' }: FooterProps) {
               <input
                 type="email"
                 placeholder="Enter your email"
-                className="flex-1 px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 text-sm focus:outline-none focus:border-[#E94E8B] focus:bg-white transition-colors duration-200"
+                className="flex-1 px-4 py-3 bg-white border border-theme-sage/30 rounded-lg text-gray-900 placeholder-gray-500 text-sm focus:outline-none focus:border-theme-sage focus:bg-white transition-colors duration-200"
               />
               <button
                 type="submit"
-                className="px-6 py-3 bg-[#E94E8B] text-white font-semibold rounded-lg hover:bg-[#d43e7a] transition-colors duration-200 text-sm whitespace-nowrap shadow-sm hover:shadow-md"
+                className="px-6 py-3 bg-theme-sage text-white font-semibold rounded-lg hover:bg-theme-olive transition-colors duration-200 text-sm whitespace-nowrap shadow-sm hover:shadow-md"
               >
                 Subscribe
               </button>
@@ -325,7 +325,7 @@ export default function Footer({ className = '' }: FooterProps) {
       </div>
 
       {/* Bottom Bar */}
-      <div className="border-t border-gray-100 bg-gray-50">
+      <div className="border-t border-theme-sage/20 bg-theme-sage/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <p className="text-sm text-gray-600 text-center md:text-left">
@@ -334,19 +334,19 @@ export default function Footer({ className = '' }: FooterProps) {
             <div className="flex items-center gap-6">
               <Link
                 href="/privacy"
-                className="text-sm text-gray-600 hover:text-[#E94E8B] transition-colors duration-200"
+                className="text-sm text-theme-olive hover:text-theme-sage transition-colors duration-200"
               >
                 Privacy
               </Link>
               <Link
                 href="/terms"
-                className="text-sm text-gray-600 hover:text-[#E94E8B] transition-colors duration-200"
+                className="text-sm text-theme-olive hover:text-theme-sage transition-colors duration-200"
               >
                 Terms
               </Link>
               <Link
                 href="/cookies"
-                className="text-sm text-gray-600 hover:text-[#E94E8B] transition-colors duration-200"
+                className="text-sm text-theme-olive hover:text-theme-sage transition-colors duration-200"
               >
                 Cookies
               </Link>

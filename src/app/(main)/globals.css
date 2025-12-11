@@ -10,6 +10,11 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  
+  /* Custom Theme Colors */
+  --color-theme-cream: #ffffff;
+  --color-theme-sage: #a3b18a;
+  --color-theme-olive: #8a9a5b;
 }
 
 @media (prefers-color-scheme: dark) {

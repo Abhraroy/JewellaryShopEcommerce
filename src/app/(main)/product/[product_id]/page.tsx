@@ -196,7 +196,7 @@ export default function ProductPage() {
 
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
+    <div className="min-h-screen bg-theme-cream flex flex-col">
   
       {productDetails && <ProductDisplay productDetails={productDetails} />}
 

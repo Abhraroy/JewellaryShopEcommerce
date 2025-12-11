@@ -30,11 +30,11 @@ interface CategoryFilter {
   imageUrl: string;
 }
 
-export default function CollectionPage() {
+  export default function CollectionPage() {
   const supabase = createClient();
   const params = useParams();
-  const collectionid = params?.collectionid as string;
-  const decodedCollectionId = decodeURIComponent(collectionid || "");
+  const collection = params?.collection as string;
+  const decodedCollection = decodeURIComponent(collection || "");
 
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [selectedSort, setSelectedSort] = useState<string>("featured");
@@ -225,19 +225,7 @@ export default function CollectionPage() {
       selectedCategory === "all" || product.category === selectedCategory
   );
 
-  // Sort products
-  // const sortedProducts = [...products].sort((a, b) => {
-  //   switch (selectedSort) {
-  //     case "price-low":
-  //       return a.price - b.price;
-  //     case "price-high":
-  //       return b.price - a.price;
-  //     case "newest":
-  //       return parseInt(b.id) - parseInt(a.id);
-  //     default:
-  //       return 0;
-  //   }
-  // });
+  
 
   // Wishlist toggle
   const toggleWishlist = (productId: string) => {
@@ -254,14 +242,14 @@ export default function CollectionPage() {
 
 
   useEffect(()=>{
+    console.log("decodedCollection",decodedCollection)
     const getProducts = async()=>{
       const {data,error}:any = await supabase.from("products")
       .select(`
       *,
-      categories!inner(*),
       product_images(*)
       `)
-      .filter("categories.slug", "eq", decodedCollectionId)
+      .filter("collection", "eq", decodedCollection)
       .order("updated_at", { ascending: false })
       if(error){
         console.log("error",error)
@@ -272,7 +260,7 @@ export default function CollectionPage() {
       }
     }
     getProducts();
-  },[decodedCollectionId])
+  },[decodedCollection])
 
   const sortedProducts = useMemo(() => {
     // SORT
@@ -305,7 +293,7 @@ export default function CollectionPage() {
   console.log("sortedProducts",sortedProducts)
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-theme-cream">
       {/* <Navbar cartCount={0} /> */}
 
       <main className="w-full">
@@ -316,8 +304,8 @@ export default function CollectionPage() {
               {/* Heading */}
               <div className="flex-1 min-w-0">
                 <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900">
-                  {decodedCollectionId.charAt(0).toUpperCase() +
-                    decodedCollectionId.slice(1)}
+                  {decodedCollection.charAt(0).toUpperCase() +
+                    decodedCollection.slice(1)}
                 </h1>
                 <p className="text-gray-500 text-sm mt-1">
                   {sortedProducts.length} products available
@@ -328,7 +316,7 @@ export default function CollectionPage() {
               <div className="shrink-0 relative">
                 <button
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                  className="flex items-center gap-2 px-3 md:px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:border-[#E94E8B] hover:text-[#E94E8B] transition-all"
+                  className="flex items-center gap-2 px-3 md:px-4 py-2 text-sm font-medium text-theme-olive bg-white border border-theme-sage/30 rounded-lg hover:border-theme-olive hover:text-theme-sage transition-all"
                 >
                   <span className="hidden md:inline">
                     {sortOptions.find((opt) => opt.value === selectedSort)
@@ -371,8 +359,8 @@ export default function CollectionPage() {
                             }}
                             className={`w-full text-left px-4 py-2 text-sm transition-colors ${
                               selectedSort === option.value
-                                ? "bg-[#E94E8B] text-white"
-                                : "text-gray-700 hover:bg-gray-100"
+                                ? "bg-theme-sage text-white"
+                                : "text-theme-olive hover:bg-theme-cream"
                             }`}
                           >
                             {option.label}
@@ -404,10 +392,10 @@ export default function CollectionPage() {
                   >
                     {/* Circular Image Container */}
                     <div
-                      className={`relative w-14 h-14 md:w-16 md:h-16 rounded-full overflow-hidden bg-gray-100 transition-all duration-300 mb-1.5 md:mb-2 shadow-sm group-hover:shadow-md ${
+                      className={`relative w-14 h-14 md:w-16 md:h-16 rounded-full overflow-hidden bg-white transition-all duration-300 mb-1.5 md:mb-2 shadow-sm group-hover:shadow-md ${
                         selectedCategory === category.value
-                          ? "ring-2 ring-[#E94E8B] ring-offset-0"
-                          : "ring-2 ring-gray-200 group-hover:ring-gray-400 ring-offset-0"
+                          ? "ring-2 ring-theme-olive ring-offset-0"
+                          : "ring-2 ring-theme-sage/30 group-hover:ring-theme-sage ring-offset-0"
                       }`}
                     >
                       <Image
@@ -423,8 +411,8 @@ export default function CollectionPage() {
                     <span
                       className={`text-[10px] md:text-xs font-medium text-center transition-colors duration-200 leading-tight ${
                         selectedCategory === category.value
-                          ? "text-[#E94E8B] font-semibold"
-                          : "text-gray-700 group-hover:text-gray-900"
+                          ? "text-theme-olive font-semibold"
+                          : "text-theme-sage group-hover:text-theme-olive"
                       }`}
                     >
                       {category.label}
@@ -475,7 +463,7 @@ export default function CollectionPage() {
           {/* Load More Button */}
           {sortedProducts.length > 0 && (
             <div className="mt-12 text-center">
-              <button className="px-8 py-3 bg-white text-gray-900 font-semibold rounded-lg border-2 border-gray-300 hover:border-[#E94E8B] hover:text-[#E94E8B] transition-all"
+              <button className="px-8 py-3 bg-white text-theme-olive font-semibold rounded-lg border-2 border-theme-sage/30 hover:border-theme-olive hover:text-theme-sage transition-all"
               >
                 Load More Products
               </button>
