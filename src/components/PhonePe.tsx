@@ -86,8 +86,8 @@ export default function PhonePe({ redirectUrl }: { redirectUrl: string }) {
       <button
         disabled={!sdkReady}
         onClick={initiatePayment}
-        className={`w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-3 rounded-lg sm:rounded-xl text-white font-medium transition-colors duration-200 text-sm sm:text-base ${
-          sdkReady ? "bg-blue-600 hover:bg-blue-700" : "bg-gray-400 cursor-not-allowed"
+        className={`w-full px-4 py-2.5 rounded-lg text-white font-semibold transition-all duration-200 text-sm shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none ${
+          sdkReady ? "bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800" : "bg-gray-400"
         }`}
       >
         {sdkReady ? "Pay with PhonePe" : "Loading PhonePe…"}

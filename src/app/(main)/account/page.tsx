@@ -140,6 +140,9 @@ export default function AccountPage() {
   const [createdAt, setCreatedAt] = useState<string>("");
   const [addresses, setAddresses] = useState<any[]>([]);
   const [orders, setOrders] = useState<any[]>([]);
+  const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null);
+  const [orderItemsDetails, setOrderItemsDetails] = useState<Record<string, any[]>>({});
+  const [loadingOrderItems, setLoadingOrderItems] = useState<string | null>(null);
   const supabase = createClient();
   const { refresh, setRefresh } = useStore();
   const fetchUserData = async () => {
@@ -171,8 +174,12 @@ export default function AccountPage() {
     setUserData(res.data?.user_id ?? null);
     setAddresses(res.data?.addresses ?? []);
 
-    // Fetch latest 10 orders separately with order items
+    // Fetch latest 3 orders separately with order items and shipping address
     if (res.data?.user_id) {
+      console.log("Fetching orders for user_id:", res.data.user_id);
+      console.log("User ID type:", typeof res.data.user_id);
+      
+      // Try fetching orders with the user_id
       const ordersRes = await supabase
         .from("orders")
         .select(`
@@ -183,12 +190,54 @@ export default function AccountPage() {
         .order("order_date", { ascending: false })
         .limit(3);
       
-      if (ordersRes.data) {
-        setOrders(ordersRes.data ?? []);
+      console.log("Orders query result:", ordersRes);
+      console.log("Orders data:", ordersRes.data);
+      console.log("Orders error:", ordersRes.error);
+      console.log("Orders count:", ordersRes.data?.length ?? 0);
+      
+      // Debug: Check if any orders exist at all (for debugging)
+      const allOrdersCheck = await supabase
+        .from("orders")
+        .select("order_id, user_id, order_number")
+        .limit(5);
+      console.log("Sample orders in DB (first 5):", allOrdersCheck.data);
+      console.log("Sample orders error:", allOrdersCheck.error);
+      
+      if (ordersRes.error) {
+        console.error("Error fetching orders:", ordersRes.error);
+        console.error("Error details:", JSON.stringify(ordersRes.error, null, 2));
+        setOrders([]);
+      } else if (ordersRes.data && ordersRes.data.length > 0) {
+        console.log("Found orders:", ordersRes.data.length);
+        // Fetch shipping addresses for orders
+        const ordersWithAddresses = await Promise.all(
+          ordersRes.data.map(async (order: any) => {
+            if (order?.shipping_address_id) {
+              const { data: addressData, error: addressError } = await supabase
+                .from("addresses")
+                .select("*")
+                .eq("address_id", order.shipping_address_id)
+                .single();
+              if (addressError) {
+                console.error("Error fetching address:", addressError);
+              }
+              return { ...order, shipping_address: addressData || null };
+            }
+            return { ...order, shipping_address: null };
+          })
+        );
+        console.log("Orders with addresses:", ordersWithAddresses);
+        setOrders(ordersWithAddresses ?? []);
       } else {
+        console.log("No orders found for user_id:", res.data.user_id);
+        console.log("This might be due to:");
+        console.log("1. No orders exist for this user");
+        console.log("2. user_id mismatch between users and orders table");
+        console.log("3. RLS policies blocking the query");
         setOrders([]);
       }
     } else {
+      console.log("No user_id found, cannot fetch orders");
       setOrders([]);
     }
     console.log("userData", res);
@@ -251,6 +300,51 @@ export default function AccountPage() {
       setEmailUpdateState(false);
       setFormattedEmail(email);
       alert("Email updated successfully");
+    }
+  };
+
+  const handleViewOrderDetails = async (orderId: string) => {
+    if (expandedOrderId === orderId) {
+      // If already expanded, collapse it
+      setExpandedOrderId(null);
+      return;
+    }
+
+    // If details already fetched, just expand
+    if (orderItemsDetails[orderId]) {
+      setExpandedOrderId(orderId);
+      return;
+    }
+
+    // Fetch order items with product details
+    setLoadingOrderItems(orderId);
+    setExpandedOrderId(orderId);
+
+    try {
+      const { data, error } = await supabase
+        .from("order_items")
+        .select(`
+          *,
+          products(*)
+        `)
+        .eq("order_id", orderId);
+
+      if (error) {
+        console.error("Error fetching order items:", error);
+        setLoadingOrderItems(null);
+        return;
+      }
+
+      if (data) {
+        setOrderItemsDetails((prev) => ({
+          ...prev,
+          [orderId]: data,
+        }));
+      }
+    } catch (err) {
+      console.error("Error fetching order items:", err);
+    } finally {
+      setLoadingOrderItems(null);
     }
   };
 
@@ -367,52 +461,251 @@ export default function AccountPage() {
                 Recent Orders
               </h2>
 
-              <div className="text-center py-12">
-                {orders && orders.length > 0 ? (
-                  <>
-                    {orders.map((order) => (
-                      <div key={order?.order_id ?? `order-${Math.random()}`}>
-                        <p>{order?.order_id ?? "N/A"}</p>
-                        <p>{order?.order_date ?? "N/A"}</p>
-                        <p>{order?.order_total ?? "N/A"}</p>
-                        <p>{order?.order_status ?? "N/A"}</p>
-                        {order?.order_items && Array.isArray(order.order_items) ? (
-                          order.order_items.map((item: any, index: number) => (
-                            <div key={index}>
-                              <p>{item?.product_name ?? "N/A"}</p>
-                              <p>{item?.product_price ?? "N/A"}</p>
-                              <p>{item?.product_quantity ?? "N/A"}</p>
+              {orders && orders.length > 0 ? (
+                <div className="space-y-4">
+                  {orders.map((order) => {
+                    const orderDate = order?.order_date
+                      ? new Date(order.order_date).toLocaleDateString("en-US", {
+                          year: "numeric",
+                          month: "short",
+                          day: "numeric",
+                        })
+                      : "N/A";
+                    const shippingAddress = order?.shipping_address;
+                    const isExpanded = expandedOrderId === order?.order_id;
+                    const orderItems = order?.order_items && Array.isArray(order.order_items)
+                      ? order.order_items
+                      : order?.order_items
+                      ? [order.order_items]
+                      : [];
+
+                    return (
+                      <div
+                        key={order?.order_id ?? `order-${Math.random()}`}
+                        className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow duration-200"
+                      >
+                        {/* Order Header */}
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-3 mb-2">
+                              <span className="text-sm font-semibold text-gray-900">
+                                Order #{order?.order_number?.slice(-8) ?? order?.order_id?.slice(0, 8) ?? "N/A"}
+                              </span>
+                              <span
+                                className={`px-2.5 py-1 rounded-full text-xs font-medium ${
+                                  order?.order_status === "delivered"
+                                    ? "bg-green-100 text-green-700"
+                                    : order?.order_status === "shipped"
+                                    ? "bg-blue-100 text-blue-700"
+                                    : order?.order_status === "processing"
+                                    ? "bg-yellow-100 text-yellow-700"
+                                    : order?.order_status === "cancelled"
+                                    ? "bg-red-100 text-red-700"
+                                    : "bg-gray-100 text-gray-700"
+                                }`}
+                              >
+                                {order?.order_status?.toUpperCase() ?? "PENDING"}
+                              </span>
                             </div>
-                          ))
-                        ) : order?.order_items ? (
-                          <>
-                            <p>{order.order_items?.product_name ?? "N/A"}</p>
-                            <p>{order.order_items?.product_price ?? "N/A"}</p>
-                            <p>{order.order_items?.product_quantity ?? "N/A"}</p>
-                          </>
-                        ) : (
-                          <p>No items</p>
+                            <div className="space-y-1 text-sm text-gray-600">
+                              <p className="flex items-center gap-2">
+                                <span className="w-4 h-4 flex items-center justify-center">
+                                  <CalendarIcon />
+                                </span>
+                                <span>{orderDate}</span>
+                              </p>
+                              <p className="flex items-center gap-2">
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                  strokeWidth={1.5}
+                                  stroke="currentColor"
+                                  className="w-4 h-4"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                                  />
+                                </svg>
+                                <span className="font-semibold text-gray-900">
+                                  ₹{order?.total_amount?.toFixed(2) ?? order?.order_total?.toFixed(2) ?? "0.00"}
+                                </span>
+                              </p>
+                              {shippingAddress && (
+                                <p className="flex items-start gap-2 mt-2">
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    strokeWidth={1.5}
+                                    stroke="currentColor"
+                                    className="w-4 h-4 mt-0.5 flex-shrink-0"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"
+                                    />
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z"
+                                    />
+                                  </svg>
+                                  <span className="text-xs">
+                                    {shippingAddress.street_address}, {shippingAddress.city}, {shippingAddress.state} - {shippingAddress.postal_code}
+                                  </span>
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => handleViewOrderDetails(order?.order_id)}
+                            disabled={loadingOrderItems === order?.order_id}
+                            className="px-4 py-2 bg-theme-sage hover:bg-theme-olive text-white font-medium rounded-lg transition-colors duration-200 text-sm flex items-center gap-2 whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            {loadingOrderItems === order?.order_id ? (
+                              <>
+                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                Loading...
+                              </>
+                            ) : isExpanded ? (
+                              <>
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                  strokeWidth={2}
+                                  stroke="currentColor"
+                                  className="w-4 h-4"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    d="M4.5 15.75l7.5-7.5 7.5 7.5"
+                                  />
+                                </svg>
+                                Hide Details
+                              </>
+                            ) : (
+                              <>
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                  strokeWidth={2}
+                                  stroke="currentColor"
+                                  className="w-4 h-4"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    d="M19.5 8.25l-7.5 7.5-7.5-7.5"
+                                  />
+                                </svg>
+                                View Details
+                              </>
+                            )}
+                          </button>
+                        </div>
+
+                        {/* Order Items - Expandable */}
+                        {isExpanded && (
+                          <div className="mt-4 pt-4 border-t border-gray-200">
+                            {loadingOrderItems === order?.order_id ? (
+                              <div className="flex items-center justify-center py-8">
+                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-theme-sage"></div>
+                              </div>
+                            ) : orderItemsDetails[order?.order_id] ? (
+                              <>
+                                <h4 className="text-sm font-semibold text-gray-900 mb-3">
+                                  Order Items ({orderItemsDetails[order?.order_id]?.length ?? 0})
+                                </h4>
+                                <div className="space-y-3">
+                                  {orderItemsDetails[order?.order_id]?.map((item: any, index: number) => (
+                                    <div
+                                      key={item?.order_item_id ?? index}
+                                      className="flex items-start gap-4 p-4 bg-gray-50 rounded-lg border border-gray-200"
+                                    >
+                                      {/* Product Image */}
+                                      {item?.products?.thumbnail_image && (
+                                        <div className="flex-shrink-0">
+                                          <img
+                                            src={item.products.thumbnail_image}
+                                            alt={item?.product_name ?? "Product"}
+                                            className="w-16 h-16 object-cover rounded-md"
+                                          />
+                                        </div>
+                                      )}
+                                      {/* Product Details */}
+                                      <div className="flex-1 min-w-0">
+                                        <p className="text-sm font-semibold text-gray-900">
+                                          {item?.product_name ?? item?.products?.product_name ?? "N/A"}
+                                        </p>
+                                        {item?.products?.description && (
+                                          <p className="text-xs text-gray-600 mt-1 line-clamp-2">
+                                            {item.products.description}
+                                          </p>
+                                        )}
+                                        <div className="flex items-center gap-4 mt-2 text-xs text-gray-600">
+                                          <span>
+                                            Quantity: <span className="font-medium">{item?.quantity ?? "N/A"}</span>
+                                          </span>
+                                          <span>
+                                            Unit Price: <span className="font-medium">₹{item?.unit_price?.toFixed(2) ?? "0.00"}</span>
+                                          </span>
+                                        </div>
+                                        {item?.products?.metal_type && (
+                                          <p className="text-xs text-gray-500 mt-1">
+                                            Metal: {item.products.metal_type}
+                                          </p>
+                                        )}
+                                      </div>
+                                      {/* Price */}
+                                      <div className="flex-shrink-0 text-right">
+                                        <p className="text-base font-bold text-gray-900">
+                                          ₹{item?.total_price?.toFixed(2) ?? "0.00"}
+                                        </p>
+                                        {item?.unit_price && item?.quantity && (
+                                          <p className="text-xs text-gray-500 mt-1">
+                                            ₹{item.unit_price.toFixed(2)} × {item.quantity}
+                                          </p>
+                                        )}
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </>
+                            ) : (
+                              <div className="text-center py-6">
+                                <p className="text-sm text-gray-600">No items found for this order</p>
+                              </div>
+                            )}
+                          </div>
                         )}
                       </div>
-                    ))}
-                  </>
-                ) : (
-                  <>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <div className="w-16 h-16 text-gray-400 mx-auto mb-4 flex items-center justify-center">
                     <OrderIcon />
-                    <p className="mt-4 text-gray-600">No orders yet</p>
-                    <p className="text-sm text-gray-500 mt-2">
-                      Your order history will appear here
-                    </p>
-                  </>
-                )}
-                
-                <a
-                  href="/"
-                  className="inline-block mt-4 px-6 py-2 bg-theme-sage hover:bg-theme-olive text-white font-medium rounded-lg transition-colors duration-200"
-                >
-                  Start Shopping
-                </a>
-              </div>
+                  </div>
+                  <p className="mt-4 text-gray-600">No orders yet</p>
+                  <p className="text-sm text-gray-500 mt-2">
+                    Your order history will appear here
+                  </p>
+                  <a
+                    href="/"
+                    className="inline-block mt-4 px-6 py-2 bg-theme-sage hover:bg-theme-olive text-white font-medium rounded-lg transition-colors duration-200"
+                  >
+                    Start Shopping
+                  </a>
+                </div>
+              )}
             </div>
           </div>
 

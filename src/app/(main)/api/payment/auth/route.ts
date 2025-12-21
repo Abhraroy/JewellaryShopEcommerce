@@ -3,13 +3,23 @@ import { NextRequest, NextResponse } from "next/server";
 import { v4 as uuidv4 } from "uuid";
 import { createClient } from "@/app/utils/supabase/server";
 
-export async function POST() {
+export async function POST(request: NextRequest) {
   const supabase = await createClient();
   let totalAmount = 0
   let amountInPaise = 0
   let user_id=null
   let cart_id=null
   let lastAddedProductTime=null
+  let address_id=null
+  
+  // Get address_id from request body
+  try {
+    const body = await request.json();
+    address_id = body.address_id || null;
+    console.log("Address ID received:", address_id);
+  } catch (error) {
+    console.log("No address_id in request body or invalid JSON");
+  }
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -92,7 +102,7 @@ export async function POST() {
         udf3: totalAmount,
         udf4: lastAddedProductTime,
         udf5: cart_id,
-        udf6: "additional-information-6",
+        udf6: address_id || "additional-information-6",
         udf7: "additional-information-7",
         udf8: "additional-information-8",
         udf9: "additional-information-9",

@@ -98,7 +98,7 @@ export default function AddressForm({ userId, onClose, onSuccess }: AddressFormP
   };
 
   return (
-    <div className="fixed inset-0 backdrop-blur-xl bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 backdrop-blur-xl bg-black/60 flex items-center justify-center z-[80] p-4">
       <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
