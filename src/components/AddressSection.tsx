@@ -15,6 +15,12 @@ const AddressIconComponent = ({className}: {className: string}) => (
   </svg>
 );
 
+const PlusIcon = ({className}: {className: string}) => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className={className}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+  </svg>
+);
+
 export default function AddressSection({addresses, userId}: {addresses: any[], userId: string}) {
   console.log('addresses from address section', addresses);
   const [showAddressForm, setShowAddressForm] = useState(false);
@@ -52,12 +58,12 @@ export default function AddressSection({addresses, userId}: {addresses: any[], u
         </h2>
         
      
-          {addresses.length > 0 ? (
+          { addresses && addresses.length > 0 ? (
             <div className="mt-4 text-sm text-gray-600 bg-gray-200 flex flex-col items-center gap-2
             p-2 rounded-md
             ">
              
-              {addresses.map((address) => (
+              {addresses && addresses.map((address) => (
                 <div key={address.address_id} className=" p-2 rounded-md flex flex-row items-center gap-2">
                    <AddressIconComponent className="shrink-0 w-5 h-5 text-black" />
                   <p>
@@ -77,9 +83,22 @@ export default function AddressSection({addresses, userId}: {addresses: any[], u
           )}
           <button 
             onClick={handleAddAddress}
-            className="mt-4 px-4 py-2 text-theme-olive hover:text-theme-sage font-medium text-sm"
+            className="group relative mt-4 px-6 py-3 bg-theme-sage hover:bg-theme-olive text-white font-medium text-sm rounded-lg 
+                       transition-all duration-300 ease-in-out
+                       transform hover:scale-105 active:scale-95
+                       shadow-md hover:shadow-xl hover:shadow-theme-sage/30
+                       flex items-center gap-2
+                       overflow-hidden
+                       border border-transparent hover:border-white/20"
           >
-            Add Address
+            <span className="relative z-10 flex items-center gap-2">
+              <PlusIcon className="w-5 h-5 transition-all duration-300 group-hover:rotate-90 group-hover:scale-110" />
+              <span className="transition-all duration-300 group-hover:tracking-wide">Add Address</span>
+            </span>
+            <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent 
+                           opacity-0 group-hover:opacity-100
+                           transform -skew-x-12 -translate-x-full group-hover:translate-x-full
+                           transition-transform duration-1000 ease-in-out"></span>
           </button>
        
       </div>

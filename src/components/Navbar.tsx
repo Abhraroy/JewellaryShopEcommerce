@@ -328,7 +328,12 @@ export default function Navbar({ cartCount = 0, isAuthenticated = false, onCartC
   };
 
   return (
-    <nav className="w-full bg-theme-cream border-b border-theme-sage/20 sticky top-0 z-50">
+    <nav 
+      className="w-full border-b border-theme-sage/20 sticky top-0 z-50"
+      style={{
+        background: 'linear-gradient(to bottom, #ffb5c0 0%, #ffd1df 50%, rgba(255, 255, 255, 0.8) 85%, white 100%)'
+      }}
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 md:h-20">
           {/* Logo Section */}

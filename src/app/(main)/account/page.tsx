@@ -150,24 +150,60 @@ export default function AccountPage() {
     }
     console.log("data.user", data.user);
 
+    if (!data?.user?.phone) {
+      console.error("User phone number is missing");
+      return;
+    }
+
     const res = await supabase
       .from("users")
       .select(`*,
-        orders(*),
         addresses(*)
         `)
       .eq("phone_number", "+" + data.user.phone)
       .single();
-    setUserData(res.data?.user_id);
-    setAddresses(res.data?.addresses);
-    setOrders(res.data?.orders);
+    
+    if (!res.data) {
+      console.error("User data not found");
+      return;
+    }
+
+    setUserData(res.data?.user_id ?? null);
+    setAddresses(res.data?.addresses ?? []);
+
+    // Fetch latest 10 orders separately with order items
+    if (res.data?.user_id) {
+      const ordersRes = await supabase
+        .from("orders")
+        .select(`
+          *,
+          order_items(*)
+        `)
+        .eq("user_id", res.data.user_id)
+        .order("order_date", { ascending: false })
+        .limit(3);
+      
+      if (ordersRes.data) {
+        setOrders(ordersRes.data ?? []);
+      } else {
+        setOrders([]);
+      }
+    } else {
+      setOrders([]);
+    }
     console.log("userData", res);
     const user = res.data;
-    const formattedPhone = user.phone_number || "Not provided";
+    
+    if (!user) {
+      console.error("User data is null");
+      return;
+    }
+
+    const formattedPhone = user?.phone_number || "Not provided";
     setFormattedPhone(formattedPhone);
-    const formattedEmail = user.email || "Not provided";
+    const formattedEmail = user?.email || "Not provided";
     setFormattedEmail(formattedEmail);
-    const createdAt = user.created_at
+    const createdAt = user?.created_at
       ? new Date(user.created_at).toLocaleDateString("en-US", {
           year: "numeric",
           month: "long",
@@ -192,6 +228,13 @@ export default function AccountPage() {
     const email = (e.target as HTMLFormElement).email.value;
     console.log("email", email);
     console.log("userId", userData);
+    
+    if (!userData) {
+      console.error("User ID is missing");
+      alert("Unable to update email. Please try again.");
+      return;
+    }
+
     const { data, error } = await supabase
       .from("users")
       .update({ email: email })
@@ -201,8 +244,9 @@ export default function AccountPage() {
     console.log("error", error);
     if (error) {
       console.log("error", error);
+      alert("Failed to update email. Please try again.");
     }
-    if (data) {
+    if (data && data.length > 0) {
       console.log("data", data);
       setEmailUpdateState(false);
       setFormattedEmail(email);
@@ -245,7 +289,7 @@ export default function AccountPage() {
                     </span>
                   </div>
                   <span className="text-gray-900 font-medium">
-                    {formattedPhone}
+                    {formattedPhone || "Not provided"}
                   </span>
                 </div>
 
@@ -260,7 +304,7 @@ export default function AccountPage() {
                       </span>
                     </div>
                     <span className="text-gray-900 font-medium">
-                      {formattedEmail}
+                      {formattedEmail || "Not provided"}
                     </span>
                   </div>
                   <div>
@@ -311,7 +355,7 @@ export default function AccountPage() {
                       Customer Since
                     </span>
                   </div>
-                  <span className="text-gray-900 font-medium">{createdAt}</span>
+                  <span className="text-gray-900 font-medium">{createdAt || "N/A"}</span>
                 </div>
               </div>
             </div>
@@ -327,15 +371,28 @@ export default function AccountPage() {
                 {orders && orders.length > 0 ? (
                   <>
                     {orders.map((order) => (
-                      <div key={order.order_id}>
-                        <p>{order.order_id}</p>
-                        <p>{order.order_date}</p>
-                        <p>{order.order_total}</p>
-                        <p>{order.order_status}</p>
-                        <p>{order.order_items}</p>
-                        <p>{order.order_items.product_name}</p>
-                        <p>{order.order_items.product_price}</p>
-                        <p>{order.order_items.product_quantity}</p>
+                      <div key={order?.order_id ?? `order-${Math.random()}`}>
+                        <p>{order?.order_id ?? "N/A"}</p>
+                        <p>{order?.order_date ?? "N/A"}</p>
+                        <p>{order?.order_total ?? "N/A"}</p>
+                        <p>{order?.order_status ?? "N/A"}</p>
+                        {order?.order_items && Array.isArray(order.order_items) ? (
+                          order.order_items.map((item: any, index: number) => (
+                            <div key={index}>
+                              <p>{item?.product_name ?? "N/A"}</p>
+                              <p>{item?.product_price ?? "N/A"}</p>
+                              <p>{item?.product_quantity ?? "N/A"}</p>
+                            </div>
+                          ))
+                        ) : order?.order_items ? (
+                          <>
+                            <p>{order.order_items?.product_name ?? "N/A"}</p>
+                            <p>{order.order_items?.product_price ?? "N/A"}</p>
+                            <p>{order.order_items?.product_quantity ?? "N/A"}</p>
+                          </>
+                        ) : (
+                          <p>No items</p>
+                        )}
                       </div>
                     ))}
                   </>
@@ -402,7 +459,7 @@ export default function AccountPage() {
             </div>
 
             {/* Addresses Card */}
-             <AddressSection addresses={addresses} userId={userData} />
+             <AddressSection addresses={addresses ?? []} userId={userData ?? null} />
           </div>
         </div>
       </main>
