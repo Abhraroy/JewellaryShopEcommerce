@@ -145,47 +145,79 @@ export default function ProductReview({ reviews }: { reviews: any }) {
     return (
       <div
         key={review.review_id}
-        className="flex flex-col gap-4 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm"
+        className="group flex flex-col gap-4 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm hover:shadow-lg transition-all duration-200 hover:border-pink-200"
       >
         <div className="flex items-start justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gray-500">
-              <span className="text-lg font-bold text-white">{initial}</span>
+          <div className="flex items-center gap-4">
+            <div className="relative flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-pink-500 to-rose-500 shadow-md">
+              <span className="text-xl font-bold text-white">{initial}</span>
+              <div className="absolute inset-0 rounded-full bg-gradient-to-br from-pink-500 to-rose-500 opacity-0 group-hover:opacity-100 transition-opacity animate-pulse"></div>
             </div>
-            <div className="flex flex-col gap-1">
-              <span className="text-base font-semibold text-black">
-                {user.first_name} {user.last_name}
-              </span>
-              <div className="flex flex-wrap items-center gap-2 text-sm text-gray-600">
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center gap-2">
+                <span className="text-lg font-bold text-gray-900">
+                  {user.first_name} {user.last_name}
+                </span>
+                {review.verified && (
+                  <span className="inline-flex items-center rounded-full bg-blue-100 px-2 py-0.5 text-xs font-semibold text-blue-700">
+                    ✓ Verified
+                  </span>
+                )}
+              </div>
+              <div className="flex flex-wrap items-center gap-3">
                 <div className="flex items-center gap-1">
                   {renderStars(review.rating, "sm")}
                 </div>
-                {reviewDate && <span>{reviewDate}</span>}
+                {reviewDate && (
+                  <span className="text-sm text-gray-500 font-medium">
+                    {new Date(reviewDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+                  </span>
+                )}
               </div>
             </div>
           </div>
           {firstReviewImage?.review_image_url && (
-            <div className="flex shrink-0 flex-row items-center gap-2 rounded-lg bg-gray-100 p-2">
+            <div className="flex shrink-0 flex-row items-center gap-2 rounded-xl bg-gradient-to-br from-gray-50 to-gray-100 p-2 border border-gray-200 hover:border-pink-300 transition-colors">
               <Image
                 src={firstReviewImage.review_image_url}
                 alt={firstReviewImage.review_image_url}
                 width={80}
                 height={80}
-                className="h-20 w-20 rounded-lg object-cover"
+                className="h-20 w-20 rounded-lg object-cover shadow-sm"
               />
             </div>
           )}
         </div>
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-3">
           {review.title && (
-            <span className="text-base font-semibold text-black">
+            <h4 className="text-lg font-bold text-gray-900">
               {review.title}
-            </span>
+            </h4>
           )}
           {review.review_text && (
-            <span className="text-sm text-gray-600">{review.review_text}</span>
+            <p className="text-sm leading-relaxed text-gray-700">
+              {review.review_text}
+            </p>
           )}
         </div>
+        {review.review_images && review.review_images.length > 1 && (
+          <div className="flex gap-2 overflow-x-auto pb-2">
+            {review.review_images.slice(1, 4).map((img: any, idx: number) => (
+              <button
+                key={idx}
+                onClick={() => handleImageClick(img.review_image_url, idx + 1)}
+                className="relative h-20 w-20 shrink-0 overflow-hidden rounded-lg border-2 border-gray-200 hover:border-pink-400 transition-colors"
+              >
+                <Image
+                  src={img.review_image_url}
+                  alt={img.review_image_url}
+                  fill
+                  className="object-cover"
+                />
+              </button>
+            ))}
+          </div>
+        )}
       </div>
     );
   };
@@ -209,51 +241,61 @@ export default function ProductReview({ reviews }: { reviews: any }) {
   }) => (
     <div className={wrapperClass}>
       <div className={containerClass}>
-        <span className="w-full text-start text-2xl font-bold text-black">
-          CUSTOMER REVIEW
-        </span>
+        <div className="w-full mb-6">
+          <h2 className="text-3xl font-bold text-gray-900 mb-2">Customer Reviews</h2>
+          <p className="text-gray-600">See what our customers are saying</p>
+        </div>
         <div className={infoWrapperClass}>
-          <div className={summaryCardClass}>
-            <div className="flex flex-col gap-2">
-              <span className="text-3xl font-semibold text-black">
-                {reviews.length > 0 ? formattedAverageRating : "0.0"}
-              </span>
-              <div className="flex items-center gap-2">
+          <div className={`${summaryCardClass} bg-gradient-to-br from-white to-gray-50 border-2 border-gray-200`}>
+            <div className="flex flex-col gap-3 p-4 bg-gradient-to-br from-yellow-50 to-amber-50 rounded-xl border border-yellow-200">
+              <div className="flex items-baseline gap-2">
+                <span className="text-5xl font-bold text-gray-900">
+                  {reviews.length > 0 ? formattedAverageRating : "0.0"}
+                </span>
+                <span className="text-2xl text-gray-400">/ 5.0</span>
+              </div>
+              <div className="flex items-center gap-3">
                 {renderStars(averageRating, "md")}
-                <span className="text-sm text-gray-600">
-                  {reviews.length} reviews
+                <span className="text-base font-semibold text-gray-700">
+                  {reviews.length} {reviews.length === 1 ? 'review' : 'reviews'}
                 </span>
               </div>
             </div>
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-3 mt-4">
               {distributionData.map(({ star, percent, count }) => (
                 <button
                   key={star}
                   type="button"
                   onClick={() => handleRatingFilter(star)}
-                  className={`flex items-center gap-3 rounded-xl border px-3 py-2 text-left transition ${
+                  className={`group flex items-center gap-4 rounded-xl border-2 px-4 py-3 text-left transition-all duration-200 hover:scale-[1.02] ${
                     selectedRatingFilter === star
-                      ? "border-gray-900 bg-gray-900 text-white"
-                      : "border-gray-200 bg-white text-gray-800"
+                      ? "border-pink-500 bg-gradient-to-r from-pink-50 to-rose-50 shadow-md"
+                      : "border-gray-200 bg-white hover:border-pink-300 hover:bg-pink-50"
                   }`}
                 >
-                  <span className="w-12 shrink-0 text-sm font-semibold">
-                    {star}★
+                  <span className={`w-14 shrink-0 text-base font-bold ${
+                    selectedRatingFilter === star ? "text-pink-700" : "text-gray-700"
+                  }`}>
+                    {star} ★
                   </span>
-                  <div className="relative h-2 flex-1 overflow-hidden rounded-full bg-gray-200">
+                  <div className="relative h-3 flex-1 overflow-hidden rounded-full bg-gray-200">
                     <div
-                      className={`absolute inset-y-0 left-0 rounded-full ${
+                      className={`absolute inset-y-0 left-0 rounded-full transition-all duration-300 ${
                         selectedRatingFilter === star
-                          ? "bg-white"
-                          : "bg-gray-800"
+                          ? "bg-gradient-to-r from-pink-500 to-rose-500"
+                          : "bg-gradient-to-r from-yellow-400 to-amber-400"
                       }`}
                       style={{ width: `${percent}%` }}
                     ></div>
                   </div>
-                  <span className="w-16 text-right text-xs font-semibold">
+                  <span className={`w-16 text-right text-sm font-bold ${
+                    selectedRatingFilter === star ? "text-pink-700" : "text-gray-700"
+                  }`}>
                     {percent}%
                   </span>
-                  <span className="w-10 text-right text-xs">
+                  <span className={`w-12 text-right text-sm font-medium ${
+                    selectedRatingFilter === star ? "text-pink-600" : "text-gray-600"
+                  }`}>
                     ({count})
                   </span>
                 </button>
@@ -263,23 +305,33 @@ export default function ProductReview({ reviews }: { reviews: any }) {
               <button
                 type="button"
                 onClick={handleClearFilter}
-                className="mt-2 w-fit rounded-full border border-gray-300 px-4 py-2 text-xs font-semibold text-gray-600 transition hover:border-gray-900 hover:text-gray-900"
+                className="mt-4 w-full rounded-xl border-2 border-pink-300 bg-gradient-to-r from-pink-50 to-rose-50 px-4 py-2.5 text-sm font-semibold text-pink-700 transition-all hover:border-pink-500 hover:bg-gradient-to-r hover:from-pink-100 hover:to-rose-100 hover:shadow-md"
               >
-                Clear filter
+                Clear Filter
               </button>
             )}
           </div>
-          <div className={photoCardClass}>
-            <span className="text-lg font-semibold text-black">
-              Customer Photoes
-            </span>
+          <div className={`${photoCardClass} bg-gradient-to-br from-white to-gray-50 border-2 border-gray-200`}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-bold text-gray-900">
+                Customer Photos
+              </h3>
+              {allReviewImages.length > 12 && (
+                <button
+                  onClick={handleViewMoreImages}
+                  className="text-sm font-semibold text-pink-600 hover:text-pink-700 transition-colors"
+                >
+                  View All ({allReviewImages.length})
+                </button>
+              )}
+            </div>
             {previewImages.length > 0 ? (
               <div className={imageGridClass}>
                 {previewImages.map((image: any, index: number) => (
                   <button
                     key={image.review_image_id}
                     type="button"
-                    className="relative aspect-square overflow-hidden rounded-lg bg-gray-200"
+                    className="group relative aspect-square overflow-hidden rounded-xl bg-gray-200 border-2 border-gray-200 hover:border-pink-400 transition-all duration-200 hover:scale-105 hover:shadow-lg"
                     onClick={() =>
                       handleImageClick(image.review_image_url, index)
                     }
@@ -288,15 +340,18 @@ export default function ProductReview({ reviews }: { reviews: any }) {
                       src={image.review_image_url}
                       alt={image.review_image_url}
                       fill
-                      className="object-cover"
+                      className="object-cover transition-transform duration-200 group-hover:scale-110"
                     />
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors"></div>
                   </button>
                 ))}
               </div>
             ) : (
-              <span className="text-sm text-gray-500">
-                No customer photos uploaded yet.
-              </span>
+              <div className="flex items-center justify-center py-8">
+                <span className="text-sm text-gray-500 font-medium">
+                  No customer photos uploaded yet.
+                </span>
+              </div>
             )}
             {allReviewImages.length > 12 && (
               <button

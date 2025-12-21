@@ -102,25 +102,6 @@ export default function Cart({ isOpen = false, onClose }: CartProps) {
           setCartItems(tempCartItems);
         }
       } else if (AuthenticatedState) {
-        // let user_id:any;
-        // const getuserdetails = async () => {
-        //   const { data, error } = await supabase.auth.getUser();
-        //   if (error) {
-        //     console.log("error", error);
-        //   }
-        //   if (data) {
-        //     console.log("data from cart", data.user?.phone);
-        //     const user_data = await supabase
-        //       .from("users")
-        //       .select("*")
-        //       .eq("phone_number", "+" + data?.user?.phone)
-        //       .maybeSingle();
-        //     console.log("user_data from cart", user_data);
-        //     return user_data.data?.user_id;
-        //   }
-        // };
-        // user_id = await getuserdetails();
-        // console.log("user_id 2nd from cart", user_id);
     
         if(CartId){
           console.log("cart found",CartId)
@@ -225,9 +206,12 @@ export default function Cart({ isOpen = false, onClose }: CartProps) {
             ) : (
               <div className="space-y-4">
                 {cartItems &&
-                  cartItems.map((item: any, index: number) => (
+                  cartItems.map((item: any) => {
+                    // Use stable unique key - cart_item_id for DB items, product_id for local items
+                    const uniqueKey = item.cart_item_id || item.products?.product_id || item.product_id || `cart-item-${item.products?.product_id}`;
+                    return (
                     <div
-                      key={index}
+                      key={uniqueKey}
                       className="flex gap-4 p-4 bg-theme-cream rounded-xl hover:bg-theme-sage/10 transition-colors duration-200"
                     >
                       {/* Product Image */}
@@ -242,26 +226,25 @@ export default function Cart({ isOpen = false, onClose }: CartProps) {
                       </div>
 
                       {/* Product Details */}
-                      <div className="flex-1 min-w-0">
-                        <h3 className="text-sm font-semibold text-gray-900 line-clamp-2 mb-1">
-                          {item.products.product_name}
+                      <div className="flex-1 min-w-0 flex flex-col">
+                        <h3 className="text-sm font-semibold text-gray-900 line-clamp-2 mb-1 flex-shrink-0">
+                          {item.products?.product_name || item.products?.name || "Product"}
                         </h3>
-                        <p className="text-lg font-bold text-gray-900 mb-3">
-                          ₹{item.products.final_price}
+                        <p className="text-lg font-bold text-gray-900 mb-3 flex-shrink-0">
+                          ₹{item.products?.final_price || item.products?.price || 0}
                         </p>
 
                         {/* Quantity Controls */}
-                        <div className="flex items-center gap-3">
-                          <div className="flex items-center gap-2 border border-gray-300 rounded-lg bg-white">
+                        <div className="flex items-center gap-3 mt-auto">
+                          <div className="flex items-center gap-0 border border-gray-300 rounded-lg bg-white overflow-hidden">
                             <button
-                              className="p-1.5 text-theme-olive hover:text-theme-sage hover:bg-theme-sage/20 rounded transition-colors duration-200 
-                              disabled:opacity-50 disabled:cursor-not-allowed
+                              className="p-1.5 text-theme-olive hover:text-theme-sage hover:bg-theme-sage/20 transition-colors duration-200 
+                              disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0
                               "
-                              disabled={item.quantity === 1?true:false}
+                              disabled={item.quantity === 1}
                               aria-label="Decrease quantity"
                               onClick={() => {
                                 handleDecreaseQuantity(item);
-                                
                               }}
                             >
                               <svg
@@ -279,17 +262,15 @@ export default function Cart({ isOpen = false, onClose }: CartProps) {
                                 />
                               </svg>
                             </button>
-                            <span className="px-3 py-1 text-sm font-medium text-gray-900 min-w-[2rem] text-center">
+                            <span className="px-3 py-1.5 text-sm font-semibold text-gray-900 min-w-[3rem] text-center tabular-nums flex-shrink-0">
                               {item.quantity}
                             </span>
                             <button
-                              className="p-1.5 text-theme-olive hover:text-theme-sage hover:bg-theme-sage/20 rounded transition-colors duration-200"
+                              className="p-1.5 text-theme-olive hover:text-theme-sage hover:bg-theme-sage/20 transition-colors duration-200 flex-shrink-0"
                               aria-label="Increase quantity"
                               onClick={() => {
                                 handleIncreaseQuantity(item);
-                                
-                              }
-                            }
+                              }}
                             >
                               <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -334,7 +315,8 @@ export default function Cart({ isOpen = false, onClose }: CartProps) {
                         </div>
                       </div>
                     </div>
-                  ))}
+                    );
+                  })}
               </div>
             )}
           </div>

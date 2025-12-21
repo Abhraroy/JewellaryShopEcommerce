@@ -4,23 +4,45 @@ import Script from "next/script";
 import { useEffect, useState } from "react";
 import { useStore } from "@/zustandStore/zustandStore";
 
-export default function PhonePe({ redirectUrl }: { redirectUrl: string }) {
+interface PhonePeProps {
+  redirectUrl: string;
+  onPaymentInitiated?: () => void;
+}
+
+export default function PhonePe({ redirectUrl, onPaymentInitiated }: PhonePeProps) {
   const [sdkReady, setSdkReady] = useState(false);
-  const {initiatingCheckout,setInitiatingCheckout} = useStore();
+  const {
+    initiatingCheckout,
+    setInitiatingCheckout,
+    setPaymentConcluded,
+    setShowPaymentConcluded
+  } = useStore();
 
-  /** Callback handler from PhonePe */
-  const callback = (response: string) => {
-    console.log("PhonePe Callback Response:", response);
+  /** Callback handler from PhonePe - stored globally to persist after component unmounts */
+  const createCallback = () => {
+    return (response: string) => {
+      console.log("PhonePe Callback Response:", response);
 
-    if (response === "USER_CANCEL") {
-      console.log("User cancelled payment");
-      return;
-    }
-    if (response === "CONCLUDED") {
-      console.log("Payment concluded");
-      setInitiatingCheckout(false);
-      return;
-    }
+      // Get store state directly to ensure it works even after component unmounts
+      const store = useStore.getState();
+
+      if (response === "USER_CANCEL") {
+        console.log("User cancelled payment");
+        // Payment was cancelled/failed
+        store.setPaymentConcluded(false);
+        store.setShowPaymentConcluded(true);
+        store.setInitiatingCheckout(false);
+        return;
+      }
+      if (response === "CONCLUDED") {
+        console.log("Payment concluded successfully");
+        // Payment was successful
+        store.setPaymentConcluded(true);
+        store.setShowPaymentConcluded(true);
+        store.setInitiatingCheckout(false);
+        return;
+      }
+    };
   };
 
   /** Wait for PhonePeCheckout SDK initialization */
@@ -48,6 +70,16 @@ export default function PhonePe({ redirectUrl }: { redirectUrl: string }) {
     check();
   };
 
+  /** Check if SDK is already loaded when component mounts */
+  useEffect(() => {
+    // Check if SDK is already available (from previous load)
+    const SDK = (window as any).PhonePeCheckout;
+    if (SDK) {
+      console.log("🔥 PhonePe SDK already available!");
+      setSdkReady(true);
+    }
+  }, []);
+
   /** When redirectUrl or script loads */
   useEffect(() => {
     console.log("Token URL received:", redirectUrl);
@@ -64,11 +96,22 @@ export default function PhonePe({ redirectUrl }: { redirectUrl: string }) {
 
     console.log("Sending tokenUrl to PhonePe:", redirectUrl);
 
+    // Create callback that persists even after component unmounts
+    const paymentCallback = createCallback();
+    
+    // Store callback in window to ensure it persists
+    (window as any).__phonePeCallback = paymentCallback;
+
     PhonePeCheckout.transact({
       tokenUrl: redirectUrl,
       type: "IFRAME",
-      callback: callback,
+      callback: paymentCallback,
     });
+
+    // Reset all state and close modal as soon as PhonePe checkout opens
+    if (onPaymentInitiated) {
+      onPaymentInitiated();
+    }
   };
 
   return (
@@ -79,7 +122,14 @@ export default function PhonePe({ redirectUrl }: { redirectUrl: string }) {
         strategy="afterInteractive"
         onLoad={() => {
           console.log("📦 PhonePe script loaded");
-          waitForSDKReady();
+          // Check if SDK is already available, otherwise wait for it
+          const SDK = (window as any).PhonePeCheckout;
+          if (SDK) {
+            console.log("🔥 PhonePe SDK available after script load!");
+            setSdkReady(true);
+          } else {
+            waitForSDKReady();
+          }
         }}
       />
 

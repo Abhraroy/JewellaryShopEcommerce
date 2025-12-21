@@ -21,6 +21,7 @@ export default function PaymentGatewayComponent() {
   const [selectedAddress, setSelectedAddress] = useState<string | null>(null);
   const [showAddressForm, setShowAddressForm] = useState(false);
   const [loadingAddresses, setLoadingAddresses] = useState(false);
+  const [isLoadingPayment, setIsLoadingPayment] = useState(false);
   const supabase = createClient();
 
   // Fetch addresses when authenticated
@@ -58,15 +59,23 @@ export default function PaymentGatewayComponent() {
   }, [AuthenticatedState, AuthUserId]);
 
   const getAuthToken = async () => {
-    const res = await axios.post("/api/payment/auth", {
-      address_id: selectedAddress,
-    }, {
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-    console.log("res", res);
-    setTransacToken(res.data.data.redirectUrl);
+    setIsLoadingPayment(true);
+    try {
+      const res = await axios.post("/api/payment/auth", {
+        address_id: selectedAddress,
+      }, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      console.log("res", res);
+      setTransacToken(res.data.data.redirectUrl);
+    } catch (error) {
+      console.error("Error getting auth token:", error);
+      // You might want to show an error message to the user here
+    } finally {
+      setIsLoadingPayment(false);
+    }
   };
 
   const handleAddressSuccess = () => {
@@ -88,6 +97,18 @@ export default function PaymentGatewayComponent() {
           }
         });
     }
+  };
+
+  // Reset all payment state to default
+  const resetPaymentState = () => {
+    setTransacToken(null);
+    setShowPhoneNumberInput(true);
+    setShowOrderdetails(false);
+    setAddresses([]);
+    setSelectedAddress(null);
+    setShowAddressForm(false);
+    setLoadingAddresses(false);
+    setInitiatingCheckout(false); // Close the modal
   };
 
   return (
@@ -387,22 +408,40 @@ export default function PaymentGatewayComponent() {
         {/* Footer with Continue Button */}
         <div className="w-full px-4 sm:px-6 py-4 sm:py-5 border-t border-gray-200 bg-gray-50">
           {!transacToken ? (
-            <button
-              onClick={() => {
-                getAuthToken();
-              }}
-              className="w-full px-4 py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold rounded-lg transition-all duration-200 text-sm shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
-              disabled={!AuthenticatedState || (AuthenticatedState && !selectedAddress && addresses.length > 0)}
-            >
-              {AuthenticatedState ? "Proceed to Payment" : "Login to Continue"}
-            </button>
+            <>
+              <button
+                onClick={() => {
+                  getAuthToken();
+                }}
+                className="w-full px-4 py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold rounded-lg transition-all duration-200 text-sm shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none flex items-center justify-center gap-2"
+                disabled={
+                  isLoadingPayment || 
+                  !AuthenticatedState || 
+                  (AuthenticatedState && !selectedAddress && addresses.length > 0)
+                }
+              >
+                {isLoadingPayment ? (
+                  <>
+                    <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span>Processing...</span>
+                  </>
+                ) : AuthenticatedState ? (
+                  "Proceed to Payment"
+                ) : (
+                  "Login to Continue"
+                )}
+              </button>
+              {AuthenticatedState && !selectedAddress && addresses.length > 0 && !isLoadingPayment && (
+                <p className="text-xs text-red-600 mt-2 text-center">
+                  Please select a delivery address
+                </p>
+              )}
+            </>
           ) : (
-            <PhonePe redirectUrl={transacToken ?? ""} />
-          )}
-          {AuthenticatedState && !selectedAddress && addresses.length > 0 && (
-            <p className="text-xs text-red-600 mt-2 text-center">
-              Please select a delivery address
-            </p>
+            <PhonePe redirectUrl={transacToken ?? ""} onPaymentInitiated={resetPaymentState} />
           )}
         </div>
       </div>

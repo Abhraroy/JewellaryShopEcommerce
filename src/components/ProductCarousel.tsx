@@ -85,10 +85,10 @@ export default function ProductCarousel({
   }
 
   return (
-    <section className={`w-full bg-theme-cream py-8 md:py-12 lg:py-16 ${className}`}>
+    <section className={`w-full bg-theme-cream py-6 md:py-12 lg:py-16 ${className}`}>
       {/* Section Heading */}
-      <div className="flex items-center justify-center mb-6 md:mb-8 px-4 sm:px-6 lg:px-8">
-        <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-theme-olive relative inline-block">
+      <div className="flex items-center justify-center mb-5 md:mb-8 px-4 sm:px-6 lg:px-8">
+        <h2 className="text-xl md:text-3xl lg:text-4xl font-bold text-theme-olive relative inline-block">
           {sectionHeading}
           <span className="absolute -bottom-2 left-0 right-0 h-0.5 bg-theme-sage"></span>
         </h2>
@@ -105,11 +105,11 @@ export default function ProductCarousel({
             msOverflowStyle: 'none',
           }}
         >
-          <div className="flex gap-6 pb-12 pl-4 sm:pl-6 lg:pl-8 pr-4 sm:pr-6 lg:pr-8">
+          <div className="flex gap-6 pb-10 md:pb-12 pl-4 sm:pl-6 lg:pl-8 pr-4 sm:pr-6 lg:pr-8">
             {products.map((product,index) => (
               <div
                 key={product.product_id}
-                className="product-card flex-shrink-0 w-[calc(100vw/1.3-3rem)] sm:w-[calc(100vw/2-4rem)] md:w-[calc(100vw/2.5-5rem)] lg:w-[calc(100vw/3-6rem)] xl:w-[380px]"
+                className="product-card flex-shrink-0 w-[calc((100vw/1.3-3rem)*0.95)] sm:w-[calc((100vw/2-4rem)*0.95)] md:w-[calc((100vw/2.5-5rem)*0.95)] lg:w-[calc(100vw/3-6rem)] xl:w-[380px]"
               >
                 <ProductCard
                   product={product}

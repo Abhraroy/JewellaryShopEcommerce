@@ -14,8 +14,6 @@ import { createClient } from "@/app/utils/supabase/client";
 import Cart from "@/components/Cart";
 import { addToDbCart, createCart } from "@/utilityFunctions/CartFunctions";
 import { Product } from "@/utilityFunctions/TypeInterface";
-import PaymentGatewayComponent from "@/components/PaymentGatewayComponent";
-import PaymentStatusShowComponent from "@/components/PaymentStatusShowComponent";
 import Collection from "@/components/Collection";
 import Link from "next/link";
 
@@ -32,12 +30,6 @@ export default function LandingPage() {
     CartId,
     setCategories,
     categories,
-    initiatingCheckout,
-    setInitiatingCheckout,
-    paymentConcluded,
-    setPaymentConcluded,
-    showPaymentConcluded,
-    setShowPaymentConcluded,
   } = useStore();
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [newArrivals, setNewArrivals] = useState<Product[]>([]);
@@ -421,8 +413,6 @@ export default function LandingPage() {
             </div>
           </div>
         </section>
-        {initiatingCheckout && <PaymentGatewayComponent />}
-        {showPaymentConcluded && <PaymentStatusShowComponent />}
       </main>
     </div>
   );
