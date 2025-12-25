@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import Link from "next/link";
 import { createClient } from "@/app/utils/supabase/client";
 import { getProducts, uploadProductImages, createProduct, updateProduct, deleteProduct } from "../actions/Product";
 import { Category, getCategories } from "../actions/categories";
@@ -1322,7 +1323,12 @@ export default function Products({ isDarkTheme }: ProductsProps) {
                           : "border-gray-300 text-gray-900"
                       }`}
                     >
-                      {product.product_name}
+                      <Link
+                        href={`/admin/${product.product_id}`}
+                        className="text-theme-olive hover:text-theme-sage underline-offset-2 hover:underline font-semibold"
+                      >
+                        {product.product_name}
+                      </Link>
                     </td>
                     <td
                       className={`text-center py-3 px-4 border whitespace-nowrap ${
