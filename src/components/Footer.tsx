@@ -132,21 +132,8 @@ export default function Footer({ className = '' }: FooterProps) {
   ];
 
   const customerService: FooterLink[] = [
-    { label: 'FAQ', href: '/faq' },
     { label: 'Track Order', href: '/track-order' },
     { label: 'Returns & Exchanges', href: '/returns' },
-    { label: 'Size Guide', href: '/size-guide' },
-    { label: 'Care Instructions', href: '/care' },
-    { label: 'Warranty', href: '/warranty' },
-  ];
-
-  const categories: FooterLink[] = [
-    { label: 'Necklaces', href: '/collection/necklaces' },
-    { label: 'Earrings', href: '/collection/earrings' },
-    { label: 'Rings', href: '/collection/rings' },
-    { label: 'Bracelets', href: '/collection/bracelets' },
-    { label: 'Chains', href: '/collection/chains' },
-    { label: 'Gold Plated', href: '/collection/gold-plated' },
   ];
 
   const socialLinks: SocialIcon[] = [
@@ -176,28 +163,25 @@ export default function Footer({ className = '' }: FooterProps) {
     <footer className={`bg-theme-cream border-t border-theme-sage/20 ${className}`}>
       {/* Main Footer Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
-          {/* Company Info Section */}
-          <div className="lg:col-span-1">
-            <Link href="/" className="inline-block mb-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-12">
+          {/* Brand & Social */}
+          <div className="space-y-5">
+            <Link href="/" className="inline-block">
               <span className="text-2xl md:text-3xl font-bold text-theme-olive tracking-tight">
                 JWEL
               </span>
             </Link>
-            <p className="text-sm text-gray-600 mb-6 leading-relaxed">
-              Your trusted destination for premium jewelry. We offer exquisite
-              designs crafted with precision and care to help you shine on every
-              occasion.
+            <p className="text-sm text-gray-600 leading-relaxed max-w-md">
+              Premium jewelry crafted with precision to help you shine on every occasion.
             </p>
-            {/* Social Media Links */}
-            <div className="flex items-center gap-4">
+            <div className="flex flex-wrap items-center gap-3">
               {socialLinks.map((social) => (
                 <a
                   key={social.name}
                   href={social.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-theme-olive hover:text-theme-sage transition-colors duration-200 p-2 hover:bg-white/50 rounded-full"
+                  className="text-theme-olive hover:text-theme-sage transition-colors duration-200 p-2 hover:bg-white/60 rounded-full shadow-sm"
                   aria-label={social.name}
                 >
                   {social.icon}
@@ -206,126 +190,83 @@ export default function Footer({ className = '' }: FooterProps) {
             </div>
           </div>
 
-          {/* Quick Links Section */}
-          <div>
-            <h3 className="text-gray-900 font-semibold text-base mb-4 uppercase tracking-wide">
-              Quick Links
-            </h3>
-            <ul className="space-y-3">
-              {quickLinks.map((link) => (
-                <li key={link.label}>
-                  <Link
-                    href={link.href}
-                    className="text-sm text-theme-olive hover:text-theme-sage transition-colors duration-200 inline-block"
-                  >
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Customer Service Section */}
-          <div>
-            <h3 className="text-gray-900 font-semibold text-base mb-4 uppercase tracking-wide">
-              Customer Service
-            </h3>
-            <ul className="space-y-3">
-              {customerService.map((link) => (
-                <li key={link.label}>
-                  <Link
-                    href={link.href}
-                    className="text-sm text-theme-olive hover:text-theme-sage transition-colors duration-200 inline-block"
-                  >
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Categories & Contact Section */}
-          <div>
-            <h3 className="text-gray-900 font-semibold text-base mb-4 uppercase tracking-wide">
-              Shop By Category
-            </h3>
-            <ul className="space-y-3 mb-6">
-              {categories.map((link) => (
-                <li key={link.label}>
-                  <Link
-                    href={link.href}
-                    className="text-sm text-theme-olive hover:text-theme-sage transition-colors duration-200 inline-block"
-                  >
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-
-            {/* Contact Information */}
-            <div className="mt-8">
+          {/* Links */}
+          <div className="grid grid-cols-2 gap-6">
+            <div>
               <h3 className="text-gray-900 font-semibold text-base mb-4 uppercase tracking-wide">
-                Contact Us
+                Quick Links
               </h3>
-              <div className="space-y-3">
-                <div className="flex items-start gap-3">
-                  <PhoneIcon className="w-5 h-5 text-theme-olive flex-shrink-0 mt-0.5" />
-                  <a
-                    href="tel:+1234567890"
-                    className="text-sm text-theme-olive hover:text-theme-sage transition-colors duration-200"
-                  >
-                    +1 (234) 567-890
-                  </a>
-                </div>
-                <div className="flex items-start gap-3">
-                  <MailIcon className="w-5 h-5 text-theme-olive flex-shrink-0 mt-0.5" />
-                  <a
-                    href="mailto:support@jwel.com"
-                    className="text-sm text-theme-olive hover:text-theme-sage transition-colors duration-200 break-all"
-                  >
-                    support@jwel.com
-                  </a>
-                </div>
-                <div className="flex items-start gap-3">
-                  <LocationIcon className="w-5 h-5 text-theme-olive flex-shrink-0 mt-0.5" />
-                  <p className="text-sm text-gray-600 leading-relaxed">
-                    123 Jewelry Street,<br />
-                    New York, NY 10001
-                  </p>
-                </div>
-              </div>
+              <ul className="space-y-3">
+                {quickLinks.map((link) => (
+                  <li key={link.label}>
+                    <Link
+                      href={link.href}
+                      className="text-sm text-theme-olive hover:text-theme-sage transition-colors duration-200 inline-block"
+                    >
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div>
+              <h3 className="text-gray-900 font-semibold text-base mb-4 uppercase tracking-wide">
+                Customer Service
+              </h3>
+              <ul className="space-y-3">
+                {customerService.map((link) => (
+                  <li key={link.label}>
+                    <Link
+                      href={link.href}
+                      className="text-sm text-theme-olive hover:text-theme-sage transition-colors duration-200 inline-block"
+                    >
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
             </div>
           </div>
-        </div>
 
-        {/* Newsletter Section */}
-        <div className="mt-12 pt-8 border-t border-gray-100">
-          <div className="max-w-md mx-auto lg:mx-0">
-            <h3 className="text-gray-900 font-semibold text-base mb-3 uppercase tracking-wide">
-              Subscribe to Our Newsletter
+          {/* Contact */}
+          <div className="space-y-4">
+            <h3 className="text-gray-900 font-semibold text-base mb-2 uppercase tracking-wide">
+              Contact Us
             </h3>
-            <p className="text-sm text-gray-600 mb-4">
-              Get the latest updates on new collections and exclusive offers.
-            </p>
-            <form className="flex flex-col sm:flex-row gap-3">
-              <input
-                type="email"
-                placeholder="Enter your email"
-                className="flex-1 px-4 py-3 bg-white border border-theme-sage/30 rounded-lg text-gray-900 placeholder-gray-500 text-sm focus:outline-none focus:border-theme-sage focus:bg-white transition-colors duration-200"
-              />
-              <button
-                type="submit"
-                className="px-6 py-3 bg-theme-sage text-white font-semibold rounded-lg hover:bg-theme-olive transition-colors duration-200 text-sm whitespace-nowrap shadow-sm hover:shadow-md"
-              >
-                Subscribe
-              </button>
-            </form>
+            <div className="space-y-3">
+              <div className="flex items-start gap-3">
+                <PhoneIcon className="w-5 h-5 text-theme-olive flex-shrink-0 mt-0.5" />
+                <a
+                  href="tel:+1234567890"
+                  className="text-sm text-theme-olive hover:text-theme-sage transition-colors duration-200"
+                >
+                  +1 (234) 567-890
+                </a>
+              </div>
+              <div className="flex items-start gap-3">
+                <MailIcon className="w-5 h-5 text-theme-olive flex-shrink-0 mt-0.5" />
+                <a
+                  href="mailto:support@jwel.com"
+                  className="text-sm text-theme-olive hover:text-theme-sage transition-colors duration-200 break-all"
+                >
+                  support@jwel.com
+                </a>
+              </div>
+              <div className="flex items-start gap-3">
+                <LocationIcon className="w-5 h-5 text-theme-olive flex-shrink-0 mt-0.5" />
+                <p className="text-sm text-gray-600 leading-relaxed">
+                  123 Jewelry Street,<br />
+                  New York, NY 10001
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Bottom Bar */}
-      <div className="border-t border-theme-sage/20 bg-theme-sage/10">
+      <div className="border-t border-theme-sage/15 bg-white/60">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <p className="text-sm text-gray-600 text-center md:text-left">
