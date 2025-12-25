@@ -384,15 +384,15 @@ export default function ProductReview({ reviews }: { reviews: any }) {
   return (
     <>
       {renderResponsiveSection({
-        wrapperClass: "block sm:hidden py-6 px-4 box-border bg-white",
-        containerClass: "flex flex-col gap-6",
-        infoWrapperClass: "flex flex-col gap-6",
+        wrapperClass: "block sm:hidden py-4 px-3 box-border bg-white",
+        containerClass: "flex flex-col gap-4",
+        infoWrapperClass: "flex flex-col gap-4",
         summaryCardClass:
-          "flex flex-col gap-4 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm",
+          "flex flex-col gap-3 rounded-xl border border-gray-200 bg-white p-4 shadow-sm",
         photoCardClass:
-          "flex flex-col gap-4 rounded-2xl border border-gray-200 bg-gray-50 p-5 shadow-sm",
-        imageGridClass: "grid grid-cols-3 gap-2",
-        reviewListClass: "flex flex-col gap-4",
+          "flex flex-col gap-3 rounded-xl border border-gray-200 bg-gray-50 p-4 shadow-sm",
+        imageGridClass: "grid grid-cols-3 gap-1.5",
+        reviewListClass: "flex flex-col gap-3",
       })}
 
       {renderResponsiveSection({

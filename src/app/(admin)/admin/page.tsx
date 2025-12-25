@@ -6,6 +6,7 @@ import Dashboard from "./(components)/Dashboard";
 import Products from "./(components)/Products";
 import Categories from "./(components)/Categories";
 import { adminLogout, checkAdminAuth } from "./login/actions";
+import Orders from "./(components)/Orders";
 
 // Icon Components
 const DashboardIcon = ({ className = "w-5 h-5" }) => (
@@ -246,30 +247,7 @@ export default function AdminDashboard() {
         );
 
       case "orders":
-        return (
-          <div className="p-6">
-            <h1
-              className={`text-3xl font-bold mb-6 ${
-                isDarkTheme ? "text-white" : "text-gray-900"
-              }`}
-            >
-              Orders Management
-            </h1>
-            <div
-              className={`${
-                isDarkTheme ? "bg-black border border-gray-700" : "bg-white"
-              } rounded-lg shadow p-6`}
-            >
-              <div
-                className={`text-center py-12 ${
-                  isDarkTheme ? "text-gray-400" : "text-gray-500"
-                }`}
-              >
-                Orders management interface will be implemented here
-              </div>
-            </div>
-          </div>
-        );
+        return <Orders />;
 
       default:
         return null;

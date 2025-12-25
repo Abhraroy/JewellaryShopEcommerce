@@ -308,21 +308,25 @@ export default function ProductDisplay({
               </div>
 
               {/* Tags */}
-              {productDetails[0]?.tags && Array.isArray(productDetails[0]?.tags) && productDetails[0]?.tags.length > 0 && (
-                <div className="flex flex-col gap-3">
-                  <span className="text-sm font-bold text-gray-900 uppercase tracking-wide">Tags</span>
-                  <div className="flex flex-wrap gap-2">
-                    {productDetails[0].tags.map((tag: string, index: number) => (
-                      <span
-                        key={index}
-                        className="inline-flex items-center rounded-full bg-gradient-to-r from-pink-500 to-rose-500 px-4 py-1.5 text-xs font-semibold text-white shadow-md hover:shadow-lg hover:scale-105 transition-all duration-200"
-                      >
-                        {tag}
-                      </span>
-                    ))}
+              {productDetails[0]?.tags &&
+                Array.isArray(productDetails[0]?.tags) &&
+                productDetails[0]?.tags.length > 0 && (
+                  <div className="flex flex-col gap-3">
+                    <span className="text-sm font-bold text-gray-900 uppercase tracking-wide">
+                      Tags
+                    </span>
+                    <div className="flex flex-wrap gap-2">
+                      {productDetails[0].tags.map((tag: string, index: number) => (
+                        <span
+                          key={index}
+                          className="inline-flex items-center rounded-full bg-gradient-to-r from-pink-500 to-rose-500 px-3 py-1 text-[11px] font-semibold text-white shadow-md hover:shadow-lg transition-all duration-200"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
 
               {/* Size Selection */}
               {productDetails[0]?.size && productDetails[0]?.size.length > 0 && (
@@ -445,14 +449,23 @@ export default function ProductDisplay({
                       </span>
                     </div>
                   )}
-                  {productDetails[0]?.tags && Array.isArray(productDetails[0]?.tags) && productDetails[0]?.tags.length > 0 && (
-                    <div className="flex justify-between items-center p-3 hover:bg-gray-50 transition-colors">
-                      <span className="text-sm font-medium text-gray-600">Tags</span>
-                      <span className="text-sm font-bold text-gray-900">
-                        {productDetails[0].tags.join(", ")}
-                      </span>
-                    </div>
-                  )}
+                  {productDetails[0]?.tags &&
+                    Array.isArray(productDetails[0]?.tags) &&
+                    productDetails[0]?.tags.length > 0 && (
+                      <div className="flex flex-col gap-2 p-3 hover:bg-gray-50 transition-colors">
+                        <span className="text-sm font-medium text-gray-600">Tags</span>
+                        <div className="flex flex-wrap gap-2">
+                          {productDetails[0].tags.map((tag: string, idx: number) => (
+                            <span
+                              key={idx}
+                              className="inline-flex items-center rounded-full bg-gray-100 text-gray-800 px-3 py-1 text-xs font-semibold"
+                            >
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   <div className="flex justify-between items-center p-3 hover:bg-gray-50 transition-colors">
                     <span className="text-sm font-medium text-gray-600">Weight</span>
                     <span className="text-sm font-bold text-gray-900">

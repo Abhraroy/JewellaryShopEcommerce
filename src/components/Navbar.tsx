@@ -307,7 +307,11 @@ export default function Navbar({ cartCount = 0, isAuthenticated = false, onCartC
       label: 'Account',
       icon: <UserIcon className="w-6 h-6" />,
       onClick: () => {
-        setMobnoInputState();
+        if (AuthenticatedState) {
+          router.push('/account');
+        } else {
+          setMobnoInputState();
+        }
       },
     },
     {
@@ -315,11 +319,6 @@ export default function Navbar({ cartCount = 0, isAuthenticated = false, onCartC
       icon: <CartIcon className="w-6 h-6" />,
       badge: cartCount,
       onClick: onCartClick || (() => {}),
-    },
-    {
-      label: 'Menu',
-      icon: <MenuIcon className="w-6 h-6" />,
-      onClick: () => setIsSidebarOpen(true),
     },
   ];
 

@@ -38,6 +38,7 @@ export default function LandingPage() {
   const [isCarouselPaused, setIsCarouselPaused] = useState(false);
   // More visible cards => narrower individual widths
   const [visibleCarouselCards, setVisibleCarouselCards] = useState(7);
+  const [heroCarouselIndex, setHeroCarouselIndex] = useState(0);
   const supabase = createClient();
 
   // Model images with jewelry information
@@ -292,6 +293,14 @@ export default function LandingPage() {
     }, 3500);
     return () => clearInterval(interval);
   }, [isCarouselPaused, modelImages.length]);
+
+  // Auto-play hero (stacked) carousel
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setHeroCarouselIndex((prev) => (prev + 1) % modelImages.length);
+    }, 3200);
+    return () => clearInterval(timer);
+  }, [modelImages.length]);
 
   // Handler to open the cart
   const handleOpenCart = () => {
@@ -578,6 +587,100 @@ export default function LandingPage() {
             </div>
           </div>
         </section>
+
+        {/* Spotlight Stacked Carousel */}
+        <section className="w-full py-10 md:py-14 px-0">
+          <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-10">
+            <div className="text-center mb-6 md:mb-8">
+              <p className="text-xs md:text-sm font-semibold uppercase tracking-[0.25em] text-gray-500">
+                Spotlight
+              </p>
+              <h3 className="text-2xl md:text-3xl font-bold text-gray-900">
+                Curated Model Looks
+              </h3>
+            </div>
+
+            <div className="relative h-[320px] sm:h-[360px] md:h-[420px] flex items-center justify-center overflow-hidden bg-white">
+              {modelImages.map((item, idx) => {
+                const rawOffset = (idx - heroCarouselIndex + modelImages.length) % modelImages.length;
+                const offset =
+                  rawOffset > modelImages.length / 2 ? rawOffset - modelImages.length : rawOffset;
+                // show at most 5 slides (current +/-2)
+                if (Math.abs(offset) > 2) return null;
+                const translateX = offset * 140; // px-based for smoother motion
+                const scale = Math.max(0.78, 1 - Math.abs(offset) * 0.1);
+                const opacity = Math.max(0.5, 1 - Math.abs(offset) * 0.2);
+                const zIndex = 10 - Math.abs(offset);
+
+                return (
+                  <div
+                    key={item.id}
+                    className="absolute transition-all duration-600 ease-in-out will-change-transform drop-shadow-xl"
+                    style={{
+                      transform: `translateX(${translateX}px) scale(${scale})`,
+                      opacity,
+                      zIndex,
+                    }}
+                  >
+                    <div className="relative w-[220px] sm:w-[240px] md:w-[260px] h-[300px] sm:h-[320px] md:h-[360px] overflow-hidden rounded-2xl bg-black">
+                      <Image
+                        src={item.src}
+                        alt={item.alt}
+                        fill
+                        className="object-cover"
+                        priority={idx === heroCarouselIndex}
+                      />
+                      <div className="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/80 via-black/30 to-transparent text-white">
+                        <p className="text-base md:text-lg font-bold leading-tight">
+                          {item.alt}
+                        </p>
+                        <p className="mt-1 text-[11px] md:text-xs text-gray-200 line-clamp-2">
+                          {item.jewelry}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+              <div className="absolute inset-0 flex items-center justify-between px-2 sm:px-4">
+                <button
+                  type="button"
+                  onClick={() =>
+                    setHeroCarouselIndex((prev) =>
+                      prev === 0 ? modelImages.length - 1 : prev - 1
+                    )
+                  }
+                  className="pointer-events-auto rounded-full bg-white/80 text-gray-800 px-3 py-2 shadow hover:shadow-md transition"
+                  aria-label="Previous spotlight"
+                >
+                  ◀
+                </button>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setHeroCarouselIndex((prev) => (prev + 1) % modelImages.length)
+                  }
+                  className="pointer-events-auto rounded-full bg-white/80 text-gray-800 px-3 py-2 shadow hover:shadow-md transition"
+                  aria-label="Next spotlight"
+                >
+                  ▶
+                </button>
+              </div>
+            </div>
+
+            <div className="mt-6 flex items-center justify-center gap-2">
+              {modelImages.map((_, dotIdx) => (
+                <span
+                  key={dotIdx}
+                  className={`h-2 rounded-full transition-all ${
+                    dotIdx === heroCarouselIndex ? "w-6 bg-gray-900" : "w-2 bg-gray-300"
+                  }`}
+                />
+              ))}
+            </div>
+          </div>
+        </section>
+
 
         {/* Social Media Bento Section */}
         <section className="w-full py-12 md:py-16 px-0">
