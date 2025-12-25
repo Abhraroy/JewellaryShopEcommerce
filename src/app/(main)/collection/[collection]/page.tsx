@@ -250,6 +250,7 @@ interface CategoryFilter {
       product_images(*)
       `)
       .filter("collection", "eq", decodedCollection)
+      .eq("listed_status", true)
       .order("updated_at", { ascending: false })
       if(error){
         console.log("error",error)

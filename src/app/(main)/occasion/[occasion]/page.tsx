@@ -250,6 +250,7 @@ export default function OccasionPage() {
       product_images(*)
       `)
       .filter("occasion", "eq", decodedOccasion)
+      .eq("listed_status", true)
       .order("updated_at", { ascending: false })
       if(error){
         console.log("error",error)

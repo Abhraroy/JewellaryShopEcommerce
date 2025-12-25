@@ -251,6 +251,7 @@ export default function CategoryPage() {
       product_images(*)
       `)
       .filter("categories.slug", "eq", decodedCategorySlug)
+      .eq("listed_status", true)
       .order("updated_at", { ascending: false })
       if(error){
         console.log("error",error)

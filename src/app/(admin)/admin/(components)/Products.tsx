@@ -132,6 +132,7 @@ export default function Products({ isDarkTheme }: ProductsProps) {
     tags: [] as string[],
     occasion: "" as string,
     collection: "" as string,
+    listed_status: true as boolean,
   });
   const [products, setProducts] = useState<any[]>([]);
   const [thumbnailImagePreview, setThumbnailImagePreview] = useState<string | null>(null);
@@ -356,6 +357,7 @@ export default function Products({ isDarkTheme }: ProductsProps) {
         tags: [],
         occasion: "",
         collection: "",
+      listed_status: true,
       });
       setThumbnailImagePreview(null);
       const result = await getProducts();
@@ -392,6 +394,7 @@ export default function Products({ isDarkTheme }: ProductsProps) {
       tags: product.tags,
       occasion: product.occasion,
       collection: product.collection || "",
+      listed_status: product.listed_status ?? true,
     });
     setThumbnailImagePreview(product.thumbnail_image);
     setEditingProductId(product.product_id);
@@ -421,6 +424,7 @@ export default function Products({ isDarkTheme }: ProductsProps) {
         tags: [],
         occasion: "",
         collection: "",
+      listed_status: true,
       });
       setThumbnailImagePreview(null);
       setEditingProductId(null);
@@ -565,6 +569,27 @@ export default function Products({ isDarkTheme }: ProductsProps) {
                         : "bg-white border-gray-300 text-gray-900 placeholder-gray-400"
                     } focus:outline-none focus:ring-2 focus:ring-[#E94E8B]`}
                   />
+                </div>
+
+                {/* Listed Status */}
+                <div className="md:col-span-2">
+                  <label
+                    className={`flex items-center gap-3 text-sm font-medium ${
+                      isDarkTheme ? "text-gray-300" : "text-gray-700"
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      name="listed_status"
+                      checked={!!formData.listed_status}
+                      onChange={handleInputChange}
+                      className="h-4 w-4 accent-[#E94E8B]"
+                    />
+                    Listed (visible to shoppers)
+                  </label>
+                  <p className={`text-xs mt-1 ${isDarkTheme ? "text-gray-400" : "text-gray-500"}`}>
+                    Uncheck to hide this product from all customer views.
+                  </p>
                 </div>
               </div>
             </div>
@@ -919,7 +944,9 @@ export default function Products({ isDarkTheme }: ProductsProps) {
                 </label>
                 <div className="flex flex-row flex-wrap items-center gap-2 mb-3">
                   {providedTags.map((tag) => {
-                    const isSelected = formData.tags.includes(tag);
+                    const isSelected = Array.isArray(formData.tags)
+                      ? formData.tags.includes(tag)
+                      : false;
                     return (
                       <button
                         key={tag}
@@ -955,13 +982,13 @@ export default function Products({ isDarkTheme }: ProductsProps) {
                 <input
                   type="text"
                   name="tags"
-                  value={(formData.tags!==null && formData.tags!==undefined) ? formData.tags.join(", ") : ""}
+                  value={Array.isArray(formData.tags) ? formData.tags.join(", ") : ""}
                   onChange={(e) => {
                     const tags = e.target.value
                       .split(",")
                       .map((t) => t.trim())
                       .filter((t) => t.length > 0);
-                    setFormData((prev) => ({ ...prev, tags: tags }));
+                    setFormData((prev) => ({ ...prev, tags }));
                   }}
                   placeholder="Or enter custom tags separated by commas"
                   className={`w-full px-4 py-2 rounded-lg border transition-colors ${
@@ -1238,6 +1265,15 @@ export default function Products({ isDarkTheme }: ProductsProps) {
                         : "border-gray-300 text-gray-700 bg-gray-50"
                     }`}
                   >
+                    Listed
+                  </th>
+                  <th
+                    className={`text-center py-3 px-4 font-semibold text-sm border whitespace-nowrap ${
+                      isDarkTheme
+                        ? "border-gray-700 text-gray-300 bg-gray-800"
+                        : "border-gray-300 text-gray-700 bg-gray-50"
+                    }`}
+                  >
                     Thumbnail Image
                   </th>
                   <th
@@ -1473,6 +1509,27 @@ export default function Products({ isDarkTheme }: ProductsProps) {
                           —
                         </span>
                       )}
+                    </td>
+                    <td
+                      className={`text-center py-3 px-4 border whitespace-nowrap ${
+                        isDarkTheme
+                          ? "border-gray-700 text-gray-300"
+                          : "border-gray-300 text-gray-900"
+                      }`}
+                    >
+                      <span
+                        className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold ${
+                          product.listed_status
+                            ? isDarkTheme
+                              ? "bg-green-900 text-green-200"
+                              : "bg-green-100 text-green-700"
+                            : isDarkTheme
+                            ? "bg-red-900 text-red-200"
+                            : "bg-red-100 text-red-700"
+                        }`}
+                      >
+                        {product.listed_status ? "Listed" : "Unlisted"}
+                      </span>
                     </td>
                     <td
                       className={`text-center py-3 px-4 border whitespace-nowrap ${

@@ -33,6 +33,7 @@ export default function ProductPage() {
             categories(*)
           `)
           .eq("product_id", product_id)
+          .eq("listed_status", true)
           .single();
         
         if (productError) {

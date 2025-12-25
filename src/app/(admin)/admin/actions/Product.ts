@@ -98,6 +98,10 @@ export async function createProduct(productData: any) {
       tags: productData.tags || [],
       occasion: productData.occasion || "",
       collection: productData.collection || "",
+      listed_status:
+        typeof productData.listed_status === "boolean"
+          ? productData.listed_status
+          : true,
     };
     const { data, error } = await supabase
       .from("products")
@@ -171,6 +175,10 @@ export async function updateProduct(productId: string, productData: any) {
       tags: productData.tags || [],
       occasion: productData.occasion || "",
       collection: productData.collection || "",
+      listed_status:
+        typeof productData.listed_status === "boolean"
+          ? productData.listed_status
+          : true,
     };
     const { data: updatedData, error: updateError } = await supabase
       .from("products")

@@ -228,7 +228,8 @@ export default function LandingPage() {
       const supabase = createClient();
       const { data, error }: any = await supabase.from("products")
       .select("*")
-      .contains("tags",["best-sellers"]);
+      .contains("tags",["best-sellers"])
+      .eq("listed_status", true);
       if (error) {
         console.log("error", error);
       } else {
@@ -240,7 +241,8 @@ export default function LandingPage() {
     const getNewArrivals = async () => {
       const { data, error }: any = await supabase.from("products")
       .select("*")
-      .contains("tags",["new-arrivals"]);
+      .contains("tags",["new-arrivals"])
+      .eq("listed_status", true);
       if (error) {
         console.log("error", error);
       } else {
