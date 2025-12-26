@@ -5,6 +5,19 @@ import Image from "next/image";
 export default function ModelCaraousel() {
   const [carouselIndex, setCarouselIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Detect mobile screen size
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 640);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // Model images with jewelry information
   const modelImages = [
@@ -75,19 +88,19 @@ export default function ModelCaraousel() {
   }, [isPaused, modelImages.length]);
 
   return (
-    <section className="w-full py-12 md:py-16 px-4 sm:px-6 lg:px-8">
+    <section className="w-full py-8 sm:py-12 md:py-16 px-2 sm:px-4 lg:px-8">
       <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-8 md:mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3">
+        <div className="text-center mb-6 sm:mb-8 md:mb-12">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-2 sm:mb-3">
             See Our Jewellery in Action
           </h2>
-          <p className="text-gray-600 text-lg">
+          <p className="text-sm sm:text-base md:text-lg text-gray-600 px-2">
             Discover elegant pieces that complement your style. Auto-plays and pauses on hover.
           </p>
         </div>
 
         <div
-          className="relative h-[450px] md:h-[550px] lg:h-[650px] overflow-visible"
+          className="relative h-[350px] sm:h-[400px] md:h-[550px] lg:h-[650px] overflow-hidden"
           onMouseEnter={() => setIsPaused(true)}
           onMouseLeave={() => setIsPaused(false)}
         >
@@ -119,11 +132,26 @@ export default function ModelCaraousel() {
                 const isLeft = position === -1;
                 const isRight = position === 1;
 
-                // Transform calculations - more spacing for better visibility
-                const translateX = position * 42; // Percentage offset (increased for better spacing)
-                // Reduced scale difference for imperceptible size change
-                const scale = isCenter ? 1 : 0.92; // Minimal scale difference for smooth transition
-                const opacity = 1; // Full opacity for all slides
+                // Responsive transform calculations
+                // Mobile: smaller translateX (30%) and smaller width (70%) to fit all 3 slides
+                // Desktop: larger translateX (42%) and larger width (90%)
+                const translateX = isMobile 
+                  ? position * 30  // Mobile: 30% offset
+                  : position * 42; // Desktop: 42% offset
+                
+                // Responsive scale - smaller on mobile to fit all slides
+                const scale = isCenter 
+                  ? 1 
+                  : isMobile 
+                    ? 0.75  // Mobile: smaller scale for side slides
+                    : 0.92; // Desktop: larger scale for side slides
+                
+                // Responsive width
+                const slideWidth = isMobile 
+                  ? "70%"  // Mobile: smaller width
+                  : "90%"; // Desktop: larger width
+                
+                const opacity = 1;
                 const zIndex = isCenter ? 10 : isLeft ? 4 : 4;
 
                 return (
@@ -137,7 +165,7 @@ export default function ModelCaraousel() {
                       transformOrigin: "center center",
                       opacity: opacity,
                       zIndex: zIndex,
-                      width: "90%",
+                      width: slideWidth,
                       maxWidth: "700px",
                       height: "100%",
                       transition: "transform 1.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 1.4s cubic-bezier(0.16, 1, 0.3, 1)",
@@ -166,15 +194,15 @@ export default function ModelCaraousel() {
                         }}
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent" />
-                      <div className="absolute inset-0 flex items-end justify-center p-6 md:p-8 lg:p-12">
-                        <div className="text-center text-white space-y-2 md:space-y-3 max-w-2xl">
-                          <p className="text-[10px] md:text-xs uppercase tracking-[0.2em] text-lime-300 font-semibold opacity-90">
+                      <div className="absolute inset-0 flex items-end justify-center p-3 sm:p-4 md:p-6 lg:p-8 xl:p-12">
+                        <div className="text-center text-white space-y-1 sm:space-y-2 md:space-y-3 max-w-2xl px-2">
+                          <p className="text-[9px] sm:text-[10px] md:text-xs uppercase tracking-[0.15em] sm:tracking-[0.2em] text-lime-300 font-semibold opacity-90">
                             Featured Collection
                           </p>
-                          <h3 className="text-xl md:text-2xl lg:text-3xl font-bold mb-1 md:mb-2">
+                          <h3 className="text-sm sm:text-base md:text-xl lg:text-2xl xl:text-3xl font-bold mb-0.5 sm:mb-1 md:mb-2 line-clamp-2">
                             {item.alt}
                           </h3>
-                          <p className="text-xs md:text-sm text-gray-200 opacity-90">
+                          <p className="text-[10px] sm:text-xs md:text-sm text-gray-200 opacity-90 line-clamp-2">
                             {item.jewelry}
                           </p>
                         </div>
@@ -186,7 +214,7 @@ export default function ModelCaraousel() {
             </div>
           </div>
 
-          {/* Navigation arrows - positioned on far left and right */}
+          {/* Navigation arrows - responsive positioning */}
           <button
             type="button"
             onClick={() =>
@@ -194,7 +222,7 @@ export default function ModelCaraousel() {
                 prev === 0 ? modelImages.length - 1 : prev - 1
               )
             }
-            className="absolute left-0 md:-left-8 top-1/2 -translate-y-1/2 w-12 h-12 md:w-14 md:h-14 rounded-full bg-white/90 backdrop-blur-sm text-gray-800 shadow-xl hover:bg-white hover:shadow-2xl transition-all duration-300 z-20 flex items-center justify-center group"
+            className="absolute left-1 sm:left-2 md:-left-8 top-1/2 -translate-y-1/2 w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 lg:w-14 lg:h-14 rounded-full bg-white/90 backdrop-blur-sm text-gray-800 shadow-xl hover:bg-white hover:shadow-2xl transition-all duration-300 z-20 flex items-center justify-center group"
             aria-label="Previous slide"
           >
             <svg
@@ -203,7 +231,7 @@ export default function ModelCaraousel() {
               viewBox="0 0 24 24"
               strokeWidth={2.5}
               stroke="currentColor"
-              className="w-6 h-6 md:w-7 md:h-7 group-hover:scale-110 transition-transform"
+              className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 lg:w-7 lg:h-7 group-hover:scale-110 transition-transform"
             >
               <path
                 strokeLinecap="round"
@@ -217,7 +245,7 @@ export default function ModelCaraousel() {
             onClick={() =>
               setCarouselIndex((prev) => (prev + 1) % modelImages.length)
             }
-            className="absolute right-0 md:-right-8 top-1/2 -translate-y-1/2 w-12 h-12 md:w-14 md:h-14 rounded-full bg-white/90 backdrop-blur-sm text-gray-800 shadow-xl hover:bg-white hover:shadow-2xl transition-all duration-300 z-20 flex items-center justify-center group"
+            className="absolute right-1 sm:right-2 md:-right-8 top-1/2 -translate-y-1/2 w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 lg:w-14 lg:h-14 rounded-full bg-white/90 backdrop-blur-sm text-gray-800 shadow-xl hover:bg-white hover:shadow-2xl transition-all duration-300 z-20 flex items-center justify-center group"
             aria-label="Next slide"
           >
             <svg
@@ -226,7 +254,7 @@ export default function ModelCaraousel() {
               viewBox="0 0 24 24"
               strokeWidth={2.5}
               stroke="currentColor"
-              className="w-6 h-6 md:w-7 md:h-7 group-hover:scale-110 transition-transform"
+              className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 lg:w-7 lg:h-7 group-hover:scale-110 transition-transform"
             >
               <path
                 strokeLinecap="round"
@@ -237,15 +265,15 @@ export default function ModelCaraousel() {
           </button>
 
           {/* Carousel indicators */}
-          <div className="absolute bottom-6 md:bottom-8 left-1/2 -translate-x-1/2 flex gap-2 z-20">
+          <div className="absolute bottom-4 sm:bottom-6 md:bottom-8 left-1/2 -translate-x-1/2 flex gap-1.5 sm:gap-2 z-20">
             {modelImages.map((_, index) => (
               <button
                 key={index}
                 onClick={() => setCarouselIndex(index)}
-                className={`h-2 rounded-full transition-all duration-500 ease-out ${
+                className={`h-1.5 sm:h-2 rounded-full transition-all duration-500 ease-out ${
                   index === carouselIndex
-                    ? "w-8 bg-white shadow-lg"
-                    : "w-2 bg-white/40 hover:bg-white/60"
+                    ? "w-6 sm:w-8 bg-white shadow-lg"
+                    : "w-1.5 sm:w-2 bg-white/40 hover:bg-white/60"
                 }`}
                 aria-label={`Go to slide ${index + 1}`}
               />
