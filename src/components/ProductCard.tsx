@@ -1,13 +1,19 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useStore } from "@/zustandStore/zustandStore";
 import { addToDbCart, addToLocalCart } from "@/utilityFunctions/CartFunctions";
 import { createClient } from "@/app/utils/supabase/client";
 import { Product } from "@/utilityFunctions/TypeInterface";
-import { addToLocalWishList } from "@/utilityFunctions/WishListFunctions";
+import { 
+  addToLocalWishList, 
+  removeFromLocalWishList,
+  addToDbWishlist,
+  removeFromDbWishlist,
+  checkIfWishlisted
+} from "@/utilityFunctions/WishListFunctions";
 
 
 // export interface Product {
@@ -47,15 +53,59 @@ export default function ProductCard({
   const [imageError, setImageError] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [isCartClicked, setIsCartClicked] = useState(false);
-  const { cartItems, setCartItems,AuthenticatedState,AuthUserId,CartId } = useStore();
+  const { cartItems, setCartItems, AuthenticatedState, AuthUserId, CartId, setWishListItems } = useStore();
   const supabase = createClient();
+
+  // Check if product is wishlisted when component mounts (for authenticated users)
+  useEffect(() => {
+    const checkWishlistStatus = async () => {
+      if (AuthenticatedState && AuthUserId && product.product_id) {
+        const wishlisted = await checkIfWishlisted(product.product_id, AuthUserId, supabase);
+        setIsWishlistActive(wishlisted);
+      }
+    };
+    checkWishlistStatus();
+  }, [AuthenticatedState, AuthUserId, product.product_id]);
+
   const handleWishlistClick = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    setIsWishlistActive(!isWishlistActive);
+    
+    const newWishlistState = !isWishlistActive;
+    setIsWishlistActive(newWishlistState);
     onWishlistToggle?.(product.product_id);
-    const updatedWishList = await addToLocalWishList(product)
-    console.log("updatedWishList",updatedWishList)
+
+    if (AuthenticatedState && AuthUserId) {
+      // Use database functions for authenticated users
+      if (newWishlistState) {
+        // Add to wishlist
+        const result = await addToDbWishlist(product, AuthUserId, supabase);
+        if (!result.success) {
+          // Revert state if failed
+          setIsWishlistActive(!newWishlistState);
+          console.error("Failed to add to wishlist:", result.error);
+        }
+      } else {
+        // Remove from wishlist
+        const result = await removeFromDbWishlist(product, AuthUserId, supabase);
+        if (!result.success) {
+          // Revert state if failed
+          setIsWishlistActive(!newWishlistState);
+          console.error("Failed to remove from wishlist:", result.error);
+        }
+      }
+    } else {
+      // Use localStorage for unauthenticated users
+      if (newWishlistState) {
+        const updatedWishList = addToLocalWishList(product);
+        setWishListItems(updatedWishList);
+        console.log("updatedWishList", updatedWishList);
+      } else {
+        const updatedWishList = removeFromLocalWishList(product);
+        setWishListItems(updatedWishList);
+        console.log("removed from wishList", updatedWishList);
+      }
+    }
   };
 
   const handleAddToCart = async (e: React.MouseEvent) => {

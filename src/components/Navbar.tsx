@@ -262,14 +262,10 @@ export default function Navbar({ cartCount = 0, isAuthenticated = false, onCartC
     (item) => !item.requiresAuth || isAuthenticated
   );
 
-  // Handle wishlist click
+  // Handle wishlist click - always navigate to wishlist page (mobile sidebar)
   const handleWishlistClick = () => {
     handleCloseSidebar();
-    if (AuthenticatedState) {
-      router.push('/wishlist');
-    } else {
-      setMobnoInputState();
-    }
+    router.push('/wishlist');
   };
 
   // Handle account click - same behavior as desktop icon
@@ -280,6 +276,11 @@ export default function Navbar({ cartCount = 0, isAuthenticated = false, onCartC
     } else {
       setMobnoInputState();
     }
+  };
+
+  // Handle desktop wishlist click - always navigate to wishlist page
+  const handleDesktopWishlistClick = () => {
+    router.push('/wishlist');
   };
 
   // Desktop icons configuration
@@ -301,7 +302,7 @@ export default function Navbar({ cartCount = 0, isAuthenticated = false, onCartC
     {
       label: 'Wishlist',
       icon: <WishlistIcon className="w-6 h-6 md:w-7 md:h-7" />,
-      onClick: () => {},
+      onClick: handleDesktopWishlistClick,
     },
     {
       label: 'Shopping Cart',

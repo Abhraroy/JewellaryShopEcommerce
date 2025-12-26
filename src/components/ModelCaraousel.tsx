@@ -100,14 +100,14 @@ export default function ModelCaraousel() {
         </div>
 
         <div
-          className="relative h-[350px] sm:h-[400px] md:h-[550px] lg:h-[650px] overflow-hidden"
+          className="relative h-[350px] sm:h-[400px] md:h-[550px] lg:h-[650px] overflow-hidden bg-transparent"
           onMouseEnter={() => setIsPaused(true)}
           onMouseLeave={() => setIsPaused(false)}
         >
           {/* Carousel Container */}
-          <div className="relative w-full h-full flex items-center justify-center">
+          <div className="relative w-full h-full flex items-center justify-center bg-transparent">
             <div
-              className="flex items-center justify-center relative"
+              className="flex items-center justify-center relative bg-transparent"
               style={{
                 width: "100%",
                 height: "100%",
@@ -157,7 +157,7 @@ export default function ModelCaraousel() {
                 return (
                   <div
                     key={item.id}
-                    className="absolute"
+                    className="absolute bg-transparent"
                     style={{
                       left: "50%",
                       top: "50%",
@@ -177,9 +177,8 @@ export default function ModelCaraousel() {
                     }}
                   >
                     <div 
-                      className="relative w-full h-full rounded-2xl overflow-hidden shadow-2xl"
+                      className="relative w-full h-full rounded-2xl overflow-hidden bg-transparent"
                       style={{
-                        transition: "box-shadow 1s ease-in-out",
                         transform: "translateZ(0)", // Force GPU acceleration
                       }}
                     >
@@ -222,7 +221,7 @@ export default function ModelCaraousel() {
                 prev === 0 ? modelImages.length - 1 : prev - 1
               )
             }
-            className="absolute left-1 sm:left-2 md:-left-8 top-1/2 -translate-y-1/2 w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 lg:w-14 lg:h-14 rounded-full bg-white/90 backdrop-blur-sm text-gray-800 shadow-xl hover:bg-white hover:shadow-2xl transition-all duration-300 z-20 flex items-center justify-center group"
+            className="absolute left-1 sm:left-2 md:left-4 lg:left-8 top-1/2 -translate-y-1/2 w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 lg:w-14 lg:h-14 rounded-full bg-white/90 backdrop-blur-sm text-gray-800 hover:bg-white transition-all duration-300 z-30 flex items-center justify-center group"
             aria-label="Previous slide"
           >
             <svg
@@ -245,7 +244,7 @@ export default function ModelCaraousel() {
             onClick={() =>
               setCarouselIndex((prev) => (prev + 1) % modelImages.length)
             }
-            className="absolute right-1 sm:right-2 md:-right-8 top-1/2 -translate-y-1/2 w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 lg:w-14 lg:h-14 rounded-full bg-white/90 backdrop-blur-sm text-gray-800 shadow-xl hover:bg-white hover:shadow-2xl transition-all duration-300 z-20 flex items-center justify-center group"
+            className="absolute right-1 sm:right-2 md:right-4 lg:right-8 top-1/2 -translate-y-1/2 w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 lg:w-14 lg:h-14 rounded-full bg-white/90 backdrop-blur-sm text-gray-800 hover:bg-white transition-all duration-300 z-30 flex items-center justify-center group"
             aria-label="Next slide"
           >
             <svg
@@ -265,7 +264,7 @@ export default function ModelCaraousel() {
           </button>
 
           {/* Carousel indicators */}
-          <div className="absolute bottom-4 sm:bottom-6 md:bottom-8 left-1/2 -translate-x-1/2 flex gap-1.5 sm:gap-2 z-20">
+          {/* <div className="absolute bottom-4 sm:bottom-6 md:bottom-8 left-1/2 -translate-x-1/2 flex gap-1.5 sm:gap-2 z-20">
             {modelImages.map((_, index) => (
               <button
                 key={index}
@@ -278,7 +277,7 @@ export default function ModelCaraousel() {
                 aria-label={`Go to slide ${index + 1}`}
               />
             ))}
-          </div>
+          </div> */}
         </div>
       </div>
     </section>
