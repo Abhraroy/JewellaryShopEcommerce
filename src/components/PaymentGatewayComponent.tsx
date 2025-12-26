@@ -70,6 +70,7 @@ export default function PaymentGatewayComponent() {
       });
       console.log("res", res);
       setTransacToken(res.data.data.redirectUrl);
+      localStorage.setItem("merchantOrderId", res.data.merchantOrderId);
     } catch (error) {
       console.error("Error getting auth token:", error);
       // You might want to show an error message to the user here

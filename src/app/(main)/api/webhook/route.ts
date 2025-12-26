@@ -22,7 +22,28 @@ export async function POST(request: NextRequest) {
     console.log("hash", hash);
     const supabase = await createClient();
 
-    const body = await request.json();
+    let body;
+    try {
+      const text = await request.text();
+      console.log("Raw body text:", text);
+      console.log("Body length:", text.length);
+      
+      if (!text || text.length === 0) {
+        console.error("Empty request body");
+        return NextResponse.json(
+          { message: "Empty request body" },
+          { status: 400 }
+        );
+      }
+      
+      body = JSON.parse(text);
+    } catch (error) {
+      console.error("Error parsing request body:", error);
+      return NextResponse.json(
+        { message: "Invalid JSON body" },
+        { status: 400 }
+      );
+    }
     console.log("body", body);
     const orderData = {
         user_id:body.payload.metaInfo.udf1,

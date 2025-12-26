@@ -5,13 +5,17 @@ import { createClient } from "@/app/utils/supabase/server";
 
 export async function POST(request: NextRequest) {
   const supabase = await createClient();
-  let totalAmount = 0
-  let amountInPaise = 0
-  let user_id=null
-  let cart_id=null
-  let lastAddedProductTime=null
-  let address_id=null
-  
+  let totalAmount = 0;
+  let amountInPaise = 0;
+  let user_id = null;
+  let cart_id = null;
+  let lastAddedProductTime = null;
+  let address_id = null;
+  let cartData = null;
+  let cachedToken={
+    access_token: null,
+    expires_at: null,
+  }
   // Get address_id from request body
   try {
     const body = await request.json();
@@ -26,43 +30,54 @@ export async function POST(request: NextRequest) {
   if (user) {
     const userData = await supabase
       .from("users")
-      .select(`*,
-        cart(*)
-        `)
-      .eq("phone_number", "+"+user.phone)
+      .select(
+        `*,
+        cart(*),
+        `
+      )
+      .eq("phone_number", "+" + user.phone)
       .single();
-      console.log("userData",userData);
-      if(userData.data.cart){
-        user_id = userData.data.user_id;
-        cart_id = userData.data.cart.cart_id;
-        const cartData = await supabase
-          .from("cart_items")
-          .select(`
-            *,
-            products(*)
-          `)
-          .eq("cart_id",userData.data.cart.cart_id)
-          .order("added_at", { ascending: false });
-        console.log("cartData",cartData);
-        console.log("cartdata products",cartData?.data?.[0]?.products);
-        lastAddedProductTime = cartData?.data?.[0]?.added_at;
-        if(cartData.error) {
-          console.error("Error fetching cart data:", cartData.error);
-        }
-        if(cartData.data && cartData.data.length > 0) {
-          totalAmount = cartData.data.reduce((sum: number, item: any) => {
-            if(item.products && item.products.final_price) {
-              return sum + item.products.final_price * item.quantity;
-            }
-            return sum;
-          }, 0);
-          console.log("totalAmount",totalAmount);
-          amountInPaise = Math.round(totalAmount * 100);
+    console.log("userData", userData);
+    if (!userData.error && userData.data) {
+      const userDataResult = userData.data as any;
+      if (userDataResult.cart) {
+        user_id = userDataResult.user_id;
+        cart_id = userDataResult.cart?.cart_id;
+        if (cart_id) {
+          cartData = await supabase
+            .from("cart_items")
+            .select(
+              `
+                *,
+                products(*)
+              `
+            )
+            .eq("cart_id", cart_id)
+            .order("added_at", { ascending: false });
+          console.log("cartData", cartData);
+          console.log("cartdata products", cartData?.data?.[0]?.products);
+          lastAddedProductTime = cartData?.data?.[0]?.added_at;
+          if (cartData && cartData.error) {
+            console.error("Error fetching cart data:", cartData.error);
+          }
+          if (cartData && cartData.data && cartData.data.length > 0) {
+            totalAmount = cartData.data.reduce((sum: number, item: any) => {
+              if (item.products && item.products.final_price) {
+                return sum + item.products.final_price * item.quantity;
+              }
+              return sum;
+            }, 0);
+            console.log("totalAmount", totalAmount);
+            amountInPaise = Math.round(totalAmount * 100);
+          }
         }
       }
+    }
   }
 
   const merchantOrderId = uuidv4();
+
+
 
   const requestHeaders = {
     "Content-Type": "application/x-www-form-urlencoded",
@@ -86,7 +101,8 @@ export async function POST(request: NextRequest) {
     headers: requestHeaders,
   });
   console.log("res", res.data);
-
+  cachedToken.access_token = res.data.access_token;
+  cachedToken.expires_at = res.data.expires_at;
   if (res.data.access_token) {
     const order_requestHeaders = {
       "Content-Type": "application/json",
@@ -94,14 +110,14 @@ export async function POST(request: NextRequest) {
     };
 
     const order_requestBody = {
-      amount:amountInPaise,
+      amount: amountInPaise,
       expireAfter: 1200,
       metaInfo: {
         udf1: user_id,
         udf2: merchantOrderId,
         udf3: totalAmount,
-        udf4: lastAddedProductTime,
-        udf5: cart_id,
+        udf4: lastAddedProductTime || "additional-information-4",
+        udf5: cart_id || "additional-information-5",
         udf6: address_id || "additional-information-6",
         udf7: "additional-information-7",
         udf8: "additional-information-8",
@@ -117,7 +133,7 @@ export async function POST(request: NextRequest) {
         type: "PG_CHECKOUT",
         message: "Payment message used for collect requests",
         merchantUrls: {
-          redirectUrl: "https://98c30ff0f032.ngrok-free.app/",
+          redirectUrl: "https://paso-margin-sip-bread.trycloudflare.com/redirect",
         },
       },
 
@@ -143,6 +159,69 @@ export async function POST(request: NextRequest) {
         ],
       },
     };
+    const orderData = {
+      user_id: user_id,
+      merchant_order_id: merchantOrderId,
+      order_status: "pending",
+      payment_status: "pending",
+      total_amount: amountInPaise / 100,
+      shipping_address_id: address_id,
+    };
+    if (!cartData || cartData.error || !cartData.data || cartData.data.length === 0) {
+      console.log("Error in cart data, no order created");
+      return NextResponse.json(
+        { message: "Error in cart data, no order created" },
+        { status: 400 }
+      );
+    }
+
+    const { data, error } = await supabase
+      .from("orders")
+      .insert(orderData)
+      .select("*")
+      .single();
+    if (error) {
+      console.log("error", error);
+      return NextResponse.json(
+        { message: "Error creating order" },
+        { status: 500 }
+      );
+    }
+
+    const orderId = data.order_id;
+    
+    // Create order items for each cart item
+    const orderItemsPromises = cartData.data.map(async (item: any) => {
+      const orderItemsPayload = {
+        order_id: orderId,
+        product_id: item.product_id,
+        quantity: item.quantity,
+        unit_price: item.products.final_price,
+        total_price: item.products.final_price * item.quantity,
+      };
+      const { data, error } = await supabase
+        .from("order_items")
+        .insert(orderItemsPayload)
+        .select("*")
+        .single();
+      if (error) {
+        console.log("error creating order item", error);
+        throw error;
+      }
+      console.log("order item created", data);
+      return data;
+    });
+
+    try {
+      await Promise.all(orderItemsPromises);
+      console.log("All order items created successfully");
+    } catch (error) {
+      console.log("Error creating order items", error);
+      return NextResponse.json(
+        { message: "Error creating order items" },
+        { status: 500 }
+      );
+    }
     console.log(
       "Order Payload Sent:",
       JSON.stringify(order_requestBody, null, 2)
@@ -157,6 +236,19 @@ export async function POST(request: NextRequest) {
       { headers: order_requestHeaders }
     );
     console.log("order_res", order_res.data);
-    return NextResponse.json({ data: order_res.data }, { status: 200 });
+    if (order_res.data && order_res.data.orderId) {
+      const order_res_phonepay = await supabase.from("orders")
+        .update({
+          order_number: order_res.data.orderId,
+          payment_status: "pending",
+        })
+        .eq("order_id", orderId);
+      console.log("order_res_phonepay", order_res_phonepay);
+    } else {
+      console.log("No orderId in response, skipping order update");
+    }
+    return NextResponse.json({ data: order_res.data,
+      merchantOrderId: merchantOrderId,
+     }, { status: 200 });
   }
 }
