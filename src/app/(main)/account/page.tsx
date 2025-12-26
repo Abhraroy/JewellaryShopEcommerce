@@ -351,112 +351,118 @@ export default function AccountPage() {
 
   return (
     <div className="min-h-screen bg-theme-cream">
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 md:py-8 lg:py-12">
         {/* Page Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-2">
             My Account
           </h1>
-          <p className="text-gray-600">
+          <p className="text-sm sm:text-base text-gray-600">
             Manage your account information and preferences
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
           {/* Main Content - Left Side (2 columns) */}
           <div className="lg:col-span-2 space-y-6">
             {/* Account Information Card */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center gap-2">
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
+              <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4 sm:mb-6 flex items-center gap-2">
                 <UserIcon />
                 Account Information
               </h2>
 
               <div className="space-y-4">
-                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 pb-4 border-b border-gray-100">
-                  <div className="flex items-center gap-3 min-w-[120px]">
-                    <div className="p-2 bg-theme-sage/20 rounded-lg text-theme-olive">
+                <div className="flex flex-col gap-2 sm:gap-4 pb-4 border-b border-gray-100">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-theme-sage/20 rounded-lg text-theme-olive flex-shrink-0">
                       <PhoneIcon />
                     </div>
-                    <span className="text-sm font-medium text-gray-500">
-                      Phone Number
-                    </span>
-                  </div>
-                  <span className="text-gray-900 font-medium">
-                    {formattedPhone || "Not provided"}
-                  </span>
-                </div>
-
-                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 pb-4 border-b border-gray-100">
-                  <div className="flex items-center gap-6 min-w-[120px]">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 bg-amber-100 rounded-lg text-amber-600">
-                        <EmailIcon />
-                      </div>
-                      <span className="text-sm font-medium text-gray-500">
-                        Email
+                    <div className="flex-1">
+                      <span className="text-xs sm:text-sm font-medium text-gray-500 block mb-1">
+                        Phone Number
+                      </span>
+                      <span className="text-sm sm:text-base text-gray-900 font-medium">
+                        {formattedPhone || "Not provided"}
                       </span>
                     </div>
-                    <span className="text-gray-900 font-medium">
-                      {formattedEmail || "Not provided"}
-                    </span>
                   </div>
-                  <div>
+                </div>
+
+                <div className="flex flex-col gap-3 sm:gap-4 pb-4 border-b border-gray-100">
+                  <div className="flex items-start gap-3">
+                    <div className="p-2 bg-amber-100 rounded-lg text-amber-600 flex-shrink-0">
+                      <EmailIcon />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <span className="text-xs sm:text-sm font-medium text-gray-500 block mb-1">
+                        Email
+                      </span>
+                      <span className="text-sm sm:text-base text-gray-900 font-medium break-words">
+                        {formattedEmail || "Not provided"}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="ml-11 sm:ml-0">
                     {!emailUpdateState ? (
                       <button
-                        className="text-theme-olive hover:text-theme-sage font-medium text-sm"
+                        className="text-theme-olive hover:text-theme-sage font-medium text-xs sm:text-sm"
                         onClick={handleEmailUpdateState}
-                        
                       >
                         Update Email
                       </button>
                     ) : (
                       <form
                         onSubmit={handleEmailUpdate}
-                        className="flex flex-row gap-2"
+                        className="flex flex-col sm:flex-row gap-2"
                       >
                         <input
                           type="email"
                           name="email"
                           placeholder="Enter your email"
-                          className="border border-theme-sage/30 rounded-md p-2 outline-0 focus:ring-2 focus:ring-theme-sage focus:border-transparent text-gray-900 placeholder-gray-400"
+                          className="flex-1 border border-theme-sage/30 rounded-md px-3 py-2 text-sm outline-0 focus:ring-2 focus:ring-theme-sage focus:border-transparent text-gray-900 placeholder-gray-400"
                           required
                         />
-                        <button
-                          type="submit"
-                          disabled={!emailUpdateState}
-                          className="bg-theme-sage hover:bg-theme-olive text-white font-medium rounded-md p-2"
-                        >
-                          Update
-                        </button>
-                        <button
-                          onClick={handleEmailUpdateState}
-                          className="bg-gray-600 hover:bg-gray-700 text-white font-medium rounded-md p-2"
-                        >
-                          cancel
-                        </button>
+                        <div className="flex gap-2">
+                          <button
+                            type="submit"
+                            disabled={!emailUpdateState}
+                            className="bg-theme-sage hover:bg-theme-olive text-white font-medium rounded-md px-3 py-2 text-sm whitespace-nowrap"
+                          >
+                            Update
+                          </button>
+                          <button
+                            type="button"
+                            onClick={handleEmailUpdateState}
+                            className="bg-gray-600 hover:bg-gray-700 text-white font-medium rounded-md px-3 py-2 text-sm whitespace-nowrap"
+                          >
+                            Cancel
+                          </button>
+                        </div>
                       </form>
                     )}
                   </div>
                 </div>
 
-                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
-                  <div className="flex items-center gap-3 min-w-[120px]">
-                    <div className="p-2 bg-amber-100 rounded-lg text-amber-600">
+                <div className="flex flex-col gap-2 sm:gap-4">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-amber-100 rounded-lg text-amber-600 flex-shrink-0">
                       <CalendarIcon />
                     </div>
-                    <span className="text-sm font-medium text-gray-500">
-                      Customer Since
-                    </span>
+                    <div className="flex-1">
+                      <span className="text-xs sm:text-sm font-medium text-gray-500 block mb-1">
+                        Customer Since
+                      </span>
+                      <span className="text-sm sm:text-base text-gray-900 font-medium">{createdAt || "N/A"}</span>
+                    </div>
                   </div>
-                  <span className="text-gray-900 font-medium">{createdAt || "N/A"}</span>
                 </div>
               </div>
             </div>
 
             {/* Recent Orders Card */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center gap-2">
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
+              <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4 sm:mb-6 flex items-center gap-2">
                 <OrderIcon />
                 Recent Orders
               </h2>
@@ -482,17 +488,17 @@ export default function AccountPage() {
                     return (
                       <div
                         key={order?.order_id ?? `order-${Math.random()}`}
-                        className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow duration-200"
+                        className="border border-gray-200 rounded-lg p-3 sm:p-4 hover:shadow-md transition-shadow duration-200"
                       >
                         {/* Order Header */}
-                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                        <div className="flex flex-col gap-3 sm:gap-4">
                           <div className="flex-1">
-                            <div className="flex items-center gap-3 mb-2">
-                              <span className="text-sm font-semibold text-gray-900">
+                            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-2">
+                              <span className="text-xs sm:text-sm font-semibold text-gray-900">
                                 Order #{order?.order_number?.slice(-8) ?? order?.order_id?.slice(0, 8) ?? "N/A"}
                               </span>
                               <span
-                                className={`px-2.5 py-1 rounded-full text-xs font-medium ${
+                                className={`px-2.5 py-1 rounded-full text-xs font-medium w-fit ${
                                   order?.order_status === "delivered"
                                     ? "bg-green-100 text-green-700"
                                     : order?.order_status === "shipped"
@@ -564,7 +570,7 @@ export default function AccountPage() {
                           <button
                             onClick={() => handleViewOrderDetails(order?.order_id)}
                             disabled={loadingOrderItems === order?.order_id}
-                            className="px-4 py-2 bg-theme-sage hover:bg-theme-olive text-white font-medium rounded-lg transition-colors duration-200 text-sm flex items-center gap-2 whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="w-full sm:w-auto px-4 py-2 bg-theme-sage hover:bg-theme-olive text-white font-medium rounded-lg transition-colors duration-200 text-xs sm:text-sm flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                           >
                             {loadingOrderItems === order?.order_id ? (
                               <>
@@ -627,21 +633,21 @@ export default function AccountPage() {
                                   {orderItemsDetails[order?.order_id]?.map((item: any, index: number) => (
                                     <div
                                       key={item?.order_item_id ?? index}
-                                      className="flex items-start gap-4 p-4 bg-gray-50 rounded-lg border border-gray-200"
+                                      className="flex flex-col sm:flex-row items-start gap-3 sm:gap-4 p-3 sm:p-4 bg-gray-50 rounded-lg border border-gray-200"
                                     >
                                       {/* Product Image */}
                                       {item?.products?.thumbnail_image && (
-                                        <div className="flex-shrink-0">
+                                        <div className="flex-shrink-0 w-full sm:w-auto">
                                           <img
                                             src={item.products.thumbnail_image}
                                             alt={item?.product_name ?? "Product"}
-                                            className="w-16 h-16 object-cover rounded-md"
+                                            className="w-full sm:w-16 h-auto sm:h-16 object-cover rounded-md"
                                           />
                                         </div>
                                       )}
                                       {/* Product Details */}
-                                      <div className="flex-1 min-w-0">
-                                        <p className="text-sm font-semibold text-gray-900">
+                                      <div className="flex-1 min-w-0 w-full">
+                                        <p className="text-xs sm:text-sm font-semibold text-gray-900">
                                           {item?.product_name ?? item?.products?.product_name ?? "N/A"}
                                         </p>
                                         {item?.products?.description && (
@@ -649,7 +655,7 @@ export default function AccountPage() {
                                             {item.products.description}
                                           </p>
                                         )}
-                                        <div className="flex items-center gap-4 mt-2 text-xs text-gray-600">
+                                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mt-2 text-xs text-gray-600">
                                           <span>
                                             Quantity: <span className="font-medium">{item?.quantity ?? "N/A"}</span>
                                           </span>
@@ -664,8 +670,8 @@ export default function AccountPage() {
                                         )}
                                       </div>
                                       {/* Price */}
-                                      <div className="flex-shrink-0 text-right">
-                                        <p className="text-base font-bold text-gray-900">
+                                      <div className="flex-shrink-0 w-full sm:w-auto text-left sm:text-right">
+                                        <p className="text-sm sm:text-base font-bold text-gray-900">
                                           ₹{item?.total_price?.toFixed(2) ?? "0.00"}
                                         </p>
                                         {item?.unit_price && item?.quantity && (
@@ -710,10 +716,10 @@ export default function AccountPage() {
           </div>
 
           {/* Sidebar - Right Side (1 column) */}
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6">
             {/* Quick Actions Card */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
+              <h2 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">
                 Quick Actions
               </h2>
 

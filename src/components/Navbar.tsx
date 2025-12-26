@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useStore } from '../zustandStore/zustandStore';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 interface NavbarProps {
   cartCount?: number;
@@ -208,7 +209,7 @@ export default function Navbar({ cartCount = 0, isAuthenticated = false, onCartC
   const [searchQuery, setSearchQuery] = useState('');
   const [showMobileSearch, setShowMobileSearch] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const { setMobnoInputState,AuthenticatedState } = useStore();
+  const { setMobnoInputState, AuthenticatedState, categories } = useStore();
   const router = useRouter();
   // Prevent body scroll when sidebar is open
   useEffect(() => {
@@ -225,10 +226,10 @@ export default function Navbar({ cartCount = 0, isAuthenticated = false, onCartC
   // Sidebar menu items configuration
   const menuItems: MenuItem[] = [
     {
-      label: 'Wishlist',
-      href: '/wishlist',
-      icon: <WishlistIcon className="w-5 h-5" />,
-      requiresAuth: true,
+      label: 'My Account',
+      href: isAuthenticated ? '/account' : '/login',
+      icon: <UserIcon className="w-5 h-5" />,
+      requiresAuth: false,
     },
     {
       label: 'Settings',
@@ -241,12 +242,6 @@ export default function Navbar({ cartCount = 0, isAuthenticated = false, onCartC
       href: '/orders',
       icon: <OrdersIcon />,
       requiresAuth: true,
-    },
-    {
-      label: 'My Account',
-      href: isAuthenticated ? '/account' : '/login',
-      icon: <UserIcon className="w-5 h-5" />,
-      requiresAuth: false,
     },
     {
       label: 'Help & Support',
@@ -266,6 +261,16 @@ export default function Navbar({ cartCount = 0, isAuthenticated = false, onCartC
   const filteredMenuItems = menuItems.filter(
     (item) => !item.requiresAuth || isAuthenticated
   );
+
+  // Handle wishlist click
+  const handleWishlistClick = () => {
+    handleCloseSidebar();
+    if (AuthenticatedState) {
+      router.push('/wishlist');
+    } else {
+      setMobnoInputState();
+    }
+  };
 
   // Desktop icons configuration
   const desktopIcons: DesktopIcon[] = [
@@ -304,17 +309,6 @@ export default function Navbar({ cartCount = 0, isAuthenticated = false, onCartC
       onClick: () => setShowMobileSearch(!showMobileSearch),
     },
     {
-      label: 'Account',
-      icon: <UserIcon className="w-6 h-6" />,
-      onClick: () => {
-        if (AuthenticatedState) {
-          router.push('/account');
-        } else {
-          setMobnoInputState();
-        }
-      },
-    },
-    {
       label: 'Shopping Cart',
       icon: <CartIcon className="w-6 h-6" />,
       badge: cartCount,
@@ -334,9 +328,18 @@ export default function Navbar({ cartCount = 0, isAuthenticated = false, onCartC
       }}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16 md:h-20">
+        <div className="flex items-center h-16 md:h-20">
+          {/* Hamburger Menu - Mobile Only */}
+          <button
+            onClick={() => setIsSidebarOpen(true)}
+            className="md:hidden p-2 text-theme-olive hover:text-theme-sage transition-colors"
+            aria-label="Open menu"
+          >
+            <MenuIcon className="w-6 h-6" />
+          </button>
+
           {/* Logo Section */}
-          <div className="flex-shrink-0">
+          <div className="flex-shrink-0 ml-2 md:ml-0">
             <a href="/" className="flex items-center">
               <span className="text-2xl md:text-3xl font-bold text-theme-olive tracking-tight">
                 JWEL
@@ -361,7 +364,7 @@ export default function Navbar({ cartCount = 0, isAuthenticated = false, onCartC
           </div>
 
           {/* Desktop Icons Section */}
-          <div className="hidden md:flex items-center gap-3 md:gap-4 lg:gap-6">
+          <div className="hidden md:flex items-center gap-3 md:gap-4 lg:gap-6 ml-auto">
             {desktopIcons.map((iconItem, index) => (
               <button
                 key={index}
@@ -380,7 +383,7 @@ export default function Navbar({ cartCount = 0, isAuthenticated = false, onCartC
           </div>
 
           {/* Mobile Icons Section */}
-          <div className="md:hidden flex items-center gap-3">
+          <div className="md:hidden flex items-center gap-3 ml-auto">
             {mobileIcons.map((iconItem, index) => (
               <button
                 key={index}
@@ -419,51 +422,88 @@ export default function Navbar({ cartCount = 0, isAuthenticated = false, onCartC
         )}
       </div>
 
-      {/* Right Sidebar - Mobile Only */}
-      {isSidebarOpen && (
-        <>
-          {/* Backdrop */}
+      {/* Left Sidebar - Mobile Only */}
+      <>
+        {/* Backdrop */}
+        {isSidebarOpen && (
           <div
             className="fixed inset-0 bg-black/20 bg-opacity-50 z-50 md:hidden"
             onClick={handleCloseSidebar}
           />
+        )}
 
-          {/* Sidebar */}
-          <div className="fixed top-0 right-0 h-full w-80 bg-theme-cream shadow-xl z-50 transform translate-x-0 transition-transform duration-300 ease-in-out md:hidden">
-            <div className="flex flex-col h-full">
-              {/* Sidebar Header */}
-              <div className="flex items-center justify-between p-4 border-b border-theme-sage/30">
-                <h2 className="text-xl font-bold text-theme-olive">Menu</h2>
-                <button
-                  onClick={handleCloseSidebar}
-                  className="p-2 text-theme-olive hover:text-theme-sage transition-colors"
-                  aria-label="Close menu"
-                >
-                  <CloseIcon />
-                </button>
-              </div>
-
-              {/* Sidebar Menu Items */}
-              <nav className="flex-1 overflow-y-auto py-4">
-                <ul className="space-y-1 px-4">
-                  {filteredMenuItems.map((item, index) => (
-                    <li key={index}>
-                      <a
-                        href={item.href}
-                        className="flex items-center gap-3 px-4 py-3 text-theme-olive hover:bg-theme-sage/20 rounded-lg transition-colors"
-                        onClick={handleCloseSidebar}
-                      >
-                        {item.icon}
-                        <span className="font-medium">{item.label}</span>
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              </nav>
+        {/* Sidebar */}
+        <div className={`fixed top-0 left-0 h-full w-80 bg-theme-cream shadow-xl z-50 transition-transform duration-300 ease-in-out md:hidden ${
+          isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}>
+          <div className="flex flex-col h-full">
+            {/* Sidebar Header */}
+            <div className="flex items-center justify-between p-4 border-b border-theme-sage/30">
+              <h2 className="text-xl font-bold text-theme-olive">Menu</h2>
+              <button
+                onClick={handleCloseSidebar}
+                className="p-2 text-theme-olive hover:text-theme-sage transition-colors"
+                aria-label="Close menu"
+              >
+                <CloseIcon />
+              </button>
             </div>
+
+            {/* Sidebar Menu Items */}
+            <nav className="flex-1 overflow-y-auto py-4">
+              <ul className="space-y-1 px-4">
+                {/* Wishlist Button */}
+                <li>
+                  <button
+                    onClick={handleWishlistClick}
+                    className="w-full flex items-center gap-3 px-4 py-3 text-theme-olive hover:bg-theme-sage/20 rounded-lg transition-colors text-left"
+                  >
+                    <WishlistIcon className="w-5 h-5" />
+                    <span className="font-medium">My Wishlist</span>
+                  </button>
+                </li>
+
+                {/* Categories Section */}
+                {categories && categories.length > 0 && (
+                  <>
+                    <li className="px-4 py-2 mt-4 mb-2">
+                      <h3 className="text-sm font-semibold text-theme-olive uppercase tracking-wider">
+                        Categories
+                      </h3>
+                    </li>
+                    {categories.map((category: any) => (
+                      <li key={category.category_id}>
+                        <Link
+                          href={`/category/${category.slug}`}
+                          className="flex items-center gap-3 px-4 py-3 text-theme-olive hover:bg-theme-sage/20 rounded-lg transition-colors"
+                          onClick={handleCloseSidebar}
+                        >
+                          <span className="font-medium">{category.category_name}</span>
+                        </Link>
+                      </li>
+                    ))}
+                    <li className="px-4 py-2 mt-4 mb-2 border-t border-theme-sage/20"></li>
+                  </>
+                )}
+
+                {/* Other Menu Items */}
+                {filteredMenuItems.map((item, index) => (
+                  <li key={index}>
+                    <a
+                      href={item.href}
+                      className="flex items-center gap-3 px-4 py-3 text-theme-olive hover:bg-theme-sage/20 rounded-lg transition-colors"
+                      onClick={handleCloseSidebar}
+                    >
+                      {item.icon}
+                      <span className="font-medium">{item.label}</span>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </nav>
           </div>
-        </>
-      )}
+        </div>
+      </>
     </nav>
   );
 }
