@@ -272,6 +272,16 @@ export default function Navbar({ cartCount = 0, isAuthenticated = false, onCartC
     }
   };
 
+  // Handle account click - same behavior as desktop icon
+  const handleAccountClick = () => {
+    handleCloseSidebar();
+    if (AuthenticatedState) {
+      router.push('/account');
+    } else {
+      setMobnoInputState();
+    }
+  };
+
   // Desktop icons configuration
   const desktopIcons: DesktopIcon[] = [
     {
@@ -487,18 +497,35 @@ export default function Navbar({ cartCount = 0, isAuthenticated = false, onCartC
                 )}
 
                 {/* Other Menu Items */}
-                {filteredMenuItems.map((item, index) => (
-                  <li key={index}>
-                    <a
-                      href={item.href}
-                      className="flex items-center gap-3 px-4 py-3 text-theme-olive hover:bg-theme-sage/20 rounded-lg transition-colors"
-                      onClick={handleCloseSidebar}
-                    >
-                      {item.icon}
-                      <span className="font-medium">{item.label}</span>
-                    </a>
-                  </li>
-                ))}
+                {filteredMenuItems.map((item, index) => {
+                  // Special handling for "My Account" to match desktop behavior
+                  if (item.label === 'My Account') {
+                    return (
+                      <li key={index}>
+                        <button
+                          onClick={handleAccountClick}
+                          className="w-full flex items-center gap-3 px-4 py-3 text-theme-olive hover:bg-theme-sage/20 rounded-lg transition-colors text-left"
+                        >
+                          {item.icon}
+                          <span className="font-medium">{item.label}</span>
+                        </button>
+                      </li>
+                    );
+                  }
+                  // Regular menu items with links
+                  return (
+                    <li key={index}>
+                      <a
+                        href={item.href}
+                        className="flex items-center gap-3 px-4 py-3 text-theme-olive hover:bg-theme-sage/20 rounded-lg transition-colors"
+                        onClick={handleCloseSidebar}
+                      >
+                        {item.icon}
+                        <span className="font-medium">{item.label}</span>
+                      </a>
+                    </li>
+                  );
+                })}
               </ul>
             </nav>
           </div>
