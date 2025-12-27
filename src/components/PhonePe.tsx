@@ -2,6 +2,7 @@
 
 import Script from "next/script";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useStore } from "@/zustandStore/zustandStore";
 
 interface PhonePeProps {
@@ -11,6 +12,7 @@ interface PhonePeProps {
 
 export default function PhonePe({ redirectUrl, onPaymentInitiated }: PhonePeProps) {
   const [sdkReady, setSdkReady] = useState(false);
+  const router = useRouter();
   const {
     initiatingCheckout,
     setInitiatingCheckout,
@@ -37,9 +39,10 @@ export default function PhonePe({ redirectUrl, onPaymentInitiated }: PhonePeProp
       if (response === "CONCLUDED") {
         console.log("Payment concluded successfully");
         // Payment was successful
-        store.setPaymentConcluded(true);
-        store.setShowPaymentConcluded(true);
-        store.setInitiatingCheckout(false);
+        // store.setPaymentConcluded(true);
+        // store.setShowPaymentConcluded(true);
+        // store.setInitiatingCheckout(false);
+        router.push("/redirect");
         return;
       }
     };

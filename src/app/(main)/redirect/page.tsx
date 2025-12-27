@@ -4,17 +4,46 @@ import Link from "next/link";
 import { useEffect,useState } from "react";
 import axios from "axios";
 import { createClient } from "@/app/utils/supabase/client";
+import { useRouter } from "next/navigation";
+import { useStore } from "@/zustandStore/zustandStore";
 
 export default function RedirectPage() {
   const [status, setStatus] = useState("pending");
+  const {
+    initiatingCheckout,
+    setInitiatingCheckout,
+    setPaymentConcluded,
+    setShowPaymentConcluded
+  } = useStore();
+  const router = useRouter();
   useEffect(() => {
     const merchantOrderId = localStorage.getItem("merchantOrderId");
     if(!merchantOrderId) {
       return;
     }
     const checkOrderStatus = async () => {
-        const res = await axios.get(`https://api-preprod.phonepe.com/apis/pg-sandbox/checkout/v2/order/${merchantOrderId}/status`)
+        const res = await axios.get(`/api/payment/confirm?merchantOrderId=${merchantOrderId}`)
+        console.log('res', res)
+        if(res.data.orderStatusResponse.state === "COMPLETED"){
+          setStatus("completed");
+          setPaymentConcluded(true);
+          setShowPaymentConcluded(true);
+          setInitiatingCheckout(false);
+          router.push("/");
+        }else if(res.data.orderStatusResponse.state === "FAILED"){
+          setStatus("failed");
+          setPaymentConcluded(false);
+          setShowPaymentConcluded(true);
+          setInitiatingCheckout(false);
+          router.push("/");
+        }
+        if(res.data.orderStatusResponse.state === "PENDING"){
+          setTimeout(() => {
+            checkOrderStatus();
+          }, 1000);
+        }
     }
+    checkOrderStatus();
     
   }, []);
   return (

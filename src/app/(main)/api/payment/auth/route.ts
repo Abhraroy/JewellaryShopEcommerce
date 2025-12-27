@@ -2,6 +2,12 @@ import axios from "axios";
 import { NextRequest, NextResponse } from "next/server";
 import { v4 as uuidv4 } from "uuid";
 import { createClient } from "@/app/utils/supabase/server";
+import { getAuthToken } from "@/app/utils/Phonepe";
+import { redis } from "@/app/utils/Redis";
+let cachedToken={
+  access_token: null,
+  expires_at: null,
+}
 
 export async function POST(request: NextRequest) {
   const supabase = await createClient();
@@ -12,10 +18,7 @@ export async function POST(request: NextRequest) {
   let lastAddedProductTime = null;
   let address_id = null;
   let cartData = null;
-  let cachedToken={
-    access_token: null,
-    expires_at: null,
-  }
+  
   // Get address_id from request body
   try {
     const body = await request.json();
@@ -27,17 +30,19 @@ export async function POST(request: NextRequest) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
+  if(!user){
+    return NextResponse.json({ message: "User is not authenticated found" }, { status: 404 });
+  }
   if (user) {
     const userData = await supabase
       .from("users")
-      .select(
-        `*,
-        cart(*),
-        `
-      )
+      .select("*, cart(*)")
       .eq("phone_number", "+" + user.phone)
       .single();
     console.log("userData", userData);
+    if(userData.error){
+      return NextResponse.json({ message: "User is not found" }, { status: 404 });
+    }
     if (!userData.error && userData.data) {
       const userDataResult = userData.data as any;
       if (userDataResult.cart) {
@@ -76,37 +81,43 @@ export async function POST(request: NextRequest) {
   }
 
   const merchantOrderId = uuidv4();
+ 
 
 
+  // const requestHeaders = {
+  //   "Content-Type": "application/x-www-form-urlencoded",
+  // };
 
-  const requestHeaders = {
-    "Content-Type": "application/x-www-form-urlencoded",
-  };
+  // const requestBodyJson = {
+  //   client_version: process.env.PHONEPE_CLIENT_VERSION,
+  //   grant_type: process.env.PHONEPE_GRANT_TYPE,
+  //   client_id: process.env.PHONEPE_CLIENT_ID,
+  //   client_secret: process.env.PHONEPE_CLIENT_SECRET,
+  // };
 
-  const requestBodyJson = {
-    client_version: process.env.PHONEPE_CLIENT_VERSION,
-    grant_type: process.env.PHONEPE_GRANT_TYPE,
-    client_id: process.env.PHONEPE_CLIENT_ID,
-    client_secret: process.env.PHONEPE_CLIENT_SECRET,
-  };
-
-  const requestBody = new URLSearchParams(
-    requestBodyJson as Record<string, string>
-  ).toString();
+  // const requestBody = new URLSearchParams(
+  //   requestBodyJson as Record<string, string>
+  // ).toString();
 
   const sandbox = "https://api-preprod.phonepe.com/apis/pg-sandbox";
 
-  console.log("requestBody", requestBody);
-  const res = await axios.post(sandbox + "/v1/oauth/token", requestBody, {
-    headers: requestHeaders,
+  // console.log("requestBody", requestBody);
+  // const res = await axios.post(sandbox + "/v1/oauth/token", requestBody, {
+  //   headers: requestHeaders,
+  // });
+  // console.log("res", res.data);
+  // cachedToken.access_token = res.data.access_token;
+  // cachedToken.expires_at = res.data.expires_at;
+  const authToken = await getAuthToken();
+  if (!authToken) {
+    return NextResponse.json({ message: "Error getting auth token" }, { status: 500 });
+  }
+  redis.set(merchantOrderId, authToken, {
+    ex: 1200,
   });
-  console.log("res", res.data);
-  cachedToken.access_token = res.data.access_token;
-  cachedToken.expires_at = res.data.expires_at;
-  if (res.data.access_token) {
     const order_requestHeaders = {
       "Content-Type": "application/json",
-      Authorization: `O-Bearer ${res.data.access_token}`,
+      Authorization: `O-Bearer ${authToken}`,
     };
 
     const order_requestBody = {
@@ -133,7 +144,7 @@ export async function POST(request: NextRequest) {
         type: "PG_CHECKOUT",
         message: "Payment message used for collect requests",
         merchantUrls: {
-          redirectUrl: "https://paso-margin-sip-bread.trycloudflare.com/redirect",
+          redirectUrl: "https://following-blessed-fold-edgar.trycloudflare.com/redirect",
         },
       },
 
@@ -250,5 +261,4 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ data: order_res.data,
       merchantOrderId: merchantOrderId,
      }, { status: 200 });
-  }
-}
+ }
