@@ -261,12 +261,39 @@ export default function Products({ isDarkTheme }: ProductsProps) {
     return pages;
   };
 
+  const calculateDiscountPercentage = (base: number, final: number) => {
+    if (base <= 0) return "0";
+    const discount = ((base - final) / base) * 100;
+    if (!isFinite(discount)) return "0";
+    return discount.toFixed(2);
+  };
+
   const handleInputChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
     >
   ) => {
     const { name, value, type } = e.target;
+
+    if (name === "base_price" || name === "final_price") {
+      const numericValue = parseFloat(value);
+      setFormData((prev) => {
+        const nextBase =
+          name === "base_price" ? numericValue : parseFloat(prev.base_price);
+        const nextFinal =
+          name === "final_price" ? numericValue : parseFloat(prev.final_price);
+        const discount_percentage = calculateDiscountPercentage(
+          isNaN(nextBase) ? 0 : nextBase,
+          isNaN(nextFinal) ? 0 : nextFinal
+        );
+        return {
+          ...prev,
+          [name]: value,
+          discount_percentage,
+        };
+      });
+      return;
+    }
 
     if (type === "checkbox") {
       const checked = (e.target as HTMLInputElement).checked;
@@ -635,29 +662,6 @@ export default function Products({ isDarkTheme }: ProductsProps) {
                       isDarkTheme ? "text-gray-300" : "text-gray-700"
                     }`}
                   >
-                    Discount Percentage (%)
-                  </label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    name="discount_percentage"
-                    value={formData.discount_percentage}
-                    onChange={handleInputChange}
-                    placeholder="0.00"
-                    className={`w-full px-4 py-2 rounded-lg border transition-colors ${
-                      isDarkTheme
-                        ? "bg-gray-800 border-gray-700 text-white placeholder-gray-500"
-                        : "bg-white border-gray-300 text-gray-900 placeholder-gray-400"
-                    } focus:outline-none focus:ring-2 focus:ring-[#E94E8B]`}
-                  />
-                </div>
-
-                <div>
-                  <label
-                    className={`block text-sm font-medium mb-2 ${
-                      isDarkTheme ? "text-gray-300" : "text-gray-700"
-                    }`}
-                  >
                     Final Price (₹) *
                   </label>
                   <input
@@ -673,6 +677,30 @@ export default function Products({ isDarkTheme }: ProductsProps) {
                         : "bg-white border-gray-300 text-gray-900 placeholder-gray-400"
                     } focus:outline-none focus:ring-2 focus:ring-[#E94E8B]`}
                     required
+                  />
+                </div>
+
+                <div>
+                  <label
+                    className={`block text-sm font-medium mb-2 ${
+                      isDarkTheme ? "text-gray-300" : "text-gray-700"
+                    }`}
+                  >
+                    Discount Percentage (%)
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    name="discount_percentage"
+                    value={formData.discount_percentage}
+                    onChange={handleInputChange}
+                    placeholder="0.00"
+                    disabled
+                    className={`w-full px-4 py-2 rounded-lg border transition-colors ${
+                      isDarkTheme
+                        ? "bg-gray-800 border-gray-700 text-white placeholder-gray-500"
+                        : "bg-white border-gray-300 text-gray-900 placeholder-gray-400"
+                    } focus:outline-none focus:ring-2 focus:ring-[#E94E8B] disabled:opacity-70`}
                   />
                 </div>
               </div>

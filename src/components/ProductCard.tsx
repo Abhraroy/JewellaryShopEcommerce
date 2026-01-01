@@ -130,15 +130,19 @@ export default function ProductCard({
     }, 500);
   };
 
-  const discountPercentage =
-    product.base_price && product.discount_percentage
-      ? product.discount_percentage
-      : product.base_price
-      ? Math.round(
-          ((product.base_price - product.final_price) / product.base_price) *
-            100
-        )
+  // Normalize price values to numbers to avoid string issues
+  const basePrice = Number(product?.base_price) || 0;
+  const finalPrice = Number(product?.final_price) || 0;
+  const computedDiscount =
+    basePrice > 0 && finalPrice >= 0
+      ? Math.round(((basePrice - finalPrice) / basePrice) * 100)
       : 0;
+  const discountPercentage =
+    typeof product?.discount_percentage === "number"
+      ? product.discount_percentage
+      : computedDiscount;
+  const showBasePrice =
+    basePrice > 0 && finalPrice >= 0 && basePrice !== finalPrice;
 
   const CardContent = (
     <div
@@ -256,31 +260,31 @@ export default function ProductCard({
         {/* Price Section - Enhanced */}
         <div className="mt-auto pt-2 md:pt-3 border-t border-gray-100">
           <div className={`flex gap-2 ${size === 'small' ? 'mb-2 md:mb-3 flex-wrap md:flex-nowrap items-baseline md:items-baseline' : 'mb-3 md:mb-4 items-baseline'}`}>
-            <div className="flex items-baseline gap-1.5 md:gap-2">
+            <div className="flex items-baseline gap-1.5 md:gap-2 flex-wrap md:flex-nowrap">
               <span className={`font-bold text-gray-900 tracking-tight ${
                 size === 'small' 
                   ? 'text-sm md:text-lg' 
                   : 'text-lg md:text-2xl'
               }`}>
-                ₹{product.final_price?.toFixed(2) ?? 0}
+                ₹{finalPrice.toFixed(2)}
               </span>
-              {product.base_price && product.base_price > product.final_price && (
-                <span className={`text-gray-400 line-through font-medium ${
+              {showBasePrice && (
+                <span className={`text-gray-400 line-through font-medium whitespace-nowrap ${
                   size === 'small' 
                     ? 'text-[10px] md:text-sm' 
                     : 'text-xs md:text-base'
                 }`}>
-                  ₹{product.base_price.toFixed(2)}
+                  ₹{basePrice.toFixed(2)}
                 </span>
               )}
             </div>
-            {product.base_price && product.base_price > product.final_price && (
-              <span className={`font-semibold text-theme-olive bg-theme-sage/20 rounded ${
+            {showBasePrice && (
+              <span className={`font-semibold text-theme-olive bg-theme-sage/20 rounded whitespace-nowrap ${
                 size === 'small' 
-                  ? 'text-[9px] md:text-xs px-1.5 py-0.5 w-full md:w-auto' 
+                  ? 'text-[9px] md:text-xs px-1.5 py-0.5' 
                   : 'text-[10px] md:text-sm px-1.5 md:px-2 py-0.5'
               }`}>
-                Save ₹{(product.base_price - product.final_price).toFixed(2)}
+                Save ₹{(basePrice - finalPrice).toFixed(2)}
               </span>
             )}
           </div>
