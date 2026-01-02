@@ -14,6 +14,7 @@ interface CartProps {
 export default function Cart({ isOpen = false, onClose }: CartProps) {
   const { AuthenticatedState, cartItems, setCartItems , setCartId,CartId,setInitiatingCheckout,initiatingCheckout } = useStore();
   const [subtotal, setSubtotal] = useState(0);
+  const [loading, setLoading] = useState(true);
   // Sample cart items for UI demonstration
   const supabase = createClient();
   console.log("Initializing supabase",supabase)
@@ -88,9 +89,7 @@ export default function Cart({ isOpen = false, onClose }: CartProps) {
 
   useEffect(() => {
     const getCartItems = async () => {
-
-
-
+      setLoading(true);
       if (!AuthenticatedState) {
         const localCartItems = localStorage.getItem("cartItems");
         console.log("cart items from local storage", localCartItems);
@@ -101,6 +100,7 @@ export default function Cart({ isOpen = false, onClose }: CartProps) {
           console.log("tempCartItems", typeof tempCartItems);
           setCartItems(tempCartItems);
         }
+        setLoading(false);
       } else if (AuthenticatedState) {
     
         if(CartId){
@@ -113,8 +113,10 @@ export default function Cart({ isOpen = false, onClose }: CartProps) {
           else{
             console.log("error",message)
           }
+          setLoading(false);
       }else{
         console.log("No cart found")
+        setLoading(false);
       }
     };
 }
@@ -172,7 +174,24 @@ export default function Cart({ isOpen = false, onClose }: CartProps) {
 
           {/* Cart Items */}
           <div className="flex-1 overflow-y-auto py-3 sm:py-4 px-3 sm:px-4 md:px-6">
-            {cartItems && cartItems.length === 0 ? (
+            {loading ? (
+              <div className="space-y-3">
+                {Array.from({ length: 4 }).map((_, idx) => (
+                  <div
+                    key={idx}
+                    className="flex items-center gap-3 sm:gap-4 bg-white/10 rounded-lg p-3 sm:p-4 animate-pulse"
+                  >
+                    <div className="w-16 h-16 sm:w-20 sm:h-20 bg-white/20 rounded" />
+                    <div className="flex-1 space-y-2">
+                      <div className="h-4 bg-white/20 rounded w-3/4" />
+                      <div className="h-3 bg-white/20 rounded w-1/2" />
+                      <div className="h-3 bg-white/20 rounded w-1/3" />
+                    </div>
+                    <div className="w-12 h-10 bg-white/20 rounded" />
+                  </div>
+                ))}
+              </div>
+            ) : cartItems && cartItems.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-center py-8 sm:py-12 px-4 text-white">
                 <div className="w-20 h-20 sm:w-24 sm:h-24 bg-[#FFCDC9] rounded-full flex items-center justify-center mb-4">
                   <svg

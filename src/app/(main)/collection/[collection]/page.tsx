@@ -41,6 +41,7 @@ interface CategoryFilter {
   const [wishlist, setWishlist] = useState<Set<string>>(new Set());
   const [isDropdownOpen, setIsDropdownOpen] = useState<boolean>(false);
   const [products, setProducts] = useState<any>([]);
+  const [loading, setLoading] = useState<boolean>(true);
   // Sample categories based on the collection
   const categories: CategoryFilter[] = [
     {
@@ -244,20 +245,32 @@ interface CategoryFilter {
   useEffect(()=>{
     console.log("decodedCollection",decodedCollection)
     const getProducts = async()=>{
-      const {data,error}:any = await supabase.from("products")
-      .select(`
-      *,
-      product_images(*)
-      `)
-      .filter("collection", "eq", decodedCollection)
-      .eq("listed_status", true)
-      .order("updated_at", { ascending: false })
-      if(error){
-        console.log("error",error)
+      setLoading(true);
+
+      try{
+        const {data,error}:any = await supabase.from("products")
+        .select(`
+        *,
+        product_images(*)
+        `)
+        .filter("collection", "eq", decodedCollection)
+        .eq("listed_status", true)
+        .order("updated_at", { ascending: false })
+        if(error){
+          console.log("error",error)
+          setProducts([]);
+        }
+        else{
+          console.log("products",data)
+          setProducts(data);
+        }
       }
-      else{
-        console.log("products",data)
-        setProducts(data);
+      catch(err){
+        console.log("error",err)
+        setProducts([]);
+      }
+      finally{
+        setLoading(false);
       }
     }
     getProducts();
@@ -292,6 +305,34 @@ interface CategoryFilter {
   
 
   console.log("sortedProducts",sortedProducts)
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-theme-cream">
+        <div className="bg-white">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 md:pt-8 pb-4">
+            <div className="flex items-center justify-between gap-4 animate-pulse">
+              <div className="flex-1 min-w-0 space-y-2">
+                <div className="h-8 w-1/3 bg-gray-200 rounded" />
+                <div className="h-4 w-1/4 bg-gray-200 rounded" />
+              </div>
+              <div className="h-10 w-28 bg-gray-200 rounded-lg" />
+            </div>
+          </div>
+        </div>
+
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+            {Array.from({ length: 8 }).map((_, idx) => (
+              <ProductCard key={idx} product={{}} isLoading />
+            ))}
+          </div>
+        </main>
+
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-theme-cream">

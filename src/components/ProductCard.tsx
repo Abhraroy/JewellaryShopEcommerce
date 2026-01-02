@@ -40,6 +40,7 @@ interface ProductCardProps {
   onWishlistToggle?: (productId: string) => void;
   isWishlisted?: boolean;
   size?: 'small' | 'default';
+  isLoading?: boolean;
 }
 
 export default function ProductCard({
@@ -48,6 +49,7 @@ export default function ProductCard({
   onWishlistToggle,
   isWishlisted = false,
   size = 'default',
+  isLoading = false,
 }: ProductCardProps) {
   const [isWishlistActive, setIsWishlistActive] = useState(isWishlisted);
   const [imageError, setImageError] = useState(false);
@@ -317,6 +319,28 @@ export default function ProductCard({
       </div>
     </div>
   );
+
+  if (isLoading) {
+    return (
+      <div className="group relative bg-white rounded-xl md:rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex flex-col h-full animate-pulse">
+        <div className="relative w-full aspect-[4/5] bg-gradient-to-br from-gray-50 to-gray-100" />
+        <div className="p-3 md:p-5 flex flex-col flex-grow gap-3 md:gap-4">
+          <div className="space-y-2">
+            <div className="h-4 md:h-5 bg-gray-200 rounded w-3/4" />
+            <div className="h-3 md:h-4 bg-gray-200 rounded w-1/2" />
+          </div>
+          <div className="mt-auto pt-2 md:pt-3 border-t border-gray-100 space-y-3">
+            <div className="flex gap-2 items-center">
+              <div className="h-6 md:h-8 bg-gray-200 rounded w-24" />
+              <div className="h-4 md:h-5 bg-gray-200 rounded w-16" />
+              <div className="h-4 md:h-5 bg-gray-200 rounded w-14" />
+            </div>
+            <div className="h-10 md:h-12 bg-gray-200 rounded-lg md:rounded-xl" />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (product.product_id) {
     return (

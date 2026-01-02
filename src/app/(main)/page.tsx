@@ -17,6 +17,7 @@ import { Product } from "@/utilityFunctions/TypeInterface";
 import Collection from "@/components/Collection";
 import Link from "next/link";
 import ModelCaraousel from "@/components/ModelCaraousel";
+import ProductCard from "@/components/ProductCard";
 
 export default function LandingPage() {
   const {
@@ -35,6 +36,9 @@ export default function LandingPage() {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [newArrivals, setNewArrivals] = useState<Product[]>([]);
   const [bestSellers, setBestSellers] = useState<Product[]>([]);
+  const [loadingBestSellers, setLoadingBestSellers] = useState(true);
+  const [loadingNewArrivals, setLoadingNewArrivals] = useState(true);
+  const [loadingCategories, setLoadingCategories] = useState(true);
   const supabase = createClient();
 
   // Create multiple slides with the same image
@@ -171,30 +175,35 @@ export default function LandingPage() {
 
   useEffect(() => {
     const getBestSellers = async () => {
-      const supabase = createClient();
-      const { data, error }: any = await supabase.from("products")
-      .select("*")
-      .contains("tags",["best-sellers"])
-      .eq("listed_status", true);
+      setLoadingBestSellers(true);
+      const { data, error }: any = await supabase
+        .from("products")
+        .select("*")
+        .contains("tags", ["best-sellers"])
+        .eq("listed_status", true);
       if (error) {
         console.log("error", error);
       } else {
         console.log("data", data);
-        setBestSellers(data);
+        setBestSellers(data || []);
       }
+      setLoadingBestSellers(false);
     };
     getBestSellers();
     const getNewArrivals = async () => {
-      const { data, error }: any = await supabase.from("products")
-      .select("*")
-      .contains("tags",["new-arrivals"])
-      .eq("listed_status", true);
+      setLoadingNewArrivals(true);
+      const { data, error }: any = await supabase
+        .from("products")
+        .select("*")
+        .contains("tags", ["new-arrivals"])
+        .eq("listed_status", true);
       if (error) {
         console.log("error", error);
       } else {
         console.log("data", data);
-        setNewArrivals(data);
+        setNewArrivals(data || []);
       }
+      setLoadingNewArrivals(false);
     };
     getNewArrivals();
     
@@ -202,13 +211,15 @@ export default function LandingPage() {
 
   useEffect(() => {
     const getAllCategories = async () => {
+      setLoadingCategories(true);
       const { data, error } = await supabase.from("categories").select("*");
       if (error) {
         console.log("error", error);
       } else {
         console.log("data", data);
-        setCategories(data);
+        setCategories(data || []);
       }
+      setLoadingCategories(false);
     };
     getAllCategories();
   }, []);
@@ -238,26 +249,38 @@ export default function LandingPage() {
           autoSlideInterval={3000}
           className="h-[400px] md:h-[500px] lg:h-[600px]"
         />
-        {categories.length > 0 && <CategorySection categories={categories} />}
+        {loadingCategories ? (
+          <CategorySectionSkeleton />
+        ) : categories.length > 0 ? (
+          <CategorySection categories={categories} />
+        ) : null}
 
         {/* New Arrival Products Section */}
-        <ProductCarousel
-          sectionHeading="Best Sellers"
-          products={bestSellers}
-          onAddToCart={handleAddToCart}
-          onWishlistToggle={handleWishlistToggle}
-        />
+        {loadingBestSellers ? (
+          <ProductCarouselSkeleton title="Best Sellers" />
+        ) : bestSellers.length > 0 ? (
+          <ProductCarousel
+            sectionHeading="Best Sellers"
+            products={bestSellers}
+            onAddToCart={handleAddToCart}
+            onWishlistToggle={handleWishlistToggle}
+          />
+        ) : null}
 
         {/* Bento Grid Category Section */}
         <Collection />
 
         {/* You can add more ProductCarousel sections with different data */}
-        <ProductCarousel
-          sectionHeading="New Arrivals"
-          products={newArrivals}
-          onAddToCart={handleAddToCart}
-          onWishlistToggle={handleWishlistToggle}
-        />
+        {loadingNewArrivals ? (
+          <ProductCarouselSkeleton title="New Arrivals" />
+        ) : newArrivals.length > 0 ? (
+          <ProductCarousel
+            sectionHeading="New Arrivals"
+            products={newArrivals}
+            onAddToCart={handleAddToCart}
+            onWishlistToggle={handleWishlistToggle}
+          />
+        ) : null}
 
         {/* Occasion Selection Section */}
         <section className="w-full py-12 md:py-16 px-4 sm:px-6 lg:px-8">
@@ -728,5 +751,57 @@ export default function LandingPage() {
         </section>
       </main>
     </div>
+  );
+}
+
+function SkeletonPulseBlock({ className }: { className?: string }) {
+  return <div className={`bg-gray-200 animate-pulse ${className}`} />;
+}
+
+function CategorySectionSkeleton() {
+  return (
+    <section className="w-full bg-theme-cream py-8 md:py-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="h-7 md:h-9 w-48 md:w-60 mx-auto bg-gray-200 animate-pulse rounded mb-6 md:mb-8" />
+        <div className="overflow-x-auto scrollbar-hide">
+          <div className="flex gap-4 md:gap-6 pb-4 min-w-max md:justify-center md:flex-wrap pt-4">
+            {Array.from({ length: 8 }).map((_, idx) => (
+              <div
+                key={idx}
+                className="flex flex-col items-center flex-shrink-0 w-20 md:w-24 lg:w-28 gap-2"
+              >
+                <div className="w-20 h-20 md:w-24 md:h-24 lg:w-28 lg:h-28 rounded-full bg-gray-200 animate-pulse" />
+                <div className="h-3 md:h-4 w-16 md:w-20 bg-gray-200 animate-pulse rounded" />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function ProductCarouselSkeleton({ title }: { title: string }) {
+  const placeholderCards = Array.from({ length: 4 });
+  return (
+    <section className="w-full bg-theme-cream py-6 md:py-12 lg:py-16">
+      <div className="flex items-center justify-center mb-5 md:mb-8 px-4 sm:px-6 lg:px-8">
+        <div className="h-6 md:h-8 w-40 md:w-56 bg-gray-200 animate-pulse rounded" aria-label={title} />
+      </div>
+      <div className="relative w-full">
+        <div className="overflow-x-auto scrollbar-hide">
+          <div className="flex gap-6 pb-10 md:pb-12 pl-4 sm:pl-6 lg:pl-8 pr-4 sm:pr-6 lg:pr-8">
+            {placeholderCards.map((_, idx) => (
+              <div
+                key={idx}
+                className="product-card flex-shrink-0 w-[calc((100vw/1.3-3rem)*0.95)] sm:w-[calc((100vw/2-4rem)*0.95)] md:w-[calc((100vw/2.5-5rem)*0.95)] lg:w-[calc(100vw/3-6rem)] xl:w-[380px]"
+              >
+                <ProductCard product={{}} isLoading />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
   );
 }

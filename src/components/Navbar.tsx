@@ -461,7 +461,7 @@ export default function Navbar({ cartCount = 0, isAuthenticated = false, onCartC
             <nav className="flex-1 overflow-y-auto py-4">
               <ul className="space-y-1 px-4">
                 {/* Categories Section */}
-                {categories && categories.length > 0 && (
+                {categories && categories.length > 0 ? (
                   <>
                     <li className="px-4 py-2 mt-4 mb-2">
                       <h3 className="text-sm font-semibold text-white uppercase tracking-wider">
@@ -481,7 +481,21 @@ export default function Navbar({ cartCount = 0, isAuthenticated = false, onCartC
                     ))}
                     <li className="px-4 py-2 mt-4 mb-2 border-t border-white/30"></li>
                   </>
-                )}
+                ) : isSidebarOpen ? (
+                  <>
+                    <li className="px-4 py-2 mt-4 mb-2">
+                      <div className="h-4 w-24 bg-white/40 rounded animate-pulse" />
+                    </li>
+                    {Array.from({ length: 6 }).map((_, idx) => (
+                      <li key={idx} className="px-4">
+                        <div className="flex items-center gap-3 px-4 py-3 bg-white/10 rounded-lg animate-pulse">
+                          <span className="h-4 w-32 bg-white/30 rounded" />
+                        </div>
+                      </li>
+                    ))}
+                    <li className="px-4 py-2 mt-4 mb-2 border-t border-white/30"></li>
+                  </>
+                ) : null}
 
                 {/* Wishlist Button */}
                 <li>
