@@ -158,7 +158,7 @@ export default function ProductCard({
               src={product.thumbnail_image}
               alt={product.product_name}
               fill
-              className={`object-cover transition-all duration-700 ${
+              className={`object-contain transition-all duration-700 ${
                 isHovered ? "scale-110 brightness-105" : "scale-100"
               }`}
               sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"

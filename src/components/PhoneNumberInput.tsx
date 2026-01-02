@@ -1,5 +1,5 @@
 import { useStore } from '@/zustandStore/zustandStore';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { createClient } from '@/app/utils/supabase/client';
 
 interface PhoneNumberInputProps {
@@ -11,7 +11,24 @@ export default function PhoneNumberInput({ containerClassName = 'w-full bg-gradi
     const { setOtpInputState, setMobnoInputState, setCustomerMobno } = useStore();
     const [phoneNumber, setPhoneNumber] = useState('');
     const [error, setError] = useState('');
+    const containerRef = useRef<HTMLDivElement | null>(null);
     const supabase = createClient();
+
+    // Close the phone input when clicking outside of it
+    useEffect(() => {
+      const handleClickOutside = (event: MouseEvent | TouchEvent) => {
+        if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+          setMobnoInputState();
+        }
+      };
+
+      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('touchstart', handleClickOutside);
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+        document.removeEventListener('touchstart', handleClickOutside);
+      };
+    }, [setMobnoInputState]);
   
     const handlePhoneSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
@@ -65,7 +82,7 @@ export default function PhoneNumberInput({ containerClassName = 'w-full bg-gradi
 
     return (
         <>
-        <div className={containerClassName}>
+        <div className={containerClassName} ref={containerRef}>
         <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 md:py-4'>
           <form onSubmit={handlePhoneSubmit} className='flex flex-col sm:flex-row sm:items-end gap-3 md:gap-4'>
             <div className='flex-1 w-full sm:w-auto max-w-md'>

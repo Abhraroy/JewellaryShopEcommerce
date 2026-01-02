@@ -73,6 +73,7 @@ export default function Orders() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | OrderStatus>("all");
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [expandedOrders, setExpandedOrders] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -147,6 +148,18 @@ export default function Orders() {
       }, 0),
     [filteredOrders]
   );
+
+  const toggleExpanded = (orderId: string) => {
+    setExpandedOrders((prev) => {
+      const next = new Set(prev);
+      if (next.has(orderId)) {
+        next.delete(orderId);
+      } else {
+        next.add(orderId);
+      }
+      return next;
+    });
+  };
 
   const handleStatusChange = async (orderId: string, newStatus: OrderStatus) => {
     try {
@@ -259,6 +272,7 @@ export default function Orders() {
               {!loading &&
                 !error &&
                 filteredOrders.map((order) => {
+                  const isExpanded = expandedOrders.has(order.order_id);
                   const itemCount =
                     order.order_items?.reduce(
                       (sum, item) => sum + (item.quantity || 0),
@@ -269,92 +283,135 @@ export default function Orders() {
                     (order.users?.first_name || "") +
                     (order.users?.last_name ? ` ${order.users.last_name}` : "");
                   return (
-                    <tr
-                      key={order.order_id}
-                      className="border-b border-gray-100 hover:bg-gray-50 transition-colors text-sm"
-                    >
-                      <Td className="font-semibold text-gray-900">
-                        {order.order_id}
-                      </Td>
-                      <Td>
-                        <div className="flex flex-col">
-                          <span className="font-medium text-gray-900">
-                            {customerName || "Guest"}
-                          </span>
-                          {order.users?.email && (
-                            <span className="text-xs text-gray-500">
-                              {order.users.email}
+                    <>
+                      <tr
+                        key={order.order_id}
+                        className="border-b border-gray-100 hover:bg-gray-50 transition-colors text-sm cursor-pointer"
+                        onClick={() => toggleExpanded(order.order_id)}
+                      >
+                        <Td className="font-semibold text-gray-900">
+                          <div className="flex items-center gap-2">
+                            <span>{order.order_id}</span>
+                            <span
+                              className={`text-xs px-2 py-0.5 rounded-full border ${
+                                isExpanded
+                                  ? "bg-emerald-50 border-emerald-200 text-emerald-700"
+                                  : "bg-gray-50 border-gray-200 text-gray-600"
+                              }`}
+                            >
+                              {isExpanded ? "Hide items" : "View items"}
                             </span>
-                          )}
-                          {order.users?.phone_number && (
-                            <span className="text-xs text-gray-500">
-                              {order.users.phone_number}
-                            </span>
-                          )}
-                        </div>
-                      </Td>
-                      <Td>
-                        <div className="flex flex-col">
-                          <span className="text-gray-900">
-                            {new Date(order.order_date).toLocaleDateString()}
-                          </span>
-                          <span className="text-xs text-gray-500">
-                            {new Date(order.order_date).toLocaleTimeString()}
-                          </span>
-                        </div>
-                      </Td>
-                      <Td>
-                        <div className="flex items-center gap-2">
-                          <select
-                            value={order.order_status}
-                            onChange={(e) =>
-                              handleStatusChange(order.order_id, e.target.value as OrderStatus)
-                            }
-                            disabled={updatingId === order.order_id}
-                            className="text-xs font-semibold rounded-lg border border-gray-200 px-2 py-1 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                          >
-                            {allowedStatuses.map((st) => (
-                              <option key={st} value={st}>
-                                {st}
-                              </option>
-                            ))}
-                          </select>
-                          <span
-                            className={`inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-semibold ${
-                              statusColors[order.order_status] ||
-                              "bg-gray-100 text-gray-700"
-                            }`}
-                          >
-                            {order.order_status}
-                          </span>
-                          {updatingId === order.order_id && (
-                            <span className="text-[11px] text-gray-500">Updating...</span>
-                          )}
-                        </div>
-                      </Td>
-                      <Td className="font-semibold text-gray-900">
-                        {currency(order.total_amount || 0)}
-                      </Td>
-                      <Td className="text-gray-700">{itemCount}</Td>
-                      <Td>
-                        {address ? (
-                          <div className="text-xs text-gray-700 leading-snug max-w-[200px]">
-                            {address.full_name && <div>{address.full_name}</div>}
-                            {address.street_address && <div>{address.street_address}</div>}
-                            {(address.city || address.state || address.postal_code) && (
-                              <div>
-                                {[address.city, address.state, address.postal_code]
-                                  .filter(Boolean)
-                                  .join(", ")}
-                              </div>
-                            )}
-                            {address.phone_number && <div>{address.phone_number}</div>}
                           </div>
-                        ) : (
-                          <span className="text-xs text-gray-500">—</span>
-                        )}
-                      </Td>
-                    </tr>
+                        </Td>
+                        <Td>
+                          <div className="flex flex-col">
+                            <span className="font-medium text-gray-900">
+                              {customerName || "Guest"}
+                            </span>
+                            {order.users?.email && (
+                              <span className="text-xs text-gray-500">
+                                {order.users.email}
+                              </span>
+                            )}
+                            {order.users?.phone_number && (
+                              <span className="text-xs text-gray-500">
+                                {order.users.phone_number}
+                              </span>
+                            )}
+                          </div>
+                        </Td>
+                        <Td>
+                          <div className="flex flex-col">
+                            <span className="text-gray-900">
+                              {new Date(order.order_date).toLocaleDateString()}
+                            </span>
+                            <span className="text-xs text-gray-500">
+                              {new Date(order.order_date).toLocaleTimeString()}
+                            </span>
+                          </div>
+                        </Td>
+                        <Td>
+                          <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                            <select
+                              value={order.order_status}
+                              onChange={(e) =>
+                                handleStatusChange(order.order_id, e.target.value as OrderStatus)
+                              }
+                              disabled={updatingId === order.order_id}
+                              className="text-xs font-semibold rounded-lg border border-gray-200 px-2 py-1 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                            >
+                              {allowedStatuses.map((st) => (
+                                <option key={st} value={st}>
+                                  {st}
+                                </option>
+                              ))}
+                            </select>
+                            <span
+                              className={`inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-semibold ${
+                                statusColors[order.order_status] ||
+                                "bg-gray-100 text-gray-700"
+                              }`}
+                            >
+                              {order.order_status}
+                            </span>
+                            {updatingId === order.order_id && (
+                              <span className="text-[11px] text-gray-500">Updating...</span>
+                            )}
+                          </div>
+                        </Td>
+                        <Td className="font-semibold text-gray-900">
+                          {currency(order.total_amount || 0)}
+                        </Td>
+                        <Td className="text-gray-700">{itemCount}</Td>
+                        <Td>
+                          {address ? (
+                            <div className="text-xs text-gray-700 leading-snug max-w-[200px]">
+                              {address.full_name && <div>{address.full_name}</div>}
+                              {address.street_address && <div>{address.street_address}</div>}
+                              {(address.city || address.state || address.postal_code) && (
+                                <div>
+                                  {[address.city, address.state, address.postal_code]
+                                    .filter(Boolean)
+                                    .join(", ")}
+                                </div>
+                              )}
+                              {address.phone_number && <div>{address.phone_number}</div>}
+                            </div>
+                          ) : (
+                            <span className="text-xs text-gray-500">—</span>
+                          )}
+                        </Td>
+                      </tr>
+                      {isExpanded && (
+                        <tr className="bg-gray-50 border-b border-gray-100">
+                          <td colSpan={7} className="px-4 py-4">
+                            <div className="space-y-3">
+                              <div className="text-xs uppercase tracking-wide text-gray-500 font-semibold">
+                                Order Items
+                              </div>
+                              <div className="space-y-2">
+                                {order.order_items?.map((item) => (
+                                  <div
+                                    key={item.order_item_id}
+                                    className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2"
+                                  >
+                                    <div className="flex flex-col">
+                                      <span className="font-semibold text-gray-900">
+                                        {item.products?.product_name || "Product"}
+                                      </span>
+                                    </div>
+                                    <div className="flex items-center gap-4 text-sm text-gray-700">
+                                      <span>Qty: <strong>{item.quantity}</strong></span>
+                                      <span>Price: <strong>{currency(item.price || 0)}</strong></span>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </>
                   );
                 })}
             </tbody>
