@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import { createClient } from "@/app/utils/supabase/client";
 
 type OrderStatus =
@@ -13,8 +13,11 @@ type OrderStatus =
 
 interface Order {
   order_id: string;
+  merchant_order_id?: string | null;
   user_id: string | null;
   order_date: string;
+  shipped_date?: string | null;
+  delivered_date?: string | null;
   total_amount: number;
   order_status: OrderStatus;
   shipping_address_id?: string | null;
@@ -34,10 +37,17 @@ interface Order {
   } | null;
   order_items?: Array<{
     order_item_id: string;
+    order_id?: string;
+    ordered_at?: string;
     quantity: number;
-    price: number;
+    unit_price?: number;
+    total_price?: number;
+    price?: number;
     products?: {
       product_name?: string;
+      final_price?: number;
+      base_price?: number;
+      discount_percentage?: number;
     } | null;
   }> | null;
 }
@@ -53,17 +63,40 @@ const statusColors: Record<OrderStatus, string> = {
 
 const allowedStatuses: OrderStatus[] = [
   "pending",
-  "processing",
   "shipped",
   "delivered",
   "cancelled",
-  "returned",
 ];
+
+const statusDateField: Partial<Record<OrderStatus, keyof Order>> = {
+  shipped: "shipped_date",
+  delivered: "delivered_date",
+};
 
 const currency = (value: number) =>
   new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(
     value || 0
   );
+
+const dateFormatter = new Intl.DateTimeFormat("en-GB", {
+  day: "2-digit",
+  month: "2-digit",
+  year: "numeric",
+});
+
+const dateTimeFormatter = new Intl.DateTimeFormat("en-GB", {
+  day: "2-digit",
+  month: "2-digit",
+  year: "numeric",
+  hour: "2-digit",
+  minute: "2-digit",
+});
+
+const formatDate = (value?: string | null) =>
+  value ? dateFormatter.format(new Date(value)) : null;
+
+const formatDateTime = (value?: string | null) =>
+  value ? dateTimeFormatter.format(new Date(value)) : null;
 
 export default function Orders() {
   const supabase = createClient();
@@ -97,6 +130,7 @@ export default function Orders() {
           setError("Failed to load orders");
           setOrders([]);
         } else {
+          console.log("Orders fetched:", data);
           setOrders((data as Order[]) || []);
           setError(null);
         }
@@ -163,10 +197,16 @@ export default function Orders() {
 
   const handleStatusChange = async (orderId: string, newStatus: OrderStatus) => {
     try {
+      const dateField = statusDateField[newStatus];
+      const timestamp = dateField ? new Date().toISOString() : undefined;
+      const updatePayload: Partial<Order> = {
+        order_status: newStatus,
+        ...(dateField && timestamp ? { [dateField]: timestamp } : {}),
+      };
       setUpdatingId(orderId);
       const { error } = await supabase
         .from("orders")
-        .update({ order_status: newStatus })
+        .update(updatePayload)
         .eq("order_id", orderId);
       if (error) {
         console.error("Error updating order status:", error);
@@ -175,7 +215,13 @@ export default function Orders() {
       }
       setOrders((prev) =>
         prev.map((order) =>
-          order.order_id === orderId ? { ...order, order_status: newStatus } : order
+          order.order_id === orderId
+            ? {
+                ...order,
+                order_status: newStatus,
+                ...(dateField && timestamp ? { [dateField]: timestamp } : {}),
+              }
+            : order
         )
       );
       setError(null);
@@ -212,11 +258,9 @@ export default function Orders() {
           >
             <option value="all">All statuses</option>
             <option value="pending">Pending</option>
-            <option value="processing">Processing</option>
             <option value="shipped">Shipped</option>
             <option value="delivered">Delivered</option>
             <option value="cancelled">Cancelled</option>
-            <option value="returned">Returned</option>
           </select>
         </div>
       </header>
@@ -282,10 +326,12 @@ export default function Orders() {
                   const customerName =
                     (order.users?.first_name || "") +
                     (order.users?.last_name ? ` ${order.users.last_name}` : "");
+                  const statusOptions = allowedStatuses.includes(order.order_status)
+                    ? allowedStatuses
+                    : [...allowedStatuses, order.order_status];
                   return (
-                    <>
+                    <Fragment key={order.order_id}>
                       <tr
-                        key={order.order_id}
                         className="border-b border-gray-100 hover:bg-gray-50 transition-colors text-sm cursor-pointer"
                         onClick={() => toggleExpanded(order.order_id)}
                       >
@@ -323,11 +369,21 @@ export default function Orders() {
                         <Td>
                           <div className="flex flex-col">
                             <span className="text-gray-900">
-                              {new Date(order.order_date).toLocaleDateString()}
+                              {formatDate(order.order_date)}
                             </span>
                             <span className="text-xs text-gray-500">
-                              {new Date(order.order_date).toLocaleTimeString()}
+                              {new Date(order.order_date).toLocaleTimeString("en-GB")}
                             </span>
+                            {order.shipped_date && (
+                              <span className="text-xs text-emerald-700">
+                                Shipped: {formatDateTime(order.shipped_date)}
+                              </span>
+                            )}
+                            {order.delivered_date && (
+                              <span className="text-xs text-emerald-800">
+                                Delivered: {formatDateTime(order.delivered_date)}
+                              </span>
+                            )}
                           </div>
                         </Td>
                         <Td>
@@ -340,7 +396,7 @@ export default function Orders() {
                               disabled={updatingId === order.order_id}
                               className="text-xs font-semibold rounded-lg border border-gray-200 px-2 py-1 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
                             >
-                              {allowedStatuses.map((st) => (
+                              {statusOptions.map((st) => (
                                 <option key={st} value={st}>
                                   {st}
                                 </option>
@@ -402,7 +458,10 @@ export default function Orders() {
                                     </div>
                                     <div className="flex items-center gap-4 text-sm text-gray-700">
                                       <span>Qty: <strong>{item.quantity}</strong></span>
-                                      <span>Price: <strong>{currency(item.price || 0)}</strong></span>
+                                      <span>
+                                        Price:{" "}
+                                        <strong>{currency(item.unit_price || item.price || 0)}</strong>
+                                      </span>
                                     </div>
                                   </div>
                                 ))}
@@ -411,7 +470,7 @@ export default function Orders() {
                           </td>
                         </tr>
                       )}
-                    </>
+                    </Fragment>
                   );
                 })}
             </tbody>
