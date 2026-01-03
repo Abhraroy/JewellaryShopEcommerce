@@ -1,286 +1,173 @@
 "use client";
-import { useState, useEffect } from "react";
-import Image from "next/image";
 
-export default function ModelCaraousel() {
-  const [carouselIndex, setCarouselIndex] = useState(0);
-  const [isPaused, setIsPaused] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
+import { motion } from "framer-motion";
+import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
+import React from "react";
+import {
+  Autoplay,
+  EffectCoverflow,
+  Navigation,
+  Pagination,
+} from "swiper/modules";
+import { Swiper, SwiperSlide } from "swiper/react";
+import "swiper/css/effect-coverflow";
+import "swiper/css/pagination";
+import "swiper/css/navigation";
+import "swiper/css";
+import "swiper/css/effect-cards";
 
-  // Detect mobile screen size
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 640);
-    };
-    
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
+import { cn } from "@/lib/utils";
 
-  // Model images with jewelry information
-  const modelImages = [
+const Skiper47 = () => {
+  const images = [
     {
-      id: 1,
-      src: "https://battulaaljewels.com/website/images/product-banner.webp",
-      alt: "Model wearing gold necklace set",
-      jewelry: "Gold Necklace Set · Diamond Earrings · Gold Bangles",
+      src: "/images/x.com/11.jpeg",
+      alt: "Illustrations by my fav AarzooAly",
     },
     {
-      id: 2,
-      src: "https://media.istockphoto.com/id/1276740597/photo/indian-traditional-gold-necklace.jpg?s=612x612&w=0&k=20&c=OYp1k0OVJObYq9hqVK_r6NwYa_W54km4nya1R-ovIUY=",
-      alt: "Model wearing pearl jewelry",
-      jewelry: "Pearl Necklace · Pearl Earrings · Gold Chain",
+      src: "/images/x.com/13.jpeg",
+      alt: "Illustrations by my fav AarzooAly",
     },
     {
-      id: 3,
-      src: "https://battulaaljewels.com/website/images/product-banner.webp",
-      alt: "Model wearing bridal jewelry",
-      jewelry: "Bridal Necklace Set · Kundan Earrings · Maang Tikka",
+      src: "/images/x.com/32.jpeg",
+      alt: "Illustrations by my fav AarzooAly",
     },
     {
-      id: 4,
-      src: "https://battulaaljewels.com/website/images/product-banner.webp",
-      alt: "Model wearing modern jewelry",
-      jewelry: "Silver Pendant · Silver Chain · Silver Rings",
+      src: "/images/x.com/20.jpeg",
+      alt: "Illustrations by my fav AarzooAly",
     },
     {
-      id: 5,
-      src: "https://battulaaljewels.com/website/images/product-banner.webp",
-      alt: "Model wearing traditional jewelry",
-      jewelry: "Traditional Gold Set · Jhumkas · Gold Bracelet",
+      src: "/images/x.com/21.jpeg",
+      alt: "Illustrations by my fav AarzooAly",
     },
     {
-      id: 6,
-      src: "https://battulaaljewels.com/website/images/product-banner.webp",
-      alt: "Model wearing statement jewelry",
-      jewelry: "Statement Necklace · Chandelier Earrings · Armlet",
-    },
-    {
-      id: 7,
-      src: "https://battulaaljewels.com/website/images/product-banner.webp",
-      alt: "Model wearing gemstone jewelry",
-      jewelry: "Ruby Necklace · Emerald Earrings · Sapphire Ring",
-    },
-    {
-      id: 8,
-      src: "https://battulaaljewels.com/website/images/product-banner.webp",
-      alt: "Model wearing layered chains",
-      jewelry: "Layered Gold Chains · Minimal Studs · Cuff Bracelet",
+      src: "/images/x.com/19.jpeg",
+      alt: "Illustrations by my fav AarzooAly",
     },
   ];
 
-  // Auto-play carousel (pauses on hover)
-  useEffect(() => {
-    if (isPaused) return;
-    
-    const timer = setInterval(() => {
-      setCarouselIndex((prev) => {
-        const next = (prev + 1) % modelImages.length;
-        return next;
-      });
-    }, 4000); // Auto-advance every 4 seconds
-    
-    return () => {
-      clearInterval(timer);
-    };
-  }, [isPaused, modelImages.length]);
-
   return (
-    <section className="w-full py-8 sm:py-12 md:py-16 px-2 sm:px-4 lg:px-8">
-      <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-6 sm:mb-8 md:mb-12">
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-2 sm:mb-3">
-            See Our Jewellery in Action
-          </h2>
-          <p className="text-sm sm:text-base md:text-lg text-gray-600 px-2">
-            Discover elegant pieces that complement your style. Auto-plays and pauses on hover.
-          </p>
-        </div>
+    <div className="flex h-full w-full items-center justify-center overflow-hidden bg-[#f5f4f3]">
+      <Carousel_001 className="" images={images} showPagination loop />
+    </div>
+  );
+};
 
-        <div
-          className="relative h-[350px] sm:h-[400px] md:h-[550px] lg:h-[650px] overflow-hidden bg-transparent"
-          onMouseEnter={() => setIsPaused(true)}
-          onMouseLeave={() => setIsPaused(false)}
-        >
-          {/* Carousel Container */}
-          <div className="relative w-full h-full flex items-center justify-center bg-transparent">
-            <div
-              className="flex items-center justify-center relative bg-transparent"
-              style={{
-                width: "100%",
-                height: "100%",
-              }}
-            >
-              {modelImages.map((item, idx) => {
-                // Calculate position relative to current index
-                let position = idx - carouselIndex;
-                
-                // Handle wrapping for infinite loop
-                if (position > modelImages.length / 2) {
-                  position = position - modelImages.length;
-                } else if (position < -modelImages.length / 2) {
-                  position = position + modelImages.length;
-                }
+export { Skiper47 };
 
-                // Only show 3 slides: previous (-1), current (0), next (+1)
-                if (Math.abs(position) > 1) return null;
+const Carousel_001 = ({
+  images,
+  className,
+  showPagination = false,
+  showNavigation = false,
+  loop = true,
+  autoplay = false,
+  spaceBetween = 40,
+}: {
+  images: { src: string; alt: string }[];
+  className?: string;
+  showPagination?: boolean;
+  showNavigation?: boolean;
+  loop?: boolean;
+  autoplay?: boolean;
+  spaceBetween?: number;
+}) => {
+  const css = `
+  .Carousal_001 {
+    padding-bottom: 50px !important;
+  }
+  `;
+  return (
+    <motion.div
+      initial={{ opacity: 0, translateY: 20 }}
+      animate={{ opacity: 1, translateY: 0 }}
+      transition={{
+        duration: 0.3,
+        delay: 0.5,
+      }}
+      className={cn("w-3xl relative", className)}
+    >
+      <style>{css}</style>
 
-                // Calculate styles based on position
-                const isCenter = position === 0;
-                const isLeft = position === -1;
-                const isRight = position === 1;
-
-                // Responsive transform calculations
-                // Mobile: smaller translateX (30%) and smaller width (70%) to fit all 3 slides
-                // Desktop: larger translateX (42%) and larger width (90%)
-                const translateX = isMobile 
-                  ? position * 30  // Mobile: 30% offset
-                  : position * 42; // Desktop: 42% offset
-                
-                // Responsive scale - smaller on mobile to fit all slides
-                const scale = isCenter 
-                  ? 1 
-                  : isMobile 
-                    ? 0.75  // Mobile: smaller scale for side slides
-                    : 0.92; // Desktop: larger scale for side slides
-                
-                // Responsive width
-                const slideWidth = isMobile 
-                  ? "70%"  // Mobile: smaller width
-                  : "90%"; // Desktop: larger width
-                
-                const opacity = 1;
-                const zIndex = isCenter ? 10 : isLeft ? 4 : 4;
-
-                return (
-                  <div
-                    key={item.id}
-                    className="absolute bg-transparent"
-                    style={{
-                      left: "50%",
-                      top: "50%",
-                      transform: `translate(-50%, -50%) translateX(${translateX}%) scale(${scale})`,
-                      transformOrigin: "center center",
-                      opacity: opacity,
-                      zIndex: zIndex,
-                      width: slideWidth,
-                      maxWidth: "700px",
-                      height: "100%",
-                      transition: "transform 1.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 1.4s cubic-bezier(0.16, 1, 0.3, 1)",
-                      willChange: "transform, opacity",
-                      pointerEvents: isCenter ? "auto" : "none",
-                      backfaceVisibility: "hidden",
-                      WebkitBackfaceVisibility: "hidden",
-                      WebkitTransition: "transform 1.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 1.4s cubic-bezier(0.16, 1, 0.3, 1)",
-                    }}
-                  >
-                    <div 
-                      className="relative w-full h-full rounded-2xl overflow-hidden bg-transparent"
-                      style={{
-                        transform: "translateZ(0)", // Force GPU acceleration
-                      }}
-                    >
-                      <Image
-                        src={item.src}
-                        alt={item.alt}
-                        fill
-                        className="object-cover"
-                        priority={isCenter || Math.abs(position) <= 1}
-                        style={{
-                          transition: "opacity 0.3s ease-in-out",
-                        }}
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent" />
-                      <div className="absolute inset-0 flex items-end justify-center p-3 sm:p-4 md:p-6 lg:p-8 xl:p-12">
-                        <div className="text-center text-white space-y-1 sm:space-y-2 md:space-y-3 max-w-2xl px-2">
-                          <p className="text-[9px] sm:text-[10px] md:text-xs uppercase tracking-[0.15em] sm:tracking-[0.2em] text-lime-300 font-semibold opacity-90">
-                            Featured Collection
-                          </p>
-                          <h3 className="text-sm sm:text-base md:text-xl lg:text-2xl xl:text-3xl font-bold mb-0.5 sm:mb-1 md:mb-2 line-clamp-2">
-                            {item.alt}
-                          </h3>
-                          <p className="text-[10px] sm:text-xs md:text-sm text-gray-200 opacity-90 line-clamp-2">
-                            {item.jewelry}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
+      <Swiper
+        spaceBetween={spaceBetween}
+        autoplay={
+          autoplay
+            ? {
+                delay: 1500,
+                disableOnInteraction: false,
+              }
+            : false
+        }
+        effect="coverflow"
+        grabCursor={true}
+        centeredSlides={true}
+        loop={loop}
+        slidesPerView={2.43}
+        coverflowEffect={{
+          rotate: 0,
+          slideShadows: false,
+          stretch: 0,
+          depth: 100,
+          modifier: 2.5,
+        }}
+        pagination={
+          showPagination
+            ? {
+                clickable: true,
+              }
+            : false
+        }
+        navigation={
+          showNavigation
+            ? {
+                nextEl: ".swiper-button-next",
+                prevEl: ".swiper-button-prev",
+              }
+            : false
+        }
+        className="Carousal_001"
+        modules={[EffectCoverflow, Autoplay, Pagination, Navigation]}
+      >
+        {images.map((image, index) => (
+          <SwiperSlide key={index} className="!h-[320px] w-full border">
+            <img
+              className="h-full w-full object-cover"
+              src={image.src}
+              alt={image.alt}
+            />
+          </SwiperSlide>
+        ))}
+        {showNavigation && (
+          <div>
+            <div className="swiper-button-next after:hidden">
+              <ChevronRightIcon className="h-6 w-6 text-white" />
+            </div>
+            <div className="swiper-button-prev after:hidden">
+              <ChevronLeftIcon className="h-6 w-6 text-white" />
             </div>
           </div>
-
-          {/* Navigation arrows - responsive positioning */}
-          <button
-            type="button"
-            onClick={() =>
-              setCarouselIndex((prev) =>
-                prev === 0 ? modelImages.length - 1 : prev - 1
-              )
-            }
-            className="absolute left-1 sm:left-2 md:left-4 lg:left-8 top-1/2 -translate-y-1/2 w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 lg:w-14 lg:h-14 rounded-full bg-white/90 backdrop-blur-sm text-gray-800 hover:bg-white transition-all duration-300 z-30 flex items-center justify-center group"
-            aria-label="Previous slide"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={2.5}
-              stroke="currentColor"
-              className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 lg:w-7 lg:h-7 group-hover:scale-110 transition-transform"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M15.75 19.5L8.25 12l7.5-7.5"
-              />
-            </svg>
-          </button>
-          <button
-            type="button"
-            onClick={() =>
-              setCarouselIndex((prev) => (prev + 1) % modelImages.length)
-            }
-            className="absolute right-1 sm:right-2 md:right-4 lg:right-8 top-1/2 -translate-y-1/2 w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 lg:w-14 lg:h-14 rounded-full bg-white/90 backdrop-blur-sm text-gray-800 hover:bg-white transition-all duration-300 z-30 flex items-center justify-center group"
-            aria-label="Next slide"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={2.5}
-              stroke="currentColor"
-              className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 lg:w-7 lg:h-7 group-hover:scale-110 transition-transform"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M8.25 4.5l7.5 7.5-7.5 7.5"
-              />
-            </svg>
-          </button>
-
-          {/* Carousel indicators */}
-          {/* <div className="absolute bottom-4 sm:bottom-6 md:bottom-8 left-1/2 -translate-x-1/2 flex gap-1.5 sm:gap-2 z-20">
-            {modelImages.map((_, index) => (
-              <button
-                key={index}
-                onClick={() => setCarouselIndex(index)}
-                className={`h-1.5 sm:h-2 rounded-full transition-all duration-500 ease-out ${
-                  index === carouselIndex
-                    ? "w-6 sm:w-8 bg-white shadow-lg"
-                    : "w-1.5 sm:w-2 bg-white/40 hover:bg-white/60"
-                }`}
-                aria-label={`Go to slide ${index + 1}`}
-              />
-            ))}
-          </div> */}
-        </div>
-      </div>
-    </section>
+        )}
+      </Swiper>
+    </motion.div>
   );
-}
+};
 
+export { Carousel_001 };
+
+/**
+ * Skiper 47 Carousel_001 — React + Swiper
+ * Built with Swiper.js - Read docs to learn more https://swiperjs.com/
+ * Illustrations by AarzooAly - https://x.com/AarzooAly
+ *
+ * License & Usage:
+ * - Free to use and modify in both personal and commercial projects.
+ * - Attribution to Skiper UI is required when using the free version.
+ * - No attribution required with Skiper UI Pro.
+ *
+ * Feedback and contributions are welcome.
+ *
+ * Author: @gurvinder-singh02
+ * Website: https://gxuri.in
+ * Twitter: https://x.com/Gur__vi
+ */

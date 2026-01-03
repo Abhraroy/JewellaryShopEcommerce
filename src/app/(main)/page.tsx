@@ -443,7 +443,7 @@ export default function LandingPage() {
         </section>
 
         {/* Model Carousel Section */}
-        <ModelCaraousel />
+        {/* <ModelCaraousel /> */}
 
         {/* Social Media Bento Section */}
         <section className="w-full py-12 md:py-16 px-0">

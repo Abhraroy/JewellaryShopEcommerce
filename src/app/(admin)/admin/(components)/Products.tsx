@@ -7,6 +7,8 @@ import { getProducts, uploadProductImages, createProduct, updateProduct, deleteP
 import { Category, getCategories } from "../actions/categories";
 import { uploadImageToCloudflare } from "@/app/utils/cloudflare";
 
+const MAX_IMAGE_UPLOAD_BYTES = 8 * 1024 * 1024; // 8MB guard to keep server action body small
+
 interface ProductsProps {
   isDarkTheme: boolean;
 }
@@ -339,14 +341,19 @@ export default function Products({ isDarkTheme }: ProductsProps) {
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      const previewUrl = URL.createObjectURL(file);
-      setFormData((prev) => ({
-        ...prev,
-        thumbnail_image: file,
-      }));
-      setThumbnailImagePreview(previewUrl);
+    if (!file) return;
+
+    if (file.size > MAX_IMAGE_UPLOAD_BYTES) {
+      alert("Image is too large. Please upload a file under 8MB.");
+      return;
     }
+
+    const previewUrl = URL.createObjectURL(file);
+    setFormData((prev) => ({
+      ...prev,
+      thumbnail_image: file,
+    }));
+    setThumbnailImagePreview(previewUrl);
   };
 
   const removeImage = () => {
@@ -365,7 +372,10 @@ export default function Products({ isDarkTheme }: ProductsProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     console.log("Product Data:", formData);
-    const result  = await createProduct(formData);
+    const result  = await createProduct({
+      ...formData,
+      subcategory_id: formData.subcategory_id || null,
+    });
     if(result.success){
       console.log("Product created successfully");
       alert("Product created successfully");
@@ -431,7 +441,10 @@ export default function Products({ isDarkTheme }: ProductsProps) {
 
   const handleUpdateProduct = async () => {
     console.log("Update product:", formData);
-    const result = await updateProduct(editingProductId as string, formData);
+    const result = await updateProduct(editingProductId as string, {
+      ...formData,
+      subcategory_id: formData.subcategory_id || null,
+    });
     if(result && result.success){
       console.log("Product updated successfully");
       alert("Product updated successfully");

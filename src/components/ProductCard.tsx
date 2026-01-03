@@ -153,7 +153,7 @@ export default function ProductCard({
       onMouseLeave={() => setIsHovered(false)}
     >
       {/* Image Container with Gradient Overlay */}
-      <div className="relative w-full aspect-[4/5] bg-gradient-to-br from-gray-50 to-gray-100 overflow-hidden">
+      <div className="relative w-full aspect-[2/3] bg-gradient-to-br from-gray-50 to-gray-100 overflow-hidden">
         {!imageError ? (
           <>
             <Image
