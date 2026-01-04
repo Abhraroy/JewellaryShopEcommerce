@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-
+import Link from "next/link";
+import Image from "next/image";
 interface FooterProps {
   className?: string;
 }
@@ -18,7 +18,7 @@ interface SocialIcon {
 }
 
 // SVG Icon Components
-const FacebookIcon = ({ className = 'w-5 h-5' }: { className?: string }) => (
+const FacebookIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     fill="currentColor"
@@ -29,7 +29,7 @@ const FacebookIcon = ({ className = 'w-5 h-5' }: { className?: string }) => (
   </svg>
 );
 
-const InstagramIcon = ({ className = 'w-5 h-5' }: { className?: string }) => (
+const InstagramIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     fill="currentColor"
@@ -40,7 +40,7 @@ const InstagramIcon = ({ className = 'w-5 h-5' }: { className?: string }) => (
   </svg>
 );
 
-const TwitterIcon = ({ className = 'w-5 h-5' }: { className?: string }) => (
+const TwitterIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     fill="currentColor"
@@ -51,7 +51,7 @@ const TwitterIcon = ({ className = 'w-5 h-5' }: { className?: string }) => (
   </svg>
 );
 
-const YoutubeIcon = ({ className = 'w-5 h-5' }: { className?: string }) => (
+const YoutubeIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     fill="currentColor"
@@ -62,7 +62,7 @@ const YoutubeIcon = ({ className = 'w-5 h-5' }: { className?: string }) => (
   </svg>
 );
 
-const MailIcon = ({ className = 'w-5 h-5' }: { className?: string }) => (
+const MailIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     fill="none"
@@ -79,7 +79,7 @@ const MailIcon = ({ className = 'w-5 h-5' }: { className?: string }) => (
   </svg>
 );
 
-const PhoneIcon = ({ className = 'w-5 h-5' }: { className?: string }) => (
+const PhoneIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     fill="none"
@@ -96,7 +96,7 @@ const PhoneIcon = ({ className = 'w-5 h-5' }: { className?: string }) => (
   </svg>
 );
 
-const LocationIcon = ({ className = 'w-5 h-5' }: { className?: string }) => (
+const LocationIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     fill="none"
@@ -118,61 +118,69 @@ const LocationIcon = ({ className = 'w-5 h-5' }: { className?: string }) => (
   </svg>
 );
 
-export default function Footer({ className = '' }: FooterProps) {
+export default function Footer({ className = "" }: FooterProps) {
   const currentYear = new Date().getFullYear();
 
   // Footer links data
   const quickLinks: FooterLink[] = [
-    { label: 'About Us', href: '/about' },
-    { label: 'Contact Us', href: '/contact' },
-    { label: 'Privacy Policy', href: '/privacy' },
-    { label: 'Terms & Conditions', href: '/terms' },
-    { label: 'Return Policy', href: '/returns' },
-    { label: 'Shipping Info', href: '/shipping' },
+    { label: "About Us", href: "/about" },
+    { label: "Contact Us", href: "/contact" },
+    { label: "Privacy Policy", href: "/privacy" },
+    { label: "Terms & Conditions", href: "/terms" },
+    { label: "Return Policy", href: "/returns" },
+    { label: "Shipping Info", href: "/shipping" },
   ];
 
   const customerService: FooterLink[] = [
-    { label: 'Track Order', href: '/track-order' },
-    { label: 'Returns & Exchanges', href: '/returns' },
+    { label: "Track Order", href: "/track-order" },
+    { label: "Returns & Exchanges", href: "/returns" },
   ];
 
   const socialLinks: SocialIcon[] = [
     {
-      name: 'Facebook',
-      href: 'https://facebook.com',
+      name: "Facebook",
+      href: "https://facebook.com",
       icon: <FacebookIcon />,
     },
     {
-      name: 'Instagram',
-      href: 'https://instagram.com',
+      name: "Instagram",
+      href: "https://instagram.com",
       icon: <InstagramIcon />,
     },
     {
-      name: 'Twitter',
-      href: 'https://twitter.com',
+      name: "Twitter",
+      href: "https://twitter.com",
       icon: <TwitterIcon />,
     },
     {
-      name: 'YouTube',
-      href: 'https://youtube.com',
+      name: "YouTube",
+      href: "https://youtube.com",
       icon: <YoutubeIcon />,
     },
   ];
 
   return (
-    <footer className={`bg-theme-cream border-t border-theme-sage/20 ${className}`}>
+    <footer
+      className={`bg-theme-cream border-t border-theme-sage/20 ${className}`}
+    >
       {/* Main Footer Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-12">
           {/* Brand & Social */}
-          <div className="space-y-5">
+          <div className="space-y-5 flex flex-col items-center justify-center">
             <Link href="/" className="inline-block">
+              <Image
+                src="/logo/cropped-logo.svg"
+                alt=""
+                width={100}
+                height={100}
+              />
               <span className="text-2xl md:text-3xl font-bold text-theme-olive tracking-tight">
-                JWEL
+                THE JWEL
               </span>
             </Link>
             <p className="text-sm text-gray-600 leading-relaxed max-w-md">
-              Premium jewelry crafted with precision to help you shine on every occasion.
+              BEYOND THE JEWELLERY
             </p>
             <div className="flex flex-wrap items-center gap-3">
               {socialLinks.map((social) => (
@@ -181,7 +189,7 @@ export default function Footer({ className = '' }: FooterProps) {
                   href={social.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-theme-olive hover:text-theme-sage transition-colors duration-200 p-2 hover:bg-white/60 rounded-full shadow-sm"
+                  className="text-theme-black transition-colors duration-200 p-2 hover:bg-theme-gray/10 rounded-full shadow-sm"
                   aria-label={social.name}
                 >
                   {social.icon}
@@ -191,8 +199,8 @@ export default function Footer({ className = '' }: FooterProps) {
           </div>
 
           {/* Links */}
-          <div className="grid grid-cols-2 gap-6">
-            <div>
+          <div className="grid grid-cols-2 gap-6  ">
+            <div className="flex flex-col items-start justify-start ">
               <h3 className="text-gray-900 font-semibold text-base mb-4 uppercase tracking-wide">
                 Quick Links
               </h3>
@@ -201,7 +209,7 @@ export default function Footer({ className = '' }: FooterProps) {
                   <li key={link.label}>
                     <Link
                       href={link.href}
-                      className="text-sm text-theme-olive hover:text-theme-sage transition-colors duration-200 inline-block"
+                      className="text-sm text-theme-black hover:text-[#0A0239] transition-colors duration-200 inline-block"
                     >
                       {link.label}
                     </Link>
@@ -219,7 +227,7 @@ export default function Footer({ className = '' }: FooterProps) {
                   <li key={link.label}>
                     <Link
                       href={link.href}
-                      className="text-sm text-theme-olive hover:text-theme-sage transition-colors duration-200 inline-block"
+                      className="text-sm text-theme-black hover:text-[#0A0239] transition-colors duration-200 inline-block"
                     >
                       {link.label}
                     </Link>
@@ -236,27 +244,28 @@ export default function Footer({ className = '' }: FooterProps) {
             </h3>
             <div className="space-y-3">
               <div className="flex items-start gap-3">
-                <PhoneIcon className="w-5 h-5 text-theme-olive flex-shrink-0 mt-0.5" />
+                <PhoneIcon className="w-5 h-5 text-theme-black flex-shrink-0 mt-0.5" />
                 <a
                   href="tel:+1234567890"
-                  className="text-sm text-theme-olive hover:text-theme-sage transition-colors duration-200"
+                  className="text-sm text-theme-black hover:text-[#0A0239] transition-colors duration-200"
                 >
                   +1 (234) 567-890
                 </a>
               </div>
               <div className="flex items-start gap-3">
-                <MailIcon className="w-5 h-5 text-theme-olive flex-shrink-0 mt-0.5" />
+                <MailIcon className="w-5 h-5 text-theme-black flex-shrink-0 mt-0.5" />
                 <a
                   href="mailto:support@jwel.com"
-                  className="text-sm text-theme-olive hover:text-theme-sage transition-colors duration-200 break-all"
+                  className="text-sm text-theme-black hover:text-[#0A0239] transition-colors duration-200 break-all"
                 >
                   support@jwel.com
                 </a>
               </div>
               <div className="flex items-start gap-3">
-                <LocationIcon className="w-5 h-5 text-theme-olive flex-shrink-0 mt-0.5" />
+                <LocationIcon className="w-5 h-5 text-theme-black flex-shrink-0 mt-0.5" />
                 <p className="text-sm text-gray-600 leading-relaxed">
-                  123 Jewelry Street,<br />
+                  123 Jewelry Street,
+                  <br />
                   New York, NY 10001
                 </p>
               </div>
@@ -275,19 +284,19 @@ export default function Footer({ className = '' }: FooterProps) {
             <div className="flex items-center gap-6">
               <Link
                 href="/privacy"
-                className="text-sm text-theme-olive hover:text-theme-sage transition-colors duration-200"
+                className="text-sm text-theme-black hover:text-[#0A0239] transition-colors duration-200"
               >
                 Privacy
               </Link>
               <Link
                 href="/terms"
-                className="text-sm text-theme-olive hover:text-theme-sage transition-colors duration-200"
+                className="text-sm text-theme-black hover:text-[#0A0239] transition-colors duration-200"
               >
                 Terms
               </Link>
               <Link
                 href="/cookies"
-                className="text-sm text-theme-olive hover:text-theme-sage transition-colors duration-200"
+                className="text-sm text-black hover:text-blue-950 transition-colors duration-200"
               >
                 Cookies
               </Link>
@@ -298,4 +307,3 @@ export default function Footer({ className = '' }: FooterProps) {
     </footer>
   );
 }
-
