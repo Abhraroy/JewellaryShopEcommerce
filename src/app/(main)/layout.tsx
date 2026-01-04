@@ -1,10 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import Navbar from "@/components/Navbar";
-import PhoneNumberInput from "@/components/PhoneNumberInput";
-import OtpInput from "@/components/OtpInput";
-import { useStore } from "@/zustandStore/zustandStore";
 import ParentNavbar from "@/components/ParentNavbar";
 import Footer from "@/components/Footer";
 import PaymentGatewayWrapper from "@/components/PaymentGatewayWrapper";

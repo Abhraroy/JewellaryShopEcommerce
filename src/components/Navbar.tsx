@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import { useStore } from '../zustandStore/zustandStore';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from "next/image";
+import HamburgerSidebar from './HamburgerSidebar';
 
 interface NavbarProps {
   cartCount?: number;
@@ -262,12 +264,6 @@ export default function Navbar({ cartCount = 0, isAuthenticated = false, onCartC
     (item) => !item.requiresAuth || isAuthenticated
   );
 
-  // Handle wishlist click - always navigate to wishlist page (mobile sidebar)
-  const handleWishlistClick = () => {
-    handleCloseSidebar();
-    router.push('/wishlist');
-  };
-
   // Handle account click - same behavior as desktop icon
   const handleAccountClick = () => {
     handleCloseSidebar();
@@ -320,6 +316,11 @@ export default function Navbar({ cartCount = 0, isAuthenticated = false, onCartC
       onClick: () => setShowMobileSearch(!showMobileSearch),
     },
     {
+      label: 'Wishlist',
+      icon: <WishlistIcon className="w-6 h-6" />,
+      onClick: handleDesktopWishlistClick,
+    },
+    {
       label: 'Shopping Cart',
       icon: <CartIcon className="w-6 h-6" />,
       badge: cartCount,
@@ -335,8 +336,8 @@ export default function Navbar({ cartCount = 0, isAuthenticated = false, onCartC
     <nav
       className="w-full border-b border-theme-sage/20 sticky top-0 z-50 bg-transparent"
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center h-16 md:h-20">
+      <div className="w-full">
+        <div className="flex items-center px-4 sm:px-6 lg:px-8 h-16 md:h-22">
           {/* Hamburger Menu - Mobile Only */}
           <button
             onClick={() => setIsSidebarOpen(true)}
@@ -347,16 +348,29 @@ export default function Navbar({ cartCount = 0, isAuthenticated = false, onCartC
           </button>
 
           {/* Logo Section */}
-          <div className="flex-shrink-0 ml-2 md:ml-0">
-            <a href="/" className="flex items-center">
-              <span className="text-2xl md:text-3xl font-bold text-theme-olive tracking-tight">
-                JWEL
-              </span>
+          <div className="flex-shrink-0 ml-2 md:ml-0 flex-row flex ">
+            <a href="/" className="flex items-center gap-2 md:gap-3">
+              <Image
+                src="/logo/cropped-logo.svg"
+                alt="JWEL"
+                width={74}
+                height={74}
+                className="w-12 h-12 sm:w-13 sm:h-13 md:w-14 md:h-14 lg:w-18 lg:h-18 object-cover"
+                priority
+              />
+              <div className="flex flex-col items-start justify-start">
+                <span className="text-xl sm:text-2xl md:text-2xl lg:text-3xl font-bold text-[#360000] tracking-tight">
+                  The JWEL
+                </span>
+                <span className="text-[0.6rem] md:text-[0.7rem] lg:text-base text-[#360000] tracking-tight">
+                  BEYOND THE JEWELLERY
+                </span>
+              </div>
             </a>
           </div>
 
           {/* Search Bar Section - Hidden on mobile, visible on tablet and up */}
-          <div className="hidden md:flex flex-1 max-w-2xl mx-4 md:mx-8">
+          <div className="hidden md:flex flex-1 ml-auto md:max-w-[20rem] lg:max-w-2xl">
             <div className="relative w-full">
               <input
                 type="text"
@@ -372,7 +386,7 @@ export default function Navbar({ cartCount = 0, isAuthenticated = false, onCartC
           </div>
 
           {/* Desktop Icons Section */}
-          <div className="hidden md:flex items-center gap-3 md:gap-4 lg:gap-6 ml-auto">
+          <div className="hidden md:flex items-center gap-3 md:gap-4 lg:gap-6 ml-4">
             {desktopIcons.map((iconItem, index) => (
               <button
                 key={index}
@@ -412,7 +426,7 @@ export default function Navbar({ cartCount = 0, isAuthenticated = false, onCartC
 
         {/* Mobile Search Bar - Shows when search icon is clicked */}
         {showMobileSearch && (
-          <div className="md:hidden pb-4">
+          <div className="md:hidden pb-4 px-4 ">
             <div className="relative">
               <input
                 type="text"
@@ -431,118 +445,13 @@ export default function Navbar({ cartCount = 0, isAuthenticated = false, onCartC
       </div>
 
       {/* Left Sidebar - Mobile Only */}
-      <>
-        {/* Backdrop */}
-        {isSidebarOpen && (
-          <div
-            className="fixed inset-0 bg-black/20 bg-opacity-50 z-50 md:hidden"
-            onClick={handleCloseSidebar}
-          />
-        )}
-
-        {/* Sidebar */}
-        <div className={`fixed top-0 left-0 h-full w-80 bg-[#FDACAC] text-white shadow-xl z-50 transition-transform duration-300 ease-in-out md:hidden ${
-          isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}>
-          <div className="flex flex-col h-full">
-            {/* Sidebar Header */}
-            <div className="flex items-center justify-between p-4 border-b border-white/30">
-              <h2 className="text-xl font-bold text-white">Menu</h2>
-              <button
-                onClick={handleCloseSidebar}
-                className="p-2 text-white hover:text-[#FFCDC9] transition-colors"
-                aria-label="Close menu"
-              >
-                <CloseIcon />
-              </button>
-            </div>
-
-            {/* Sidebar Menu Items */}
-            <nav className="flex-1 overflow-y-auto py-4">
-              <ul className="space-y-1 px-4">
-                {/* Categories Section */}
-                {categories && categories.length > 0 ? (
-                  <>
-                    <li className="px-4 py-2 mt-4 mb-2">
-                      <h3 className="text-sm font-semibold text-white uppercase tracking-wider">
-                        Categories
-                      </h3>
-                    </li>
-                    {categories.map((category: any) => (
-                      <li key={category.category_id}>
-                        <Link
-                          href={`/category/${category.slug}`}
-                          className="flex items-center gap-3 px-4 py-3 bg-[#FFCDC9] text-[#7A1C1C] hover:bg-[#FD7979] rounded-lg transition-colors"
-                          onClick={handleCloseSidebar}
-                        >
-                          <span className="font-medium">{category.category_name}</span>
-                        </Link>
-                      </li>
-                    ))}
-                    <li className="px-4 py-2 mt-4 mb-2 border-t border-white/30"></li>
-                  </>
-                ) : isSidebarOpen ? (
-                  <>
-                    <li className="px-4 py-2 mt-4 mb-2">
-                      <div className="h-4 w-24 bg-white/40 rounded animate-pulse" />
-                    </li>
-                    {Array.from({ length: 6 }).map((_, idx) => (
-                      <li key={idx} className="px-4">
-                        <div className="flex items-center gap-3 px-4 py-3 bg-white/10 rounded-lg animate-pulse">
-                          <span className="h-4 w-32 bg-white/30 rounded" />
-                        </div>
-                      </li>
-                    ))}
-                    <li className="px-4 py-2 mt-4 mb-2 border-t border-white/30"></li>
-                  </>
-                ) : null}
-
-                {/* Wishlist Button */}
-                <li>
-                  <button
-                    onClick={handleWishlistClick}
-                    className="w-full flex items-center gap-3 px-4 py-3 bg-[#FFCDC9] text-[#7A1C1C] hover:bg-[#FD7979] rounded-lg transition-colors text-left"
-                  >
-                    <WishlistIcon className="w-5 h-5" />
-                    <span className="font-medium">My Wishlist</span>
-                  </button>
-                </li>
-
-                {/* Other Menu Items */}
-                {filteredMenuItems.map((item, index) => {
-                  // Special handling for "My Account" to match desktop behavior
-                  if (item.label === 'My Account') {
-                    return (
-                      <li key={index}>
-                        <button
-                          onClick={handleAccountClick}
-                          className="w-full flex items-center gap-3 px-4 py-3 bg-[#FFCDC9] text-[#7A1C1C] hover:bg-[#FD7979] rounded-lg transition-colors text-left"
-                        >
-                          {item.icon}
-                          <span className="font-medium">{item.label}</span>
-                        </button>
-                      </li>
-                    );
-                  }
-                  // Regular menu items with links
-                  return (
-                    <li key={index}>
-                      <a
-                        href={item.href}
-                          className="flex items-center gap-3 px-4 py-3 bg-[#FFCDC9] text-[#7A1C1C] hover:bg-[#FD7979] rounded-lg transition-colors"
-                        onClick={handleCloseSidebar}
-                      >
-                        {item.icon}
-                        <span className="font-medium">{item.label}</span>
-                      </a>
-                    </li>
-                  );
-                })}
-              </ul>
-            </nav>
-          </div>
-        </div>
-      </>
+      <HamburgerSidebar
+        isSidebarOpen={isSidebarOpen}
+        onClose={handleCloseSidebar}
+        categories={categories}
+        filteredMenuItems={filteredMenuItems}
+        onAccountClick={handleAccountClick}
+      />
     </nav>
   );
 }
