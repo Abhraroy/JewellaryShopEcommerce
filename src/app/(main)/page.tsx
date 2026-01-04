@@ -16,13 +16,10 @@ import { addToDbCart, createCart } from "@/utilityFunctions/CartFunctions";
 import { Product } from "@/utilityFunctions/TypeInterface";
 import Collection from "@/components/Collection";
 import Link from "next/link";
-import ModelCaraousel from "@/components/ModelCaraousel";
 import ProductCard from "@/components/ProductCard";
 
 export default function LandingPage() {
   const {
-    MobnoInputState,
-    OtpInputState,
     setMobnoInputState,
     setAuthenticatedState,
     AuthenticatedState,
@@ -32,6 +29,8 @@ export default function LandingPage() {
     CartId,
     setCategories,
     categories,
+    setCartCount,
+    cartCount,
   } = useStore();
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [newArrivals, setNewArrivals] = useState<Product[]>([]);
@@ -57,7 +56,6 @@ export default function LandingPage() {
     </div>
   ));
 
-
   const handleAddToCart = (productId: string) => {
     console.log("Add to cart:", productId);
     // Implement your add to cart logic here
@@ -68,110 +66,109 @@ export default function LandingPage() {
     // Implement your wishlist logic here
   };
 
+  // ✅ FIXED - Get full cart after merging
+  const mergeLocalCartItems = async (cartId: string): Promise<void> => {
+    try {
+      const localCartItems = localStorage.getItem("cartItems");
+      if (!localCartItems) return;
+
+      const localCartItemsArray = JSON.parse(localCartItems);
+      if (
+        !Array.isArray(localCartItemsArray) ||
+        localCartItemsArray.length === 0
+      ) {
+        localStorage.removeItem("cartItems");
+        return;
+      }
+
+      // Process all items in parallel
+      const addPromises = localCartItemsArray.map((item) =>
+        addToDbCart(item.products, cartId, supabase)
+      );
+
+      await Promise.allSettled(addPromises);
+
+      // Fetch the complete updated cart from DB
+      const { data: cartData, error } = await supabase
+        .from("cart")
+        .select(`*, cart_items(*)`)
+        .eq("cart_id", cartId)
+        .single();
+
+      if (!error && cartData) {
+        setCartItems(cartData.cart_items);
+        const totalCount = cartData.cart_items.reduce(
+          (sum: number, item: any) => sum + item.quantity,
+          0
+        );
+        setCartCount(totalCount);
+      }
+
+      localStorage.removeItem("cartItems");
+    } catch (error) {
+      console.error("Local cart merge error:", error);
+      localStorage.removeItem("cartItems");
+    }
+  };
+
   useEffect(() => {
     const checkAuthentication = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      console.log("user", user);
-      if (user) {
-        setAuthenticatedState(true);
-
-        const userData: any = await supabase
-          .from("users")
-          .select("*")
-          .eq("phone_number", "+" + user.phone)
-          .single();
-        console.log("userData", userData);
-        if (userData.data) {
-          setAuthUserId(userData.data?.user_id);
-          const { data, error } = await supabase
-            .from("cart")
-            .select("*")
-            .eq("user_id", userData.data?.user_id)
-            .maybeSingle();
-          if (data) {
-            console.log("Setting CartId", data?.cart_id);
-            setCartId(data?.cart_id);
-            const localCartItems = localStorage.getItem("cartItems");
-            if (localCartItems) {
-              let localCartItemsArray = localCartItems
-                ? JSON.parse(localCartItems)
-                : [];
-              if (localCartItemsArray.length > 0) {
-                console.log(
-                  "After authentication cart items from local storage",
-                  localCartItemsArray
-                );
-                for (const item of localCartItemsArray) {
-                  console.log(
-                    "Adding to db cart from local storage",
-                    item.products
-                  );
-                  console.log("CartId", data?.cart_id);
-                  console.log("supabase", supabase);
-                  const updatedItem = await addToDbCart(
-                    item.products,
-                    data?.cart_id,
-                    supabase
-                  );
-                  setCartItems(updatedItem);
-                }
-              } else {
-                console.log("No cart items from local storage");
-              }
-            } else {
-              console.log("No cart items from local storage");
-            }
-            localStorage.removeItem("cartItems");
-          } else {
-            const { success, data, error } = await createCart(
-              userData.data?.user_id,
-              supabase
-            );
-            if (success) {
-              setCartId(data?.cart_id);
-              const localCartItems = localStorage.getItem("cartItems");
-              let localCartItemsArray = localCartItems
-                ? JSON.parse(localCartItems)
-                : [];
-              if (localCartItemsArray.length > 0) {
-                console.log(
-                  "After authentication cart items from local storage",
-                  localCartItemsArray
-                );
-                for (const item of localCartItemsArray) {
-                  console.log(
-                    "Adding to db cart from local storage",
-                    item.products
-                  );
-                  console.log("CartId", data?.cart_id);
-                  console.log("supabase", supabase);
-                  const updatedItem = await addToDbCart(
-                    item.products,
-                    data?.cart_id,
-                    supabase
-                  );
-                  setCartItems(updatedItem);
-                }
-              } else {
-                console.log("No cart items from local storage");
-              }
-            } else {
-              console.log("error", error);
-            }
-            localStorage.removeItem("cartItems");
-          }
-          console.log("User data", userData.data);
-        }
-        console.log("User is authenticated");
-      } else {
+      const { data, error } = await supabase.auth.getUser();
+      if (error || !data?.user) {
+        console.log("User not authenticated");
         setAuthenticatedState(false);
-        console.log("User is not authenticated");
+        return;
       }
+      setAuthenticatedState(true);
+      const { data: userData, error: userError } = await supabase
+        .from("users")
+        .select("*")
+        .eq("phone_number", "+" + data?.user?.phone)
+        .single();
+      if (userError || !userData?.user_id) {
+        console.log("User logged but no data found in db");
+        setAuthenticatedState(false);
+        return;
+      }
+      console.log("User data found in db", userData?.user_id);
+      setAuthUserId(userData?.user_id);
+      const { data: cartData, error: cartError } = await supabase
+        .from("cart")
+        .select(`*,cart_items(quantity)`)
+        .eq("user_id", userData?.user_id)
+        .maybeSingle();
+      if (cartError || !cartData?.cart_id) {
+        console.log("No cart found for user", userData?.user_id);
+        const {
+          success,
+          data: newCart,
+          error: createError,
+        } = await createCart(userData.user_id, supabase);
+
+        if (success && newCart?.cart_id) {
+          console.log("✅ Recovery cart created:", newCart.cart_id);
+          setCartId(newCart.cart_id);
+          setCartCount(0);
+          await mergeLocalCartItems(newCart.cart_id);
+        } else {
+          console.error("❌ Failed to create recovery cart:", createError);
+          // Optionally show error to user
+          setCartId("");
+        }
+        return; // Exit early
+      }
+      setCartId(cartData?.cart_id);
+      const Count =
+        cartData?.cart_items?.reduce(
+          (sum: number, item: any) => sum + item.quantity,
+          0
+        ) ?? 0;
+      setCartCount(Count);
+      console.log("calling mergeLocalCartItems");
+      mergeLocalCartItems(cartData?.cart_id);
     };
     checkAuthentication();
-  }, [AuthenticatedState]);
+  }, []);
 
   useEffect(() => {
     const getBestSellers = async () => {
@@ -206,7 +203,6 @@ export default function LandingPage() {
       setLoadingNewArrivals(false);
     };
     getNewArrivals();
-    
   }, []);
 
   useEffect(() => {
@@ -786,7 +782,10 @@ function ProductCarouselSkeleton({ title }: { title: string }) {
   return (
     <section className="w-full bg-theme-cream py-6 md:py-12 lg:py-16">
       <div className="flex items-center justify-center mb-5 md:mb-8 px-4 sm:px-6 lg:px-8">
-        <div className="h-6 md:h-8 w-40 md:w-56 bg-gray-200 animate-pulse rounded" aria-label={title} />
+        <div
+          className="h-6 md:h-8 w-40 md:w-56 bg-gray-200 animate-pulse rounded"
+          aria-label={title}
+        />
       </div>
       <div className="relative w-full">
         <div className="overflow-x-auto scrollbar-hide">

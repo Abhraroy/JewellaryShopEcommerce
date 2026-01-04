@@ -143,8 +143,10 @@ export default function AccountPage() {
   const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null);
   const [orderItemsDetails, setOrderItemsDetails] = useState<Record<string, any[]>>({});
   const [loadingOrderItems, setLoadingOrderItems] = useState<string | null>(null);
+  
+
   const supabase = createClient();
-  const { refresh, setRefresh } = useStore();
+  const { refresh, setRefresh, setAuthenticatedState, setAuthUserId, setCartId, setCartItems, setCartCount, setWishListItems, setInitiatingCheckout, setPaymentConcluded, setShowPaymentConcluded } = useStore();
   const fetchUserData = async () => {
     const { data, error } = await supabase.auth.getUser();
     console.log("data", data);
@@ -746,6 +748,16 @@ export default function AccountPage() {
                     }
                     else{
                       console.log("Logout successful");
+                      setAuthenticatedState(false);
+                      setAuthUserId("");
+                      setCartId("");
+                      setCartItems([]);
+                      setCartCount(0);
+                      setWishListItems([]);
+                      setInitiatingCheckout(false);
+                      setPaymentConcluded(false);
+                      setShowPaymentConcluded(false);
+                      setRefresh();
                       redirect("/");
                     }
                   }}

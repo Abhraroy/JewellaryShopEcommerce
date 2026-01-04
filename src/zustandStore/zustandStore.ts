@@ -13,6 +13,8 @@ interface StoreState {
     setAuthenticatedState: (auth: boolean) => void;
     cartItems: any;
     setCartItems: (items: any) => void;
+    cartCount: number;
+    setCartCount: (count: number) => void;
     checkoutState: boolean;
     setCheckoutState: (state: boolean) => void;
     AuthUserId: string;
@@ -52,6 +54,8 @@ export const useStore = create<StoreState>((set) => ({
     setAuthenticatedState: (auth: boolean) => set({ AuthenticatedState: auth }),
     cartItems: [],
     setCartItems: (items: any) => set({ cartItems: items }),
+    cartCount:0,
+    setCartCount: (count: number) => set({ cartCount: count }),
     checkoutState:false,
     setCheckoutState: (state: boolean) => set({ checkoutState: state }),
     AuthUserId:"",

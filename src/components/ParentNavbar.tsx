@@ -4,13 +4,9 @@ import Navbar from "./Navbar";
 import OtpInput from "./OtpInput";
 import PhoneNumberInput from "./PhoneNumberInput";
 import Cart from "./Cart";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 export default function ParentNavbar() {
-    const { setIsCartOpen, MobnoInputState, OtpInputState, isCartOpen, cartItems } = useStore();
-    const cartCount = Array.isArray(cartItems) ? cartItems.length : 0;
-    useEffect(() => {
-        console.log('cartItems ParentNavbar', cartItems);
-    }, [cartItems]);
+    const { setIsCartOpen, MobnoInputState, OtpInputState, isCartOpen, cartCount } = useStore();
     const handleOpenCart = () => {
         setIsCartOpen(true);
     };
