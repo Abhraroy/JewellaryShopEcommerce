@@ -86,7 +86,7 @@ export default function PhoneNumberInput({ containerClassName = 'w-full bg-gradi
         <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 md:py-4'>
           <form onSubmit={handlePhoneSubmit} className='flex flex-col sm:flex-row sm:items-end gap-3 md:gap-4'>
             <div className='flex-1 w-full sm:w-auto max-w-md'>
-              <label htmlFor="phone-input" className='block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2 text-center sm:text-left'>
+              <label htmlFor="phone-input" className='block text-xs sm:text-sm font-medium text-[#360000] mb-1.5 sm:mb-2 text-center sm:text-left'>
                 <span className='hidden sm:inline'>Enter your phone number to continue shopping:</span>
                 <span className='sm:hidden'>Enter phone number to continue:</span>
               </label>
@@ -109,7 +109,7 @@ export default function PhoneNumberInput({ containerClassName = 'w-full bg-gradi
                   placeholder='9876543210'
                   inputMode="numeric"
                   pattern="[0-9]*"
-                  className='w-full pl-12 pr-4 py-2.5 border border-amber-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent text-sm sm:text-base text-gray-900 placeholder-gray-400 transition-all'
+                  className='w-full pl-12 pr-4 py-2.5 border border-[#360000]/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#360000] focus:border-transparent text-sm sm:text-base text-[#360000] placeholder-gray-400 transition-all'
                   maxLength={10}
                 />
               </div>

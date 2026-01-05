@@ -87,7 +87,7 @@ export const decreaseQuantityFromLocalCart = (product:any)=>{
 export const createCart = async(AuthUserId:string,supabase:any)=>{
     const {data,error} = await supabase.from("cart").insert({
         user_id:AuthUserId,
-    })
+    }).select().single();
     if(error){
         console.log("error",error)
         return {success:false,error:error,message:"Failed to create cart"}

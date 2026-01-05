@@ -1,5 +1,7 @@
 import { NextRequest,NextResponse } from "next/server";
 import { createClient } from "@/app/utils/supabase/server";
+import { createCart } from "@/utilityFunctions/CartFunctions";
+import { getOrCreateWishlist } from "@/utilityFunctions/WishListFunctions";
 
 
 export async function POST(request: NextRequest) {
@@ -10,23 +12,54 @@ export async function POST(request: NextRequest) {
     }
     const body = await request.json();
     console.log('body', body)
-    const userExists = await supabase.from("users").select("*").eq("phone_number","+"+body.phone).single();
+
+    // Normalize phone to avoid "++" when caller includes "+"
+    const normalizedPhone =
+      typeof body.phone === "string"
+        ? body.phone.startsWith("+")
+          ? body.phone
+          : `+${body.phone}`
+        : body.phone;
+
+    const userExists = await supabase
+      .from("users")
+      .select("*")
+      .eq("phone_number", normalizedPhone)
+      .maybeSingle();
+    console.log('userExists', userExists)
     if (userExists.data) {
         return NextResponse.json({ message:"Successfully Sign in",user:userExists.data }, { status: 200 });
     }
-    const db_res = await supabase
-    .from("users")
-    .insert({
-        email: body.email||null,
-        first_name: body.first_name||null,
-        last_name: body.last_name||null,
-        phone_number: body.phone||null,
-        password_hash: body.password_hash||null,
+    const { data: insertedUser, error: insertError } = await supabase
+      .from("users")
+      .insert({
+        email: body.email || null,
+        first_name: body.first_name || null,
+        last_name: body.last_name || null,
+        phone_number: normalizedPhone || null,
+        password_hash: body.password_hash || null,
         is_active: true,
-    })
-    console.log('db_response', db_res)
-    if (db_res.error) {
-        return NextResponse.json({ error: db_res.error.message }, { status: 500 });
+      })
+      .select("user_id")
+      .single();
+
+    if (insertError || !insertedUser) {
+      return NextResponse.json({ error: insertError?.message || "User insert failed" }, { status: 500 });
     }
-    return NextResponse.json({ data: db_res.data });
+
+    // Create cart and wishlist immediately for the new user (best-effort)
+    const cartResult = await createCart(insertedUser.user_id, supabase);
+    const wishlistResult = await getOrCreateWishlist(insertedUser.user_id, supabase);
+    console.log('cartResult', cartResult)
+    console.log('wishlistResult', wishlistResult)
+
+    return NextResponse.json({
+      user: insertedUser,
+      cart: cartResult?.data ?? null,
+      wishlist: wishlistResult?.wishlist_id ?? null,
+      warnings: [
+        cartResult?.success === false ? cartResult.message : null,
+        wishlistResult?.success === false ? wishlistResult.error?.message : null,
+      ].filter(Boolean),
+    });
 }

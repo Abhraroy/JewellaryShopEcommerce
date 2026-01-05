@@ -3,7 +3,6 @@ import { useStore } from '@/zustandStore/zustandStore';
 import { createClient } from '@/app/utils/supabase/client';
 import { redirect } from 'next/navigation';
 import { userSignIn } from '@/utilityFunctions/UserSignIn';
-import { createMyUser } from '@/utilityFunctions/UserFunctions';
 interface OtpInputProps {
   length?: number;
   onComplete?: (otp: string) => void;
@@ -15,7 +14,7 @@ export default function OtpInput({ length = 6, onComplete, containerClassName = 
   const [otp, setOtp] = useState<string[]>(Array(length).fill(''));
   const [error, setError] = useState('');
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
-  const { setOtpInputState, customerMobno, setAuthenticatedState } = useStore();
+  const { setOtpInputState, customerMobno, CartId } = useStore();
   const supabase = createClient();
   // Focus first input on mount
   useEffect(() => {
@@ -109,15 +108,6 @@ export default function OtpInput({ length = 6, onComplete, containerClassName = 
     }
   };
 
-  // const createMyUser = async () => {
-  //   const response = await fetch('/api/userRoutes', {
-  //     method: 'POST',
-  //     body: JSON.stringify({
-  //       phone:customerMobno,
-  //     }),
-  //   })
-  //   console.log('response from createMyUser', response)
-  // }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -126,39 +116,18 @@ export default function OtpInput({ length = 6, onComplete, containerClassName = 
     if (completeOtp.length === length) {
       setError('');
       console.log('OTP:', completeOtp);
-      // Handle OTP verification here
-      // const {
-      //   data: { session },
-      //   error,
-      // } = await supabase.auth.verifyOtp({
-      //   phone: customerMobno,
-      //   token: completeOtp,
-      //   type: 'sms',
-      // })
-      // console.log('session', session)
-      // console.log('error', error)
-      // if (session && !error) {
-      //   setOtpInputState();
-      //   createMyUser();
-      //   setAuthenticatedState(true)
-      //   redirect('/account');
-      // } else {
-      //   setError('Invalid OTP');
-      // }
-      // if (onComplete) {
-      //   onComplete(completeOtp);
-      //}
+      
       const {success,error,session,message} = await userSignIn(completeOtp,customerMobno,supabase)
-
       if(success && !error && session){
         if (onClick) {
-          setAuthenticatedState(true);
           onClick();
           return;
         }
         setOtpInputState();
-        setAuthenticatedState(true);
-        
+        console.log('session', session)
+        console.log("cartId", CartId)
+
+        console.log('redirecting to account')
         redirect('/account');
       }
       else{
