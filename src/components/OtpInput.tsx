@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useStore } from '@/zustandStore/zustandStore';
 import { createClient } from '@/app/utils/supabase/client';
-import { redirect } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { userSignIn } from '@/utilityFunctions/UserSignIn';
 interface OtpInputProps {
   length?: number;
@@ -16,6 +16,7 @@ export default function OtpInput({ length = 6, onComplete, containerClassName = 
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
   const { setOtpInputState, customerMobno, CartId } = useStore();
   const supabase = createClient();
+  const router = useRouter();
   // Focus first input on mount
   useEffect(() => {
     if (inputRefs.current[0]) {
@@ -128,7 +129,7 @@ export default function OtpInput({ length = 6, onComplete, containerClassName = 
         console.log("cartId", CartId)
 
         console.log('redirecting to account')
-        redirect('/account');
+        router.push('/account');
       }
       else{
         setError(message);

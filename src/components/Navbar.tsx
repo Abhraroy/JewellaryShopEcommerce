@@ -362,10 +362,10 @@ export default function Navbar({ cartCount = 0, isAuthenticated = false, onCartC
                 placeholder="Search for products"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full h-10 md:h-12 px-4 pr-10 bg-white/80 rounded-lg border border-theme-sage/30 outline-none text-gray-700 placeholder-gray-500 text-sm md:text-base focus:bg-white focus:border-theme-sage transition-colors"
+                className="w-full h-10 md:h-12 px-4 pr-10 bg-white/80 rounded-lg border border-[#360000]/30 outline-none text-gray-700 placeholder-gray-500 text-sm md:text-base focus:bg-white focus:border-[#360000]/30 transition-colors"
               />
               <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                <SearchIcon className="w-5 h-5 text-theme-olive" />
+                <SearchIcon className="w-5 h-5 text-[#360000]/70" />
               </div>
             </div>
           </div>
@@ -376,7 +376,7 @@ export default function Navbar({ cartCount = 0, isAuthenticated = false, onCartC
               <button
                 key={index}
                 onClick={iconItem.onClick}
-                className="p-2 text-theme-olive hover:text-theme-sage transition-colors relative"
+                className="p-2 text-[#360000]/70 hover:text-[#360000]/50 transition-colors relative"
                 aria-label={iconItem.label}
               >
                 {iconItem.icon}
@@ -395,7 +395,7 @@ export default function Navbar({ cartCount = 0, isAuthenticated = false, onCartC
               <button
                 key={index}
                 onClick={iconItem.onClick}
-                className="p-2 text-theme-olive hover:text-theme-sage transition-colors relative"
+                className="p-2 text-[#360000]/70 hover:text-[#360000]/50 transition-colors relative"
                 aria-label={iconItem.label}
               >
                 {iconItem.icon}

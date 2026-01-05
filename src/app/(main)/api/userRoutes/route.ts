@@ -28,7 +28,20 @@ export async function POST(request: NextRequest) {
       .maybeSingle();
     console.log('userExists', userExists)
     if (userExists.data) {
-        return NextResponse.json({ message:"Successfully Sign in",user:userExists.data }, { status: 200 });
+        const [cartRes, wishlistRes] = await Promise.allSettled([
+            supabase.from("cart").select("cart_id").eq("user_id", userExists.data.user_id).single(),
+            supabase.from("wishlist").select("wishlist_id").eq("user_id", userExists.data.user_id).single()
+          ]);
+          console.log('cartRes', cartRes)
+          console.log('wishlistRes', wishlistRes)
+          const cartId =
+            cartRes.status === "fulfilled" ? cartRes.value.data?.cart_id : null;
+          
+          const wishlistId =
+            wishlistRes.status === "fulfilled" ? wishlistRes.value.data?.wishlist_id : null;
+          
+
+        return NextResponse.json({ message:"Successfully Sign in",user:userExists.data,cart:cartId,wishlist:wishlistId }, { status: 200 });
     }
     const { data: insertedUser, error: insertError } = await supabase
       .from("users")
