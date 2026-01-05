@@ -87,7 +87,7 @@ export default function ProductCarousel({
 
   return (
     <section
-      className={`w-full bg-theme-cream py-6 md:py-12 lg:py-16 ${className}`}
+      className={`w-full bg-theme-cream py-6 md:py-10 lg:py-12 ${className}`}
     >
       {/* Section Heading */}
       <div className="flex items-center justify-center mb-5 md:mb-8 px-4 sm:px-6 lg:px-8">

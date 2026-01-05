@@ -161,7 +161,7 @@ export default function ProductCard({
               alt={product.product_name}
               fill
               className={`object-contain transition-all duration-700 ${
-                isHovered ? "scale-110 brightness-105" : "scale-100"
+                isHovered ? " brightness-105" : "brightness-100"
               }`}
               sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
               onError={() => setImageError(true)}

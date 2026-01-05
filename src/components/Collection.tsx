@@ -7,20 +7,26 @@ interface CollectionItem {
   heading: string;
   subHeading: string;
   href?: string;
+  image?: string;
+  description?: string;
 }
 
 function Collection() {
   // Sample collection data - you can expand this later
   const collections: CollectionItem[] = [
     {
-      heading: "Premium Collection",
-      subHeading: "Discover our exquisite premium jewelry pieces",
-      href: "/collection/premium"
+      heading: "American Diamond",
+      subHeading: "Luxury Redefined, Elegance Affordable",
+      description: "Why choose between style and savings? Our American Diamond collection delivers dazzling brilliance for every occasion",
+      href: "/collection/american-diamond",
+      image: "/collectionImages/American%20Diamond.JPG",
     },
     {
-      heading: "Classic Collection",
-      subHeading: "Timeless designs for every occasion",
-      href: "/collection/classic"
+      heading: "Temple Jewellary",
+      subHeading: "Timeless Traditions, Modern Grace",
+      description: "Celebrate the rich legacy of Indian artistry with our exquisite Temple Jewelry collection — where tradition meets contemporary elegance.",
+      href: "/collection/temple",
+      image: "/collectionImages/TempleJewellary.JPG",
     }
   ];
 
@@ -31,25 +37,48 @@ function Collection() {
           {collections.map((collection, index) => (
             <div
               key={index}
-              className="flex flex-col items-center justify-center p-8 md:p-12 lg:p-16 min-h-[400px] md:min-h-[500px] lg:min-h-[600px] bg-theme-sage/20 hover:bg-theme-sage/30 border border-theme-olive/30 hover:border-theme-olive transition-all duration-300"
+              className="relative overflow-hidden flex flex-col items-center justify-center p-8 md:p-12 lg:p-16 min-h-[400px] md:min-h-[500px] lg:min-h-[600px] border border-theme-olive/30 hover:border-theme-olive transition-all duration-300"
+              style={{
+                backgroundImage: collection.image
+                  ? `linear-gradient(135deg, rgba(0,0,0,0.45), rgba(0,0,0,0.25)), url(${collection.image})`
+                  : "linear-gradient(135deg, rgba(41, 63, 47, 0.15), rgba(55, 93, 70, 0.25))",
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+                backgroundRepeat: "no-repeat",
+              }}
             >
-              {/* Heading */}
-              <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-theme-olive mb-3 md:mb-4 text-center">
-                {collection.heading}
-              </h2>
-              
-              {/* Sub Heading */}
-              <p className="text-sm md:text-base lg:text-lg text-theme-sage mb-6 md:mb-8 text-center max-w-md">
-                {collection.subHeading}
-              </p>
-              
-              {/* Explore Collection Button */}
-              <Link
-                href={collection.href || "#"}
-                className="px-6 md:px-8 py-3 md:py-3.5 bg-theme-sage text-white font-semibold rounded-lg hover:bg-theme-olive transition-colors duration-200 text-sm md:text-base shadow-sm hover:shadow-md"
-              >
-                Explore Collection
-              </Link>
+              <div
+                className="absolute inset-0 bg-theme-sage/20 hover:bg-theme-sage/10 transition-colors duration-300"
+                aria-hidden
+              />
+              <div className="relative z-10 flex flex-col items-center gap-3 md:gap-4 lg:gap-5 text-center">
+                {/* Heading */}
+                <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-white drop-shadow">
+                  {collection.heading}
+                </h2>
+                
+                {/* Sub Heading */}
+                <p className="text-sm md:text-base lg:text-lg text-white/90 max-w-md">
+                  {collection.subHeading}
+                </p>
+
+                
+
+                {/* Explore Collection Button */}
+                <Link
+                  href={collection.href || "#"}
+                  className="px-6 md:px-8 py-3 md:py-3.5 bg-theme-sage text-white font-semibold rounded-lg hover:bg-theme-olive transition-colors duration-200 text-sm md:text-base shadow-sm hover:shadow-md"
+                >
+                  Explore Collection
+                </Link>
+
+                {/* Optional Description */}
+                {collection.description && (
+                  <p className="text-xs md:text-sm lg:text-base text-white/80 max-w-md">
+                    {collection.description}
+                  </p>
+                )}
+              </div>
             </div>
           ))}
         </div>
