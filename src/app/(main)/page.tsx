@@ -40,18 +40,24 @@ export default function LandingPage() {
   const [loadingCategories, setLoadingCategories] = useState(true);
   const supabase = createClient();
 
-  // Create multiple slides with the same image
-  const carouselItems = Array.from({ length: 3 }, (_, index) => (
+  // Simple slides array for the carousel
+  const carouselItems = [
+    "https://battulaaljewels.com/website/images/product-banner.webp",
+    "https://battulaaljewels.com/website/images/product-banner.webp",
+    "https://battulaaljewels.com/website/images/product-banner.webp",
+  ].map((src, index) => (
     <div
       key={index}
       className="w-full h-[400px] md:h-[500px] lg:h-[600px] relative"
     >
       <Image
-        src="https://battulaaljewels.com/website/images/product-banner.webp"
+        src={src}
         alt={`Jewelry Banner ${index + 1}`}
-        fill
+        fill={true}
         className="object-cover"
         priority={index === 0}
+        fetchPriority={index === 0 ? "high" : "auto"}
+        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
       />
     </div>
   ));
@@ -170,55 +176,31 @@ export default function LandingPage() {
     checkAuthentication();
   }, []);
 
-  useEffect(() => {
-    const getBestSellers = async () => {
-      setLoadingBestSellers(true);
-      const { data, error }: any = await supabase
-        .from("products")
-        .select("*")
-        .contains("tags", ["best-sellers"])
-        .eq("listed_status", true);
-      if (error) {
-        console.log("error", error);
-      } else {
-        console.log("data", data);
-        setBestSellers(data || []);
-      }
-      setLoadingBestSellers(false);
-    };
-    getBestSellers();
-    const getNewArrivals = async () => {
-      setLoadingNewArrivals(true);
-      const { data, error }: any = await supabase
-        .from("products")
-        .select("*")
-        .contains("tags", ["new-arrivals"])
-        .eq("listed_status", true);
-      if (error) {
-        console.log("error", error);
-      } else {
-        console.log("data", data);
-        setNewArrivals(data || []);
-      }
-      setLoadingNewArrivals(false);
-    };
-    getNewArrivals();
-  }, []);
 
-  useEffect(() => {
-    const getAllCategories = async () => {
-      setLoadingCategories(true);
-      const { data, error } = await supabase.from("categories").select("*");
-      if (error) {
-        console.log("error", error);
-      } else {
-        console.log("data", data);
-        setCategories(data || []);
-      }
-      setLoadingCategories(false);
-    };
-    getAllCategories();
-  }, []);
+  useEffect(()=>{
+    const FetchLandingPageData = async () => {
+   setLoadingBestSellers(true);
+   setLoadingNewArrivals(true);
+   setLoadingCategories(true);
+   
+
+   const [catgoriesRes,bestSellersRes,newArrivalsRes] = await Promise.all([
+    supabase.from("categories").select("*"),
+    supabase.from("products").select("*").contains("tags", ["best-sellers"]).eq("listed_status", true),
+    supabase.from("products").select("*").contains("tags", ["new-arrivals"]).eq("listed_status", true),
+   ])
+   if (!catgoriesRes.error) setCategories(catgoriesRes.data || []);
+   if (!bestSellersRes.error) setBestSellers(bestSellersRes.data || []);
+   if (!newArrivalsRes.error) setNewArrivals(newArrivalsRes.data || []);
+   setLoadingBestSellers(false);
+   setLoadingNewArrivals(false);
+   setLoadingCategories(false);
+
+    }
+    FetchLandingPageData();
+  },[])
+
+
 
   // Handler to open the cart
   const handleOpenCart = () => {
@@ -232,18 +214,13 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-theme-cream">
-      {/* Navbar with cart click handler */}
-      {/* <Navbar cartCount={0} onCartClick={handleOpenCart} />
-      {MobnoInputState && !OtpInputState && <PhoneNumberInput />}
-      {OtpInputState && !MobnoInputState && <OtpInput />} */}
-
       {/* Cart Component - receives isOpen state and onClose handler */}
       {isCartOpen && <Cart isOpen={isCartOpen} onClose={handleCloseCart} />}
       <main className="w-full">
         <Carousel
           items={carouselItems}
           autoSlideInterval={3000}
-          className="h-[400px] md:h-[500px] lg:h-[600px]"
+          className="h-[250px] md:h-[500px] lg:h-[600px]"
         />
         {loadingCategories ? (
           <CategorySectionSkeleton />
