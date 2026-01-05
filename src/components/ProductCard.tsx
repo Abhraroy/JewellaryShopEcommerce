@@ -148,7 +148,7 @@ export default function ProductCard({
 
   const CardContent = (
     <div
-      className="group relative bg-white rounded-xl md:rounded-2xl border border-gray-100 hover:border-gray-200 shadow-sm hover:shadow-xl transition-all duration-500 overflow-hidden flex flex-col h-full transform hover:-translate-y-1"
+      className="group relative bg-white rounded-xl md:rounded-2xl border border-gray-100 hover:border-gray-200 shadow-sm hover:shadow-xl transition-all duration-500 overflow-hidden flex flex-col h-full transform hover:-translate-y-1 "
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -255,12 +255,12 @@ export default function ProductCard({
       {/* Product Info */}
       <div className="p-3 md:p-5 flex flex-col flex-grow">
         {/* Title */}
-        <h3 className="text-xs md:text-base font-semibold text-gray-900 line-clamp-2 mb-2 md:mb-3 min-h-[2.25rem] md:min-h-[3rem] leading-snug group-hover:text-gray-700 transition-colors duration-300">
+        <h3 className="text-sm md:text-lg font-semibold text-gray-900 line-clamp-2 mb-2 md:mb-3 leading-tight group-hover:text-gray-700 transition-colors duration-300">
           {product.product_name}
         </h3>
 
         {/* Price Section - Enhanced */}
-        <div className="mt-auto pt-2 md:pt-3 border-t border-gray-100">
+        <div className="border-t border-gray-100  ">
           <div className={`flex gap-2 ${size === 'small' ? 'mb-2 md:mb-3 flex-wrap md:flex-nowrap items-baseline md:items-baseline' : 'mb-3 md:mb-4 items-baseline'}`}>
             <div className="flex items-baseline gap-1.5 md:gap-2 flex-wrap md:flex-nowrap">
               <span className={`font-bold text-gray-900 tracking-tight ${
@@ -294,7 +294,7 @@ export default function ProductCard({
           {/* Action Button - Redesigned */}
           <button
             onClick={handleAddToCart}
-            className="w-full bg-theme-sage text-white font-semibold py-2.5 md:py-3 px-3 md:px-4 rounded-lg md:rounded-xl transition-all duration-300 shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] hover:bg-theme-olive hover:shadow-[0_1px_3px_0_rgba(0,0,0,0.08)] transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-1.5 md:gap-2 group/btn text-sm md:text-base"
+            className="w-full bg-gradient-to-r from-pink-500 to-rose-500 text-white font-semibold py-2.5 md:py-3 px-3 md:px-4 rounded-lg md:rounded-xl transition-all duration-300 shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] hover:bg-theme-olive hover:shadow-[0_1px_3px_0_rgba(0,0,0,0.08)] transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-1.5 md:gap-2 group/btn text-sm md:text-base"
           >
             <span className="transition-transform duration-300 group-hover/btn:translate-x-0.5">
               Add to Cart 
