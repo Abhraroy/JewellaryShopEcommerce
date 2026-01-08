@@ -1,10 +1,10 @@
 "use client";
 
-import Image from "next/image";
 import { useStore } from "@/zustandStore/zustandStore";
 import { useEffect, useState } from "react";
 import { createClient } from "@/app/utils/supabase/client";
 import { addToDbCart, addToLocalCart, decreaseQuantityFromDbCart, decreaseQuantityFromLocalCart, getCartData, removeFromDbCart, removeFromLocalCart } from "@/utilityFunctions/CartFunctions";
+import CartItem from "./CartItem";
 
 interface CartProps {
   isOpen?: boolean;
@@ -12,32 +12,22 @@ interface CartProps {
 }
 
 export default function Cart({ isOpen = false, onClose }: CartProps) {
-  const { AuthenticatedState, cartItems, setCartItems , setCartId,CartId,setInitiatingCheckout,initiatingCheckout } = useStore();
+  const { AuthenticatedState, cartItems, setCartItems ,CartId,setInitiatingCheckout,initiatingCheckout } = useStore();
   const [subtotal, setSubtotal] = useState(0);
   const [loading, setLoading] = useState(true);
   // Sample cart items for UI demonstration
   const supabase = createClient();
   console.log("Initializing supabase",supabase)
 
-  if (cartItems && cartItems.length > 0) {
-    const subtotal = cartItems.reduce(
-      (sum: number, item: any) =>  sum + item.products.final_price * item.quantity,0
-  
-    );
-    console.log("subtotal",subtotal)
-    const shipping: number = 0;
-    const total = subtotal + shipping;
-  }
-
-
-  const calculateSubTotal = (cartItems:any)=>{
-    if(cartItems.length === 0){
-      return 0;
-    }
-    else{
-      return cartItems.reduce((sum: number, item: any) => sum + item.products.final_price * item.quantity, 0);
-    }
-  }
+  const calculateSubTotal = (items: any) => {
+    if (!Array.isArray(items) || items.length === 0) return 0;
+    return items.reduce((sum: number, item: any) => {
+      const product = item?.products ?? item?.product ?? item;
+      const price = Number(product?.final_price ?? product?.price ?? 0);
+      const quantity = Number(item?.quantity ?? 1);
+      return sum + price * quantity;
+    }, 0);
+  };
 
   const handleDecreaseQuantity = async(product:any)=>{
     if(AuthenticatedState){
@@ -227,113 +217,21 @@ export default function Cart({ isOpen = false, onClose }: CartProps) {
                 {cartItems &&
                   cartItems.map((item: any) => {
                     // Use stable unique key - cart_item_id for DB items, product_id for local items
-                    const uniqueKey = item.cart_item_id || item.products?.product_id || item.product_id || `cart-item-${item.products?.product_id}`;
+                    const product = item?.products ?? item?.product ?? item;
+                    const uniqueKey =
+                      item.cart_item_id ||
+                      product?.product_id ||
+                      item.product_id ||
+                      `cart-item-${product?.product_id || "unknown"}`;
+
                     return (
-                    <div
-                      key={uniqueKey}
-                      className="flex gap-3 sm:gap-4 p-3 sm:p-4 bg-[#FFCDC9] text-[#7A1C1C] rounded-xl hover:bg-[#FD7979] transition-colors duration-200"
-                    >
-                      {/* Product Image */}
-                      <div className="relative w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 flex-shrink-0 bg-white rounded-lg overflow-hidden border border-[#7A1C1C]/20">
-                        <Image
-                          src={item.products.thumbnail_image}
-                          alt={item.products.product_name}
-                          fill
-                          className="object-cover"
-                          sizes="(max-width: 640px) 64px, (max-width: 768px) 80px, 96px"
-                        />
-                      </div>
-
-                      {/* Product Details */}
-                      <div className="flex-1 min-w-0 flex flex-col">
-                        <h3 className="text-xs sm:text-sm font-semibold text-[#7A1C1C] line-clamp-2 mb-1 flex-shrink-0">
-                          {item.products?.product_name || item.products?.name || "Product"}
-                        </h3>
-                        <p className="text-base sm:text-lg font-bold text-[#7A1C1C] mb-2 sm:mb-3 flex-shrink-0">
-                          ₹{item.products?.final_price || item.products?.price || 0}
-                        </p>
-
-                        {/* Quantity Controls */}
-                        <div className="flex items-center gap-2 sm:gap-3 mt-auto">
-                          <div className="flex items-center gap-0 border border-[#7A1C1C]/30 rounded-lg bg-white overflow-hidden">
-                            <button
-                              className="p-1 sm:p-1.5 text-[#7A1C1C] hover:text-[#7A1C1C] hover:bg-[#FD7979] transition-colors duration-200 
-                              disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0
-                              "
-                              disabled={item.quantity === 1}
-                              aria-label="Decrease quantity"
-                              onClick={() => {
-                                handleDecreaseQuantity(item);
-                              }}
-                            >
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                strokeWidth={2.5}
-                                stroke="currentColor"
-                                className="w-3.5 h-3.5 sm:w-4 sm:h-4"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  d="M19.5 12h-15"
-                                />
-                              </svg>
-                            </button>
-                            <span className="px-2 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm font-semibold text-[#7A1C1C] min-w-[2.5rem] sm:min-w-[3rem] text-center tabular-nums flex-shrink-0">
-                              {item.quantity}
-                            </span>
-                            <button
-                              className="p-1 sm:p-1.5 text-[#7A1C1C] hover:text-[#7A1C1C] hover:bg-[#FD7979] transition-colors duration-200 flex-shrink-0"
-                              aria-label="Increase quantity"
-                              onClick={() => {
-                                handleIncreaseQuantity(item);
-                              }}
-                            >
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                strokeWidth={2.5}
-                                stroke="currentColor"
-                                className="w-3.5 h-3.5 sm:w-4 sm:h-4"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  d="M12 4.5v15m7.5-7.5h-15"
-                                />
-                              </svg>
-                            </button>
-                          </div>
-
-                          {/* Remove Button */}
-                          <button
-                            className="p-1 sm:p-1.5 text-[#7A1C1C] hover:text-[#B03030] hover:bg-[#FD7979] rounded transition-colors duration-200 flex-shrink-0"
-                            aria-label="Remove item"
-                            onClick={() => {
-                              handleRemoveItem(item);
-                            }}
-                          >
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                              strokeWidth={2}
-                              stroke="currentColor"
-                              className="w-4 h-4 sm:w-5 sm:h-5"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"
-                              />
-                            </svg>
-                          </button>
-                        </div>
-                      </div>
-                    </div>
+                      <CartItem
+                        key={uniqueKey}
+                        item={item}
+                        onDecrease={handleDecreaseQuantity}
+                        onIncrease={handleIncreaseQuantity}
+                        onRemove={handleRemoveItem}
+                      />
                     );
                   })}
               </div>
