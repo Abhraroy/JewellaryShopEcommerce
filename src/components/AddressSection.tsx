@@ -37,15 +37,7 @@ export default function AddressSection({addresses, userId}: {addresses: any[], u
     setShowAddressForm(false);
   };
 
-  // useEffect(() => {
-  //   const fetchAddresses = async () => {
-  //     const supabase = createClient();
-  //     const { data, error } = await supabase.from('addresses').select('*').eq('user_id', userId);
-  //     console.log('addresses', data);
-  //     setAddresses(data || []);
-  //   };
-  //   fetchAddresses();
-  // }, [userId,showAddressForm]);
+
 
 
 
@@ -59,22 +51,30 @@ export default function AddressSection({addresses, userId}: {addresses: any[], u
         
      
           { addresses && addresses.length > 0 ? (
-            <div className="mt-4 text-sm text-gray-600 bg-gray-200 flex flex-col items-center gap-2
-            p-2 rounded-md
-            ">
-             
+            <div className="mt-4 text-sm text-gray-600 flex flex-col items-center gap-2 p-2">
               {addresses && addresses.map((address) => (
-                <div key={address.address_id} className=" p-2 rounded-md flex flex-row items-center gap-2">
-                   <AddressIconComponent className="shrink-0 w-5 h-5 text-black" />
-                  <p>
-                    <span>{address.street_address}</span>
-                    <span>{address.city}</span>
-                    <span>{address.state}</span>
-                    <span>{address.postal_code}</span>
-                    <span>{address.country}</span>
-                    <span>[{address.address_type}]</span>
-                    <span className="text-green-500">{address.is_default ? 'Default Address' : ''}</span>
-                  </p>
+                <div key={address.address_id} className="w-full p-3 rounded-md flex flex-col sm:flex-row sm:items-start gap-2 bg-white/60 border border-[#360000]/10">
+                  <div className="flex items-start gap-2">
+                    <AddressIconComponent className="shrink-0 w-5 h-5 text-[#360000]" />
+                    <div className="text-[#360000] leading-relaxed">
+                      <div className="font-semibold">
+                        {address.street_address}, {address.city}, {address.state} {address.postal_code}
+                      </div>
+                      <div className="text-xs text-[#360000]/80">{address.country}</div>
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 sm:gap-3 sm:ml-auto justify-start sm:justify-end w-full sm:w-auto">
+                    {address.address_type && (
+                      <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-[#CAF2FF] text-[#360000] border border-[#360000]/10 whitespace-nowrap">
+                        {address.address_type}
+                      </span>
+                    )}
+                    {address.is_default && (
+                      <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-[#fde68a] text-[#92400e] border border-[#92400e]/20 whitespace-nowrap">
+                        Default
+                      </span>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
@@ -83,11 +83,11 @@ export default function AddressSection({addresses, userId}: {addresses: any[], u
           )}
           <button 
             onClick={handleAddAddress}
-            className="group relative mt-4 px-6 py-3 bg-theme-sage hover:bg-theme-olive text-white font-medium text-sm rounded-lg 
+            className="group relative mt-4 w-full px-6 py-3 bg-theme-sage hover:bg-theme-olive text-white font-medium text-sm rounded-lg 
                        transition-all duration-300 ease-in-out
                        transform hover:scale-105 active:scale-95
                        shadow-md hover:shadow-xl hover:shadow-theme-sage/30
-                       flex items-center gap-2
+                       flex items-center justify-center gap-2
                        overflow-hidden
                        border border-transparent hover:border-white/20"
           >

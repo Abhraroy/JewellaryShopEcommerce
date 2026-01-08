@@ -1,9 +1,8 @@
 "use client";
 import { createClient } from "@/app/utils/supabase/client";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
+
 import AddressSection from "@/components/AddressSection";
-import { redirect } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useStore } from "@/zustandStore/zustandStore";
 
@@ -132,142 +131,103 @@ const LogoutIcon = () => (
   </svg>
 );
 
+const Skeleton = ({ className = "" }) => (
+  <div className={`animate-pulse bg-gray-200 rounded ${className}`} />
+);
+
 export default function AccountPage() {
+  const primaryButtonClass =
+    "group relative overflow-hidden inline-flex items-center justify-center gap-2 bg-gradient-to-r from-rose-500 via-pink-500 to-rose-500 text-white font-semibold text-xs sm:text-sm md:text-base rounded-md px-4 py-2 shadow-md hover:shadow-xl hover:shadow-theme-sage/30 transition-all duration-300 hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-rose-200 focus:ring-offset-2 focus:ring-offset-white disabled:opacity-50 disabled:cursor-not-allowed";
   const [userData, setUserData] = useState<any>(null);
   const [emailUpdateState, setEmailUpdateState] = useState(false);
-  const [formattedPhone, setFormattedPhone] = useState<string>("");
-  const [formattedEmail, setFormattedEmail] = useState<string>("");
   const [createdAt, setCreatedAt] = useState<string>("");
   const [addresses, setAddresses] = useState<any[]>([]);
   const [orders, setOrders] = useState<any[]>([]);
   const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null);
-  const [orderItemsDetails, setOrderItemsDetails] = useState<Record<string, any[]>>({});
   const [loadingOrderItems, setLoadingOrderItems] = useState<string | null>(null);
-  
+  const [loadingProfile, setLoadingProfile] = useState(true);
+  const [loadingOrders, setLoadingOrders] = useState(true);
+  const router = useRouter();
 
   const supabase = createClient();
   const { refresh, setRefresh, setAuthenticatedState, setAuthUserId, setCartId, setCartItems, setCartCount, setWishListItems, setInitiatingCheckout, setPaymentConcluded, setShowPaymentConcluded } = useStore();
-  const fetchUserData = async () => {
-    const { data, error } = await supabase.auth.getUser();
-    console.log("data", data);
-    if (error || !data?.user) {
-      redirect("/");
-    }
-    console.log("data.user", data.user);
-
-    if (!data?.user?.phone) {
-      console.error("User phone number is missing");
-      return;
-    }
-
-    const res = await supabase
-      .from("users")
-      .select(`*,
-        addresses(*)
-        `)
-      .eq("phone_number", "+" + data.user.phone)
-      .single();
-    
-    if (!res.data) {
-      console.error("User data not found");
-      return;
-    }
-
-    setUserData(res.data?.user_id ?? null);
-    setAddresses(res.data?.addresses ?? []);
-
-    // Fetch latest 3 orders separately with order items and shipping address
-    if (res.data?.user_id) {
-      console.log("Fetching orders for user_id:", res.data.user_id);
-      console.log("User ID type:", typeof res.data.user_id);
-      
-      // Try fetching orders with the user_id
-      const ordersRes = await supabase
-        .from("orders")
-        .select(`
-          *,
-          order_items(*)
-        `)
-        .eq("user_id", res.data.user_id)
-        .order("order_date", { ascending: false })
-        .limit(3);
-      
-      console.log("Orders query result:", ordersRes);
-      console.log("Orders data:", ordersRes.data);
-      console.log("Orders error:", ordersRes.error);
-      console.log("Orders count:", ordersRes.data?.length ?? 0);
-      
-      // Debug: Check if any orders exist at all (for debugging)
-      const allOrdersCheck = await supabase
-        .from("orders")
-        .select("order_id, user_id, order_number")
-        .limit(5);
-      console.log("Sample orders in DB (first 5):", allOrdersCheck.data);
-      console.log("Sample orders error:", allOrdersCheck.error);
-      
-      if (ordersRes.error) {
-        console.error("Error fetching orders:", ordersRes.error);
-        console.error("Error details:", JSON.stringify(ordersRes.error, null, 2));
-        setOrders([]);
-      } else if (ordersRes.data && ordersRes.data.length > 0) {
-        console.log("Found orders:", ordersRes.data.length);
-        // Fetch shipping addresses for orders
-        const ordersWithAddresses = await Promise.all(
-          ordersRes.data.map(async (order: any) => {
-            if (order?.shipping_address_id) {
-              const { data: addressData, error: addressError } = await supabase
-                .from("addresses")
-                .select("*")
-                .eq("address_id", order.shipping_address_id)
-                .single();
-              if (addressError) {
-                console.error("Error fetching address:", addressError);
-              }
-              return { ...order, shipping_address: addressData || null };
-            }
-            return { ...order, shipping_address: null };
-          })
-        );
-        console.log("Orders with addresses:", ordersWithAddresses);
-        setOrders(ordersWithAddresses ?? []);
-      } else {
-        console.log("No orders found for user_id:", res.data.user_id);
-        console.log("This might be due to:");
-        console.log("1. No orders exist for this user");
-        console.log("2. user_id mismatch between users and orders table");
-        console.log("3. RLS policies blocking the query");
-        setOrders([]);
+  
+  const fetchUserProfile = async () => {
+    setLoadingProfile(true);
+    try {
+      const { data, error } = await supabase.auth.getUser();
+      if (error) {
+        console.error("Error fetching user profile:", error);
+        alert("Error fetching user profile. Please try again.");
+        return;
       }
-    } else {
-      console.log("No user_id found, cannot fetch orders");
-      setOrders([]);
+      if (!data?.user?.phone) {
+        router.push("/");
+        return;
+      }
+      const { data: user, error: userError } = await supabase
+        .from("users")
+        .select("*, addresses(*)")
+        .eq("phone_number", "+" + data.user.phone)
+        .single();
+      if (userError) {
+        console.error("Error fetching user profile:", userError);
+        alert("Error fetching user profile. Please try again.");
+        return;
+      }
+      console.log("user", user);
+      setUserData(user);
+      setAddresses(user?.addresses ?? []);
+      setCreatedAt(user?.created_at?.split("T")[0] || "N/A");
+    } catch (err) {
+      console.error("Unexpected error fetching profile:", err);
+    } finally {
+      setLoadingProfile(false);
     }
-    console.log("userData", res);
-    const user = res.data;
-    
-    if (!user) {
-      console.error("User data is null");
-      return;
-    }
-
-    const formattedPhone = user?.phone_number || "Not provided";
-    setFormattedPhone(formattedPhone);
-    const formattedEmail = user?.email || "Not provided";
-    setFormattedEmail(formattedEmail);
-    const createdAt = user?.created_at
-      ? new Date(user.created_at).toLocaleDateString("en-US", {
-          year: "numeric",
-          month: "long",
-          day: "numeric",
-        })
-      : "N/A";
-    setCreatedAt(createdAt);
   };
 
-  useEffect(() => {
-    fetchUserData();
+  const fetchOrders = async (userId: string) => {
+    setLoadingOrders(true);
+    try {
+      const { data, error } = await supabase
+        .from("orders")
+        .select(`*,
+    order_items(*, products(*)),
+    shipping_address:addresses!orders_shipping_address_id_fkey(*)
+    `)
+        .eq("user_id", userId)
+        .order("order_date", { ascending: false })
+        .limit(3);
 
+      if (error) {
+        console.error("Error fetching orders:", error);
+        alert("Error fetching orders. Please try again.");
+        return;
+      }
+
+      console.log("orders", data);
+      setOrders(data ?? []);
+    } catch (err) {
+      console.error("Unexpected error fetching orders:", err);
+    } finally {
+      setLoadingOrders(false);
+    }
+  };
+
+
+  useEffect(() => {
+    fetchUserProfile();
   }, [refresh]);
+  
+  useEffect(() => {
+    if (userData?.user_id) fetchOrders(userData.user_id);
+  }, [userData]);
+
+
+
+
+
+
 
 
 
@@ -278,9 +238,9 @@ export default function AccountPage() {
     e.preventDefault();
     const email = (e.target as HTMLFormElement).email.value;
     console.log("email", email);
-    console.log("userId", userData);
+    console.log("userId", userData?.user_id);
     
-    if (!userData) {
+    if (!userData?.user_id) {
       console.error("User ID is missing");
       alert("Unable to update email. Please try again.");
       return;
@@ -288,67 +248,28 @@ export default function AccountPage() {
 
     const { data, error } = await supabase
       .from("users")
-      .update({ email: email })
-      .eq("user_id", userData)
-      .select("*");
-    console.log("data", data);
-    console.log("error", error);
+      .update({ email })
+      .eq("user_id", userData.user_id)
+      .select("*")
+      .single();
+
     if (error) {
       console.log("error", error);
       alert("Failed to update email. Please try again.");
+      return;
     }
-    if (data && data.length > 0) {
-      console.log("data", data);
+
+    if (data) {
+      setUserData((prev: any) => ({ ...(prev ?? {}), email: data.email }));
       setEmailUpdateState(false);
-      setFormattedEmail(email);
       alert("Email updated successfully");
     }
   };
 
-  const handleViewOrderDetails = async (orderId: string) => {
-    if (expandedOrderId === orderId) {
-      // If already expanded, collapse it
-      setExpandedOrderId(null);
-      return;
-    }
 
-    // If details already fetched, just expand
-    if (orderItemsDetails[orderId]) {
-      setExpandedOrderId(orderId);
-      return;
-    }
-
-    // Fetch order items with product details
-    setLoadingOrderItems(orderId);
-    setExpandedOrderId(orderId);
-
-    try {
-      const { data, error } = await supabase
-        .from("order_items")
-        .select(`
-          *,
-          products(*)
-        `)
-        .eq("order_id", orderId);
-
-      if (error) {
-        console.error("Error fetching order items:", error);
-        setLoadingOrderItems(null);
-        return;
-      }
-
-      if (data) {
-        setOrderItemsDetails((prev) => ({
-          ...prev,
-          [orderId]: data,
-        }));
-      }
-    } catch (err) {
-      console.error("Error fetching order items:", err);
-    } finally {
-      setLoadingOrderItems(null);
-    }
-  };
+  const toggleOrder = (orderId: string) => {
+    setExpandedOrderId(prev => (prev === orderId ? null : orderId));
+  };  
 
 
   return (
@@ -384,15 +305,19 @@ export default function AccountPage() {
                       <span className="text-xs sm:text-sm font-medium text-gray-500 block mb-1">
                         Phone Number
                       </span>
-                      <span className="text-sm sm:text-base text-gray-900 font-medium">
-                        {formattedPhone || "Not provided"}
-                      </span>
+                      {loadingProfile ? (
+                        <Skeleton className="h-4 w-32" />
+                      ) : (
+                        <span className="text-sm sm:text-base text-gray-900 font-medium">
+                          {userData?.phone_number || "Not provided"}
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>
 
                 <div className="flex flex-col gap-3 sm:gap-4 pb-4 border-b border-gray-100">
-                  <div className="flex items-start gap-3">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
                     <div className="p-2 bg-amber-100 rounded-lg text-amber-600 flex-shrink-0">
                       <EmailIcon />
                     </div>
@@ -400,23 +325,34 @@ export default function AccountPage() {
                       <span className="text-xs sm:text-sm font-medium text-gray-500 block mb-1">
                         Email
                       </span>
-                      <span className="text-sm sm:text-base text-gray-900 font-medium break-words">
-                        {formattedEmail || "Not provided"}
-                      </span>
+                      {loadingProfile ? (
+                        <Skeleton className="h-4 w-40" />
+                      ) : (
+                        <span className="text-sm sm:text-base text-gray-900 font-medium break-words">
+                          {userData?.email || "Not provided"}
+                        </span>
+                      )}
                     </div>
-                  </div>
-                  <div className="ml-11 sm:ml-0">
-                    {!emailUpdateState ? (
+                    {!loadingProfile && !emailUpdateState && (
                       <button
-                        className="text-theme-olive hover:text-theme-sage font-medium text-xs sm:text-sm"
+                        className={`${primaryButtonClass} self-start sm:self-auto`}
                         onClick={handleEmailUpdateState}
                       >
-                        Update Email
+                        <span className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-out" aria-hidden="true" />
+                        <span className="relative flex items-center gap-1.5 md:gap-2">
+                          <span className="inline-block h-2 w-2 rounded-full bg-white/70" aria-hidden="true" />
+                          <span>Update Email</span>
+                        </span>
                       </button>
-                    ) : (
+                    )}
+                  </div>
+                  {loadingProfile ? (
+                    <Skeleton className="h-8 w-24 ml-11 sm:ml-0" />
+                  ) : (
+                    emailUpdateState && (
                       <form
                         onSubmit={handleEmailUpdate}
-                        className="flex flex-col sm:flex-row gap-2"
+                        className="flex flex-col sm:flex-row gap-2 ml-11 sm:ml-0"
                       >
                         <input
                           type="email"
@@ -429,21 +365,21 @@ export default function AccountPage() {
                           <button
                             type="submit"
                             disabled={!emailUpdateState}
-                            className="bg-theme-sage hover:bg-theme-olive text-white font-medium rounded-md px-3 py-2 text-sm whitespace-nowrap"
+                            className={`${primaryButtonClass} min-w-[90px]`}
                           >
                             Update
                           </button>
                           <button
                             type="button"
                             onClick={handleEmailUpdateState}
-                            className="bg-gray-600 hover:bg-gray-700 text-white font-medium rounded-md px-3 py-2 text-sm whitespace-nowrap"
+                            className={`${primaryButtonClass} min-w-[90px]`}
                           >
                             Cancel
                           </button>
                         </div>
                       </form>
-                    )}
-                  </div>
+                    )
+                  )}
                 </div>
 
                 <div className="flex flex-col gap-2 sm:gap-4">
@@ -455,7 +391,13 @@ export default function AccountPage() {
                       <span className="text-xs sm:text-sm font-medium text-gray-500 block mb-1">
                         Customer Since
                       </span>
-                      <span className="text-sm sm:text-base text-gray-900 font-medium">{createdAt || "N/A"}</span>
+                      {loadingProfile ? (
+                        <Skeleton className="h-4 w-24" />
+                      ) : (
+                        <span className="text-sm sm:text-base text-gray-900 font-medium">
+                          {createdAt || "N/A"}
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -469,7 +411,20 @@ export default function AccountPage() {
                 Recent Orders
               </h2>
 
-              {orders && orders.length > 0 ? (
+              {loadingOrders ? (
+                <div className="space-y-4">
+                  {Array.from({ length: 2 }).map((_, idx) => (
+                    <div key={idx} className="border border-gray-200 rounded-lg p-4">
+                      <div className="flex flex-col gap-3">
+                        <Skeleton className="h-4 w-32" />
+                        <Skeleton className="h-4 w-24" />
+                        <Skeleton className="h-4 w-20" />
+                        <Skeleton className="h-10 w-full" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : orders && orders.length > 0 ? (
                 <div className="space-y-4">
                   {orders.map((order) => {
                     const orderDate = order?.order_date
@@ -570,9 +525,9 @@ export default function AccountPage() {
                             </div>
                           </div>
                           <button
-                            onClick={() => handleViewOrderDetails(order?.order_id)}
+                            onClick={() => toggleOrder(order?.order_id)}
                             disabled={loadingOrderItems === order?.order_id}
-                            className="w-full sm:w-auto px-4 py-2 bg-theme-sage hover:bg-theme-olive text-white font-medium rounded-lg transition-colors duration-200 text-xs sm:text-sm flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className={`${primaryButtonClass} w-full sm:w-auto text-xs sm:text-sm`}
                           >
                             {loadingOrderItems === order?.order_id ? (
                               <>
@@ -626,13 +581,13 @@ export default function AccountPage() {
                               <div className="flex items-center justify-center py-8">
                                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-theme-sage"></div>
                               </div>
-                            ) : orderItemsDetails[order?.order_id] ? (
+                            ) : order?.order_items && order?.order_items.length > 0 ? (
                               <>
                                 <h4 className="text-sm font-semibold text-gray-900 mb-3">
-                                  Order Items ({orderItemsDetails[order?.order_id]?.length ?? 0})
+                                  Order Items ({order?.order_items?.length ?? 0})
                                 </h4>
                                 <div className="space-y-3">
-                                  {orderItemsDetails[order?.order_id]?.map((item: any, index: number) => (
+                                  {order?.order_items?.map((item: any, index: number) => (
                                     <div
                                       key={item?.order_item_id ?? index}
                                       className="flex flex-col sm:flex-row items-start gap-3 sm:gap-4 p-3 sm:p-4 bg-gray-50 rounded-lg border border-gray-200"
@@ -642,7 +597,7 @@ export default function AccountPage() {
                                         <div className="flex-shrink-0 w-full sm:w-auto">
                                           <img
                                             src={item.products.thumbnail_image}
-                                            alt={item?.product_name ?? "Product"}
+                                            alt={item?.products?.product_name ?? "Product"}
                                             className="w-full sm:w-16 h-auto sm:h-16 object-cover rounded-md"
                                           />
                                         </div>
@@ -650,7 +605,7 @@ export default function AccountPage() {
                                       {/* Product Details */}
                                       <div className="flex-1 min-w-0 w-full">
                                         <p className="text-xs sm:text-sm font-semibold text-gray-900">
-                                          {item?.product_name ?? item?.products?.product_name ?? "N/A"}
+                                          {item?.products?.product_name ?? "N/A"}
                                         </p>
                                         {item?.products?.description && (
                                           <p className="text-xs text-gray-600 mt-1 line-clamp-2">
@@ -662,7 +617,7 @@ export default function AccountPage() {
                                             Quantity: <span className="font-medium">{item?.quantity ?? "N/A"}</span>
                                           </span>
                                           <span>
-                                            Unit Price: <span className="font-medium">₹{item?.unit_price?.toFixed(2) ?? "0.00"}</span>
+                                            Unit Price: <span className="font-medium">₹{item?.products?.final_price?.toFixed(2) ?? "0.00"}</span>
                                           </span>
                                         </div>
                                         {item?.products?.metal_type && (
@@ -674,11 +629,11 @@ export default function AccountPage() {
                                       {/* Price */}
                                       <div className="flex-shrink-0 w-full sm:w-auto text-left sm:text-right">
                                         <p className="text-sm sm:text-base font-bold text-gray-900">
-                                          ₹{item?.total_price?.toFixed(2) ?? "0.00"}
+                                          ₹{(item?.products?.final_price?.toFixed(2) ?? 0) * (item?.quantity ?? 0)}
                                         </p>
-                                        {item?.unit_price && item?.quantity && (
+                                        {item?.products?.final_price && item?.quantity && (
                                           <p className="text-xs text-gray-500 mt-1">
-                                            ₹{item.unit_price.toFixed(2)} × {item.quantity}
+                                            ₹{item.products.final_price.toFixed(2)} x {item.quantity}
                                           </p>
                                         )}
                                       </div>
@@ -728,13 +683,13 @@ export default function AccountPage() {
               <div className="space-y-3">
                 <a
                   href="/collections"
-                  className="block w-full px-4 py-3 bg-theme-sage/20 hover:bg-theme-sage/30 text-theme-olive font-medium rounded-lg transition-colors duration-200 text-center"
+                  className="block w-full px-4 py-3 bg-[#CAF2FF] hover:bg-[#DECAF2] text-[#360000] font-medium rounded-lg transition-colors duration-200 text-center"
                 >
                   Browse Collections
                 </a>
                 <a
                   href="/"
-                  className="block w-full px-4 py-3 bg-gray-50 hover:bg-gray-100 text-gray-700 font-medium rounded-lg transition-colors duration-200 text-center"
+                  className="block w-full px-4 py-3 bg-[#CAF2FF] hover:bg-[#DECAF2] text-gray-700 font-medium rounded-lg transition-colors duration-200 text-center"
                 >
                   Continue Shopping
                 </a>
@@ -758,10 +713,10 @@ export default function AccountPage() {
                       setPaymentConcluded(false);
                       setShowPaymentConcluded(false);
                       setRefresh();
-                      redirect("/");
+                      router.push("/");
                     }
                   }}
-                  className="w-full px-4 py-3 bg-red-50 hover:bg-red-100 text-red-700 font-medium rounded-lg transition-colors duration-200 flex items-center justify-center gap-2"
+                  className={`${primaryButtonClass} w-full text-sm sm:text-base py-3`}
                 >
                   <LogoutIcon />
                   Logout
@@ -770,7 +725,7 @@ export default function AccountPage() {
             </div>
 
             {/* Addresses Card */}
-             <AddressSection addresses={addresses ?? []} userId={userData ?? null} />
+             <AddressSection addresses={addresses ?? []} userId={userData?.user_id ?? "" as string} />
           </div>
         </div>
       </main>
