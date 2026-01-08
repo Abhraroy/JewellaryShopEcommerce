@@ -1,4 +1,8 @@
+'use client';
+
 import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { useStore } from "@/zustandStore/zustandStore";
 
 interface CartItemProps {
   item: any;
@@ -13,14 +17,35 @@ export default function CartItem({
   onIncrease,
   onRemove,
 }: CartItemProps) {
+  const router = useRouter();
+  const { setIsCartOpen } = useStore();
   const product = item?.products ?? item?.product ?? item;
   const productName = product?.product_name || product?.name || "Product";
   const productImage = product?.thumbnail_image || product?.image_url || null;
   const price = Number(product?.final_price ?? product?.price ?? 0);
   const quantity = Number(item?.quantity ?? 1);
+  const productSlugOrId = product?.slug || product?.product_id || product?.id;
+
+  const handleNavigate = () => {
+    if (productSlugOrId) {
+      setIsCartOpen(false);
+      router.push(`/product/${productSlugOrId}`);
+    }
+  };
 
   return (
-    <div className="flex gap-3 sm:gap-4 p-3 sm:p-4 bg-[#FFCDC9] text-[#7A1C1C] rounded-xl hover:bg-[#FD7979] transition-colors duration-200">
+    <div
+      className="flex gap-3 sm:gap-4 p-3 sm:p-4 bg-[#FFCDC9] text-[#7A1C1C] rounded-xl hover:bg-[#FFCDC9]/70 transition-colors duration-200 cursor-pointer"
+      onClick={handleNavigate}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          handleNavigate();
+        }
+      }}
+    >
       {/* Product Image */}
       <div className="relative w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 flex-shrink-0 bg-white rounded-lg overflow-hidden border border-[#7A1C1C]/20">
         {productImage ? (
@@ -28,7 +53,7 @@ export default function CartItem({
             src={productImage}
             alt={productName}
             fill
-            className="object-cover"
+            className="object-cover cursor-pointer"
             sizes="(max-width: 640px) 64px, (max-width: 768px) 80px, 96px"
           />
         ) : (
@@ -49,12 +74,15 @@ export default function CartItem({
         <div className="flex items-center gap-2 sm:gap-3 mt-auto">
           <div className="flex items-center gap-0 border border-[#7A1C1C]/30 rounded-lg bg-white overflow-hidden">
             <button
-              className="p-1 sm:p-1.5 text-[#7A1C1C] hover:text-[#7A1C1C] hover:bg-[#FD7979] transition-colors duration-200 
-                              disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0
-                              "
+              className="p-1 sm:p-1.5 text-[#7A1C1C] bg-transparent transition-transform duration-200 flex-shrink-0 hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FD7979]/60 disabled:opacity-50 disabled:cursor-not-allowed
+              cursor-pointer
+              "
               disabled={quantity === 1}
               aria-label="Decrease quantity"
-              onClick={() => onDecrease(item)}
+              onClick={(e) => {
+                e.stopPropagation();
+                onDecrease(item);
+              }}
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -71,9 +99,12 @@ export default function CartItem({
               {quantity}
             </span>
             <button
-              className="p-1 sm:p-1.5 text-[#7A1C1C] hover:text-[#7A1C1C] hover:bg-[#FD7979] transition-colors duration-200 flex-shrink-0"
+              className="p-1 sm:p-1.5 text-[#7A1C1C] bg-transparent transition-transform duration-200 flex-shrink-0 hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FD7979]/60 cursor-pointer"
               aria-label="Increase quantity"
-              onClick={() => onIncrease(item)}
+              onClick={(e) => {
+                e.stopPropagation();
+                onIncrease(item);
+              }}
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -90,9 +121,12 @@ export default function CartItem({
 
           {/* Remove Button */}
           <button
-            className="p-1 sm:p-1.5 text-[#7A1C1C] hover:text-[#B03030] hover:bg-[#FD7979] rounded transition-colors duration-200 flex-shrink-0"
+            className="p-1 sm:p-1.5 text-[#7A1C1C] hover:text-[#B03030] hover:bg-[#FD7979] rounded transition-colors duration-200 flex-shrink-0 cursor-pointer"
             aria-label="Remove item"
-            onClick={() => onRemove(item)}
+            onClick={(e) => {
+              e.stopPropagation();
+              onRemove(item);
+            }}
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
