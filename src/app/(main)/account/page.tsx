@@ -140,6 +140,7 @@ export default function AccountPage() {
     "group relative overflow-hidden inline-flex items-center justify-center gap-2 bg-gradient-to-r from-rose-500 via-pink-500 to-rose-500 text-white font-semibold text-xs sm:text-sm md:text-base rounded-md px-4 py-2 shadow-md hover:shadow-xl hover:shadow-theme-sage/30 transition-all duration-300 hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-rose-200 focus:ring-offset-2 focus:ring-offset-white disabled:opacity-50 disabled:cursor-not-allowed";
   const [userData, setUserData] = useState<any>(null);
   const [emailUpdateState, setEmailUpdateState] = useState(false);
+  const [nameUpdateState, setNameUpdateState] = useState(false);
   const [createdAt, setCreatedAt] = useState<string>("");
   const [addresses, setAddresses] = useState<any[]>([]);
   const [orders, setOrders] = useState<any[]>([]);
@@ -234,6 +235,11 @@ export default function AccountPage() {
   const handleEmailUpdateState = () => {
     setEmailUpdateState(!emailUpdateState);
   };
+  
+  const handleNameUpdateState = () => {
+    setNameUpdateState(!nameUpdateState);
+  };
+
   const handleEmailUpdate = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const email = (e.target as HTMLFormElement).email.value;
@@ -263,6 +269,39 @@ export default function AccountPage() {
       setUserData((prev: any) => ({ ...(prev ?? {}), email: data.email }));
       setEmailUpdateState(false);
       alert("Email updated successfully");
+    }
+  };
+
+  const handleNameUpdate = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const firstName = (e.target as HTMLFormElement).firstName.value;
+    const lastName = (e.target as HTMLFormElement).lastName.value;
+    console.log("firstName", firstName, "lastName", lastName);
+    console.log("userId", userData?.user_id);
+    
+    if (!userData?.user_id) {
+      console.error("User ID is missing");
+      alert("Unable to update name. Please try again.");
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from("users")
+      .update({ first_name: firstName, last_name: lastName })
+      .eq("user_id", userData.user_id)
+      .select("*")
+      .single();
+
+    if (error) {
+      console.log("error", error);
+      alert("Failed to update name. Please try again.");
+      return;
+    }
+
+    if (data) {
+      setUserData((prev: any) => ({ ...(prev ?? {}), first_name: data.first_name, last_name: data.last_name }));
+      setNameUpdateState(false);
+      alert("Name updated successfully");
     }
   };
 
@@ -296,6 +335,86 @@ export default function AccountPage() {
               </h2>
 
               <div className="space-y-4">
+                {/* Name Field */}
+                <div className="flex flex-col gap-3 sm:gap-4 pb-4 border-b border-gray-100">
+                  <div className="flex flex-row items-center gap-3 sm:gap-4 flex-wrap">
+                    <div className="p-2 bg-purple-100 rounded-lg text-purple-600 flex-shrink-0">
+                      <UserIcon />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <span className="text-xs sm:text-sm font-medium text-gray-500 block mb-1">
+                        Full Name
+                      </span>
+                      {loadingProfile ? (
+                        <Skeleton className="h-4 w-40" />
+                      ) : (
+                        <span className="text-sm sm:text-base text-gray-900 font-medium break-words">
+                          {userData?.first_name || userData?.last_name 
+                            ? `${userData?.first_name || ""} ${userData?.last_name || ""}`.trim() 
+                            : "Not provided"}
+                        </span>
+                      )}
+                    </div>
+                    {!loadingProfile && !nameUpdateState && (
+                      <button
+                        className={`${primaryButtonClass} self-start sm:self-auto`}
+                        onClick={handleNameUpdateState}
+                      >
+                        <span className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-out" aria-hidden="true" />
+                        <span className="relative flex items-center gap-1.5 md:gap-2">
+                          <span className="inline-block h-2 w-2 rounded-full bg-white/70" aria-hidden="true" />
+                          <span>Update Name</span>
+                        </span>
+                      </button>
+                    )}
+                  </div>
+                  {loadingProfile ? (
+                    <Skeleton className="h-8 w-24 ml-11 sm:ml-0" />
+                  ) : (
+                    nameUpdateState && (
+                      <form
+                        onSubmit={handleNameUpdate}
+                        className="flex flex-col gap-2 ml-11 sm:ml-0"
+                      >
+                        <div className="flex flex-col sm:flex-row gap-2">
+                          <input
+                            type="text"
+                            name="firstName"
+                            placeholder="First name"
+                            defaultValue={userData?.first_name || ""}
+                            className="flex-1 border border-theme-sage/30 rounded-md px-3 py-2 text-sm outline-0 focus:ring-2 focus:ring-theme-sage focus:border-transparent text-gray-900 placeholder-gray-400"
+                            required
+                          />
+                          <input
+                            type="text"
+                            name="lastName"
+                            placeholder="Last name"
+                            defaultValue={userData?.last_name || ""}
+                            className="flex-1 border border-theme-sage/30 rounded-md px-3 py-2 text-sm outline-0 focus:ring-2 focus:ring-theme-sage focus:border-transparent text-gray-900 placeholder-gray-400"
+                            required
+                          />
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            type="submit"
+                            className={`${primaryButtonClass} min-w-[90px]`}
+                          >
+                            Update
+                          </button>
+                          <button
+                            type="button"
+                            onClick={handleNameUpdateState}
+                            className={`${primaryButtonClass} min-w-[90px]`}
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </form>
+                    )
+                  )}
+                </div>
+
+                {/* Phone Field */}
                 <div className="flex flex-col gap-2 sm:gap-4 pb-4 border-b border-gray-100">
                   <div className="flex items-center gap-3">
                     <div className="p-2 bg-theme-sage/20 rounded-lg text-theme-olive flex-shrink-0">

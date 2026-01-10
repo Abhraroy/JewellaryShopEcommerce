@@ -22,14 +22,39 @@ export default function PaymentGatewayComponent() {
   const [showAddressForm, setShowAddressForm] = useState(false);
   const [loadingAddresses, setLoadingAddresses] = useState(false);
   const [isLoadingPayment, setIsLoadingPayment] = useState(false);
+  const [userFirstName, setUserFirstName] = useState<string>("");
+  const [userLastName, setUserLastName] = useState<string>("");
+  const [userEmail, setUserEmail] = useState<string>("");
+  const [existingFirstName, setExistingFirstName] = useState<string | null>(null);
+  const [existingLastName, setExistingLastName] = useState<string | null>(null);
+  const [existingEmail, setExistingEmail] = useState<string | null>(null);
+  const [loadingUserData, setLoadingUserData] = useState(false);
   const supabase = createClient();
 
-  // Fetch addresses when authenticated
+  // Fetch user data and addresses when authenticated
   useEffect(() => {
-    const fetchAddresses = async () => {
+    const fetchUserDataAndAddresses = async () => {
       if (AuthenticatedState && AuthUserId) {
         setLoadingAddresses(true);
+        setLoadingUserData(true);
         try {
+          // Fetch user data for name and email
+          const { data: userData, error: userError } = await supabase
+            .from("users")
+            .select("first_name, last_name, email")
+            .eq("user_id", AuthUserId)
+            .single();
+
+          if (!userError && userData) {
+            setExistingFirstName(userData.first_name || null);
+            setExistingLastName(userData.last_name || null);
+            setExistingEmail(userData.email || null);
+            if (userData.first_name) setUserFirstName(userData.first_name);
+            if (userData.last_name) setUserLastName(userData.last_name);
+            if (userData.email) setUserEmail(userData.email);
+          }
+
+          // Fetch addresses
           const { data, error } = await supabase
             .from("addresses")
             .select("*")
@@ -49,18 +74,49 @@ export default function PaymentGatewayComponent() {
             }
           }
         } catch (err) {
-          console.error("Error fetching addresses:", err);
+          console.error("Error fetching data:", err);
         } finally {
           setLoadingAddresses(false);
+          setLoadingUserData(false);
         }
       }
     };
-    fetchAddresses();
+    fetchUserDataAndAddresses();
   }, [AuthenticatedState, AuthUserId]);
 
   const getAuthToken = async () => {
     setIsLoadingPayment(true);
     try {
+      // Save name and email if they were entered
+      if (AuthUserId && (!existingFirstName || !existingLastName || !existingEmail)) {
+        const updateData: { first_name?: string; last_name?: string; email?: string } = {};
+        if (!existingFirstName && userFirstName.trim()) {
+          updateData.first_name = userFirstName.trim();
+        }
+        if (!existingLastName && userLastName.trim()) {
+          updateData.last_name = userLastName.trim();
+        }
+        if (!existingEmail && userEmail.trim()) {
+          updateData.email = userEmail.trim();
+        }
+        
+        if (Object.keys(updateData).length > 0) {
+          const { error: updateError } = await supabase
+            .from("users")
+            .update(updateData)
+            .eq("user_id", AuthUserId);
+          
+          if (updateError) {
+            console.error("Error updating user details:", updateError);
+          } else {
+            // Update local state
+            if (updateData.first_name) setExistingFirstName(updateData.first_name);
+            if (updateData.last_name) setExistingLastName(updateData.last_name);
+            if (updateData.email) setExistingEmail(updateData.email);
+          }
+        }
+      }
+
       const res = await axios.post("/api/payment/auth", {
         address_id: selectedAddress,
       }, {
@@ -109,6 +165,13 @@ export default function PaymentGatewayComponent() {
     setSelectedAddress(null);
     setShowAddressForm(false);
     setLoadingAddresses(false);
+    setUserFirstName("");
+    setUserLastName("");
+    setUserEmail("");
+    setExistingFirstName(null);
+    setExistingLastName(null);
+    setExistingEmail(null);
+    setLoadingUserData(false);
     setInitiatingCheckout(false); // Close the modal
   };
 
@@ -277,7 +340,94 @@ export default function PaymentGatewayComponent() {
                 )}
               </div>
             ) : (
-              /* Address Selection Section */
+              <>
+              {/* Customer Details Section - Name & Email */}
+              {(!existingFirstName || !existingLastName || !existingEmail) && (
+                <div className="bg-white rounded-lg border border-gray-200 p-4 space-y-3">
+                  <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      strokeWidth={2}
+                      stroke="currentColor"
+                      className="w-4 h-4 text-amber-600"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"
+                      />
+                    </svg>
+                    Customer Details
+                  </h3>
+                  
+                  {loadingUserData ? (
+                    <div className="flex items-center justify-center py-4">
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-amber-600"></div>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {/* Name Fields */}
+                      {(!existingFirstName || !existingLastName) && (
+                        <div className="grid grid-cols-2 gap-2">
+                          {!existingFirstName && (
+                            <div>
+                              <label htmlFor="customer-first-name" className="block text-xs font-medium text-gray-700 mb-1">
+                                First Name <span className="text-red-500">*</span>
+                              </label>
+                              <input
+                                type="text"
+                                id="customer-first-name"
+                                value={userFirstName}
+                                onChange={(e) => setUserFirstName(e.target.value)}
+                                placeholder="First name"
+                                className="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-colors placeholder:text-gray-400"
+                              />
+                            </div>
+                          )}
+                          {!existingLastName && (
+                            <div>
+                              <label htmlFor="customer-last-name" className="block text-xs font-medium text-gray-700 mb-1">
+                                Last Name <span className="text-red-500">*</span>
+                              </label>
+                              <input
+                                type="text"
+                                id="customer-last-name"
+                                value={userLastName}
+                                onChange={(e) => setUserLastName(e.target.value)}
+                                placeholder="Last name"
+                                className="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-colors placeholder:text-gray-400"
+                              />
+                            </div>
+                          )}
+                        </div>
+                      )}
+                      
+                      {/* Email Field */}
+                      {!existingEmail && (
+                        <div>
+                          <label htmlFor="customer-email" className="block text-xs font-medium text-gray-700 mb-1">
+                            Email Address <span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="email"
+                            id="customer-email"
+                            value={userEmail}
+                            onChange={(e) => setUserEmail(e.target.value)}
+                            placeholder="Enter your email address"
+                            className="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-colors placeholder:text-gray-400"
+                          />
+                        </div>
+                      )}
+                      
+                      <p className="text-[10px] text-gray-500">
+                        This information will be used for order confirmation and updates.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
               <div className="bg-white rounded-lg border border-gray-200 p-4 space-y-3">
                 <div className="flex items-center justify-between">
                   <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2">
@@ -402,6 +552,7 @@ export default function PaymentGatewayComponent() {
                   </div>
                 )}
               </div>
+              </>
             )}
           </div>
         </div>
@@ -418,7 +569,10 @@ export default function PaymentGatewayComponent() {
                 disabled={
                   isLoadingPayment || 
                   !AuthenticatedState || 
-                  (AuthenticatedState && !selectedAddress && addresses.length > 0)
+                  (AuthenticatedState && !selectedAddress && addresses.length > 0) ||
+                  (AuthenticatedState && !existingFirstName && !userFirstName.trim()) ||
+                  (AuthenticatedState && !existingLastName && !userLastName.trim()) ||
+                  (AuthenticatedState && !existingEmail && !userEmail.trim())
                 }
               >
                 {isLoadingPayment ? (
@@ -435,10 +589,23 @@ export default function PaymentGatewayComponent() {
                   "Login to Continue"
                 )}
               </button>
-              {AuthenticatedState && !selectedAddress && addresses.length > 0 && !isLoadingPayment && (
-                <p className="text-xs text-red-600 mt-2 text-center">
-                  Please select a delivery address
-                </p>
+              {AuthenticatedState && !isLoadingPayment && (
+                (() => {
+                  const missingFields = [];
+                  if ((!existingFirstName && !userFirstName.trim()) || (!existingLastName && !userLastName.trim())) {
+                    missingFields.push("name");
+                  }
+                  if (!existingEmail && !userEmail.trim()) missingFields.push("email");
+                  if (!selectedAddress && addresses.length > 0) missingFields.push("delivery address");
+                  
+                  if (missingFields.length === 0) return null;
+                  
+                  return (
+                    <p className="text-xs text-[#360000] mt-2 text-center font-medium">
+                      Please enter your {missingFields.join(" and ")}
+                    </p>
+                  );
+                })()
               )}
             </>
           ) : (
