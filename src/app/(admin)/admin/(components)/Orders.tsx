@@ -24,9 +24,12 @@ interface Order {
   shipping?: {
     full_name?: string;
     street_address?: string;
+    address_line1?: string;
+    address_line2?: string;
     city?: string;
     state?: string;
     postal_code?: string;
+    country?: string;
     phone_number?: string;
   } | null;
   users?: {
@@ -421,17 +424,20 @@ export default function Orders() {
                         <Td className="text-gray-700">{itemCount}</Td>
                         <Td>
                           {address ? (
-                            <div className="text-xs text-gray-700 leading-snug max-w-[200px]">
-                              {address.full_name && <div>{address.full_name}</div>}
+                            <div className="text-xs text-gray-700 leading-snug max-w-[250px]">
+                              {address.full_name && <div className="font-medium">{address.full_name}</div>}
                               {address.street_address && <div>{address.street_address}</div>}
+                              {address.address_line1 && <div>{address.address_line1}</div>}
+                              {address.address_line2 && <div>{address.address_line2}</div>}
                               {(address.city || address.state || address.postal_code) && (
                                 <div>
-                                  {[address.city, address.state, address.postal_code]
-                                    .filter(Boolean)
-                                    .join(", ")}
+                                  {address.city}{address.city && address.state ? ", " : ""}
+                                  {address.state}{(address.city || address.state) && address.postal_code ? " - " : ""}
+                                  {address.postal_code}
                                 </div>
                               )}
-                              {address.phone_number && <div>{address.phone_number}</div>}
+                              {address.country && <div>{address.country}</div>}
+                              {address.phone_number && <div className="text-gray-500 mt-1">{address.phone_number}</div>}
                             </div>
                           ) : (
                             <span className="text-xs text-gray-500">—</span>

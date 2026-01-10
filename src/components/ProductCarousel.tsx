@@ -1,12 +1,14 @@
 "use client";
 
 import { useRef, useState, useEffect } from "react";
+import Link from "next/link";
 import ProductCard from "./ProductCard";
 import { Product } from "@/utilityFunctions/TypeInterface";
 
 interface ProductCarouselProps {
   sectionHeading: string;
   products: Product[];
+  tagSlug?: string; // Optional tag slug to link heading to tags page
   onAddToCart?: (productId: string) => void;
   onWishlistToggle?: (productId: string) => void;
   className?: string;
@@ -21,6 +23,7 @@ interface ProductCarouselProps {
 export default function ProductCarousel({
   sectionHeading,
   products,
+  tagSlug,
   onAddToCart,
   onWishlistToggle,
   className = "",
@@ -91,10 +94,25 @@ export default function ProductCarousel({
     >
       {/* Section Heading */}
       <div className="flex items-center justify-center mb-5 md:mb-8 px-4 sm:px-6 lg:px-8">
-        <h2 className="text-xl md:text-3xl lg:text-4xl font-bold text-[#360000] relative inline-block">
-          {sectionHeading}
-          <span className="absolute -bottom-2 left-0 right-0 h-0.5 bg-[#360000]"></span>
-        </h2>
+        {tagSlug ? (
+          <Link href={`/Tags/${tagSlug}`} className="group">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-[#360000] relative inline-block font-josefin-sans tracking-wider group-hover:text-[#360000]/80 transition-colors">
+              {sectionHeading}
+              {/* Static underline */}
+              <span className="absolute -bottom-2 left-0 right-0 h-0.5"></span>
+              {/* Animated underline - grows from left to right on hover */}
+              <span className="absolute -bottom-2 left-0 h-0.5 bg-[#360000] w-0 group-hover:w-full transition-all duration-500 ease-out"></span>
+            </h2>
+            <p className="text-center text-sm sm:text-base md:text-lg font-semibold text-[#360000]/60 mt-4 sm:mt-5 md:mt-6 group-hover:text-[#360000]/80 transition-colors">
+              View All →
+            </p>
+          </Link>
+        ) : (
+          <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-[#360000] relative inline-block font-josefin-sans tracking-wider">
+            {sectionHeading}
+            <span className="absolute -bottom-2 left-0 right-0 h-0.5 bg-[#360000]"></span>
+          </h2>
+        )}
       </div>
 
       {/* Carousel Container - Full Width */}

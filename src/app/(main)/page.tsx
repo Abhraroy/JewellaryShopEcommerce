@@ -231,13 +231,14 @@ export default function LandingPage() {
           <CategorySection categories={categories} />
         ) : null}
 
-        {/* New Arrival Products Section */}
+        {/* Best Sellers Products Section */}
         {loadingBestSellers ? (
           <ProductCarouselSkeleton title="Best Sellers" />
         ) : bestSellers.length > 0 ? (
           <ProductCarousel
             sectionHeading="Best Sellers"
             products={bestSellers}
+            tagSlug="best-sellers"
             onAddToCart={handleAddToCart}
             onWishlistToggle={handleWishlistToggle}
           />
@@ -246,13 +247,14 @@ export default function LandingPage() {
         {/* collection wise division of products */}
         <Collection />
 
-        {/* You can add more ProductCarousel sections with different data */}
+        {/* New Arrivals Products Section */}
         {loadingNewArrivals ? (
           <ProductCarouselSkeleton title="New Arrivals" />
         ) : newArrivals.length > 0 ? (
           <ProductCarousel
             sectionHeading="New Arrivals"
             products={newArrivals}
+            tagSlug="new-arrivals"
             onAddToCart={handleAddToCart}
             onWishlistToggle={handleWishlistToggle}
           />

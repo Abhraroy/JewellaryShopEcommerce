@@ -11,7 +11,7 @@ export default function CategorySection({
   return (
     <section className={`w-full py-8 md:py-12  `} >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-6 md:mb-8 text-center">
+        <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 mb-6 md:mb-8 text-center font-josefin-sans tracking-wider">
           Shop by Category
         </h2>
         
@@ -36,7 +36,7 @@ export default function CategorySection({
                 </div>
                 
                 {/* Category Name */}
-                <span className="text-xs md:text-[1.2rem] font-medium text-[#360000] group-hover:text-[#360000]/80 text-center transition-colors duration-200 leading-tight">
+                <span className="text-sm sm:text-base md:text-lg lg:text-xl font-semibold text-[#360000] group-hover:text-[#360000]/80 text-center transition-colors duration-200 leading-tight">
                   {category.category_name}
                 </span>
               </Link>

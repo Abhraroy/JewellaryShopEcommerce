@@ -38,27 +38,29 @@ function Collection() {
             <div
               key={index}
               className="relative overflow-hidden flex flex-col items-center justify-center p-8 md:p-12 lg:p-16 min-h-[400px] md:min-h-[500px] lg:min-h-[600px] border border-theme-olive/30 hover:border-theme-olive transition-all duration-300"
-              style={{
-                backgroundImage: collection.image
-                  ? `linear-gradient(135deg, rgba(0,0,0,0.45), rgba(0,0,0,0.25)), url(${collection.image})`
-                  : "linear-gradient(135deg, rgba(41, 63, 47, 0.15), rgba(55, 93, 70, 0.25))",
-                backgroundSize: "cover",
-                backgroundPosition: "center",
-                backgroundRepeat: "no-repeat",
-              }}
             >
+              {/* Background */}
               <div
-                className="absolute inset-0 bg-theme-sage/20 hover:bg-theme-sage/10 transition-colors duration-300"
+                className="absolute inset-0 bg-cover bg-center blur-sm scale-105"
+                style={{
+                  backgroundImage: collection.image
+                    ? `url(${collection.image})`
+                    : "linear-gradient(135deg, rgba(41, 63, 47, 0.15), rgba(55, 93, 70, 0.25))",
+                }}
                 aria-hidden
               />
+
+              {/* Dark overlay */}
+              <div className="absolute inset-0 bg-black/40" aria-hidden />
               <div className="relative z-10 flex flex-col items-center gap-3 md:gap-4 lg:gap-5 text-center">
                 {/* Heading */}
-                <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-white drop-shadow">
+                <h2 className="text-4xl md:text-5xl lg:text-8xl font-sacramento text-white drop-shadow tracking-wider">
                   {collection.heading}
                 </h2>
                 
                 {/* Sub Heading */}
-                <p className="text-sm md:text-base lg:text-lg text-white/90 max-w-md">
+                <p className="text-xl md:text-2xl lg:text-3xl text-white/90 max-w-lg
+                font-sacramento tracking-wider">
                   {collection.subHeading}
                 </p>
 
@@ -67,7 +69,10 @@ function Collection() {
                 {/* Explore Collection Button */}
                 <Link
                   href={collection.href || "#"}
-                  className="px-6 md:px-8 py-3 md:py-3.5 bg-theme-sage text-white font-semibold rounded-lg hover:bg-theme-olive transition-colors duration-200 text-sm md:text-base shadow-sm hover:shadow-md"
+                  className="px-6 md:px-8 py-3 md:py-3.5 bg-theme-sage text-white font-semibold rounded-lg hover:bg-theme-olive transition-colors duration-200 text-sm md:text-base shadow-sm hover:shadow-md
+                  
+                  font-open-sans tracking-wider
+                  "
                 >
                   Explore Collection
                 </Link>

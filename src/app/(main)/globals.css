@@ -8,7 +8,13 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-
+  --font-sacramento: var(--font-sacramento);
+  --font-satisfy: var(--font-satisfy);
+  --font-sevillana: var(--font-sevillana);
+  --font-playfair-display: var(--font-playfair-display);
+  --font-josefin-sans: var(--font-josefin-sans);
+  --font-adamina: var(--font-adamina);
+  --font-open-sans: var(--font-open-sans);
   /* Custom Theme Colors */
   --color-theme-cream: #ffffff;
   --color-theme-sage: #a3b18a;
