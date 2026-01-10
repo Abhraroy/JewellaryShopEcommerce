@@ -19,6 +19,7 @@ import Link from "next/link";
 import ProductCard from "@/components/ProductCard";
 import OccasionSection from "@/components/OccasionSection";
 import SocialMediaBento from "@/components/SocialMediaBento";
+import ImageGalleryCarousel from "@/components/ImageGalleryCarousel";
 
 export default function LandingPage() {
   const {
@@ -260,8 +261,8 @@ export default function LandingPage() {
         {/* Occasion Selection Section */}
         <OccasionSection />
 
-        {/* Model Carousel Section */}
-        {/* <ModelCaraousel /> */}
+        {/* Image Gallery Carousel */}
+        <ImageGalleryCarousel />
 
         {/* Social Media Bento Section */}
         <SocialMediaBento />
