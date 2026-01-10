@@ -13,6 +13,8 @@ interface AddressFormProps {
 
 interface AddressFormData {
   street_address: string;
+  address_line1: string;
+  address_line2: string;
   city: string;
   state: string;
   postal_code: string;
@@ -33,6 +35,8 @@ export default function AddressForm({ userId, onClose, onSuccess }: AddressFormP
   const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState<AddressFormData>({
     street_address: '',
+    address_line1: '',
+    address_line2: '',
     city: '',
     state: '',
     postal_code: '',
@@ -73,6 +77,8 @@ export default function AddressForm({ userId, onClose, onSuccess }: AddressFormP
           {
             user_id: userId,
             street_address: formData.street_address,
+            address_line1: formData.address_line1 || null,
+            address_line2: formData.address_line2 || null,
             city: formData.city,
             state: formData.state,
             postal_code: formData.postal_code,
@@ -120,23 +126,6 @@ export default function AddressForm({ userId, onClose, onSuccess }: AddressFormP
             </div>
           )}
 
-          {/* Address Type */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Address Type *
-            </label>
-            <select
-              name="address_type"
-              value={formData.address_type}
-              onChange={handleInputChange}
-              className="w-full px-4 py-2 rounded-lg border border-theme-sage/30 focus:outline-none focus:ring-2 focus:ring-theme-sage focus:border-transparent text-gray-900"
-              required
-            >
-              <option value="shipping">Shipping Address</option>
-              <option value="billing">Billing Address</option>
-            </select>
-          </div>
-
           {/* Street Address */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -147,10 +136,41 @@ export default function AddressForm({ userId, onClose, onSuccess }: AddressFormP
               value={formData.street_address}
               onChange={handleInputChange}
               placeholder="House/Flat No., Building Name, Street"
-              rows={3}
+              rows={2}
               className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent text-gray-900 placeholder-gray-400 resize-none"
               required
             />
+          </div>
+
+          {/* Address Line 1 & 2 */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Address Line 1 <span className="text-gray-400 text-xs">(Optional)</span>
+              </label>
+              <input
+                type="text"
+                name="address_line1"
+                value={formData.address_line1}
+                onChange={handleInputChange}
+                placeholder="Landmark, Area"
+                className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent text-gray-900 placeholder-gray-400"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Address Line 2 <span className="text-gray-400 text-xs">(Optional)</span>
+              </label>
+              <input
+                type="text"
+                name="address_line2"
+                value={formData.address_line2}
+                onChange={handleInputChange}
+                placeholder="Additional details"
+                className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent text-gray-900 placeholder-gray-400"
+              />
+            </div>
           </div>
 
           {/* City and State */}

@@ -58,7 +58,14 @@ export default function AddressSection({addresses, userId}: {addresses: any[], u
                     <AddressIconComponent className="shrink-0 w-5 h-5 text-[#360000]" />
                     <div className="text-[#360000] leading-relaxed">
                       <div className="font-semibold">
-                        {address.street_address}, {address.city}, {address.state} {address.postal_code}
+                        {address.street_address}
+                        {address.address_line1 && `, ${address.address_line1}`}
+                      </div>
+                      {address.address_line2 && (
+                        <div className="text-sm text-[#360000]/90">{address.address_line2}</div>
+                      )}
+                      <div className="text-sm">
+                        {address.city}, {address.state} - {address.postal_code}
                       </div>
                       <div className="text-xs text-[#360000]/80">{address.country}</div>
                     </div>
