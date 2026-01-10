@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
       .single();
     console.log("address_data", address_data?.data);
     if (address_data?.data) {
-      address_text = `${address_data?.data?.street_address}, ${address_data?.data?.city}, ${address_data?.data?.state} - ${address_data?.data?.postal_code}`;
+      address_text = `${address_data?.data?.street_address}, ${address_data?.data?.address_line1}, ${address_data?.data?.address_line2}, ${address_data?.data?.city}, ${address_data?.data?.state} - ${address_data?.data?.postal_code}`;
     }
   } catch (error) {
     console.log("No address_id in request body or invalid JSON");
@@ -126,30 +126,11 @@ export async function POST(request: NextRequest) {
 
   const merchantOrderId = uuidv4();
 
-  // const requestHeaders = {
-  //   "Content-Type": "application/x-www-form-urlencoded",
-  // };
-
-  // const requestBodyJson = {
-  //   client_version: process.env.PHONEPE_CLIENT_VERSION,
-  //   grant_type: process.env.PHONEPE_GRANT_TYPE,
-  //   client_id: process.env.PHONEPE_CLIENT_ID,
-  //   client_secret: process.env.PHONEPE_CLIENT_SECRET,
-  // };
-
-  // const requestBody = new URLSearchParams(
-  //   requestBodyJson as Record<string, string>
-  // ).toString();
+  
 
   const sandbox = "https://api-preprod.phonepe.com/apis/pg-sandbox";
 
-  // console.log("requestBody", requestBody);
-  // const res = await axios.post(sandbox + "/v1/oauth/token", requestBody, {
-  //   headers: requestHeaders,
-  // });
-  // console.log("res", res.data);
-  // cachedToken.access_token = res.data.access_token;
-  // cachedToken.expires_at = res.data.expires_at;
+ 
   const authToken = await getAuthToken();
   if (!authToken) {
     return NextResponse.json(
