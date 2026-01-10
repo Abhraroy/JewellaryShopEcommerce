@@ -46,7 +46,11 @@ export async function GET(request: NextRequest) {
     headers: orderStatusRequestHeaders,
   });
   console.log("orderStatusResponse", orderStatusResponse.data);
-  if (orderStatusResponse.data.paymentDetails[0].state === "COMPLETED") {
+  
+  // Get payment state from response
+  const paymentState = orderStatusResponse.data?.paymentDetails?.[0]?.state || orderStatusResponse.data?.state;
+  
+  if (paymentState === "COMPLETED") {
     const { data, error } = await supabase
       .from("orders")
       .update({
@@ -54,16 +58,37 @@ export async function GET(request: NextRequest) {
         transaction_id:
           orderStatusResponse.data.paymentDetails[0].transactionId,
       })
-      .eq("order_id", orderStatusResponse.data.orderId);
+      .select(
+        `*,
+        order_items(*, products(*))
+        `
+      )
+      .eq("order_number", orderStatusResponse.data.orderId);
     if (error) {
       console.log("error", error);
       return NextResponse.json(
-        { message: "Error updating order" },
+        { message: "Error updating order", orderStatusResponse: { state: "FAILED" } },
         { status: 500 }
       );
     }
-    console.log("order updated", data);
-    return NextResponse.json({ message: "Order updated successfully" }, { status: 200 });
+    console.log("order updated successfully ", data);
+    
+    return NextResponse.json({ 
+      message: "Order updated successfully",
+      orderStatusResponse: { state: "COMPLETED" }
+    }, { status: 200 });
   }
-  return NextResponse.json({ message: "Order status is not completed" }, { status: 200 });
+  
+  if (paymentState === "FAILED") {
+    return NextResponse.json({ 
+      message: "Payment failed",
+      orderStatusResponse: { state: "FAILED" }
+    }, { status: 200 });
+  }
+  
+  // Return PENDING state for any other case
+  return NextResponse.json({ 
+    message: "Order status is pending",
+    orderStatusResponse: { state: "PENDING" }
+  }, { status: 200 });
 }

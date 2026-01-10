@@ -206,13 +206,15 @@ export async function POST(request: NextRequest) {
 
 
   // Create order items for each cart item
-  const orderItemsPayload = cartData.data.map((item) => ({
+  const orderItemsPayload = cartData.data.map((item: any) => ({
     order_id: data.order_id,
     product_id: item.product_id,
     quantity: item.quantity,
-    unit_price: item.products?.[0]?.final_price || 0,
-    total_price: (item.products?.[0]?.final_price || 0) * item.quantity,
+    unit_price: item.products?.final_price || 0,
+    total_price: (item.products?.final_price || 0) * item.quantity,
   }));
+
+  console.log("orderItemsPayload", orderItemsPayload);
   
   const { error: orderItemsError } = await supabase
     .from("order_items")
@@ -304,7 +306,6 @@ export async function POST(request: NextRequest) {
         payment_status: "pending",
       })
       .eq("order_id", data.order_id);
-    console.log("payment_res_phonepay", payment_res_phonepay);
   } else {
     console.log("No orderId in response, skipping order update");
   }
