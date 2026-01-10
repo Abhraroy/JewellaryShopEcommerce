@@ -277,7 +277,7 @@ function SkeletonPulseBlock({ className }: { className?: string }) {
 function CategorySectionSkeleton() {
   return (
     <section className="w-full bg-theme-cream py-8 md:py-12">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto px-0.5 sm:px-6 lg:px-8">
         <div className="h-7 md:h-9 w-48 md:w-60 mx-auto bg-gray-200 animate-pulse rounded mb-6 md:mb-8" />
         <div className="overflow-x-auto scrollbar-hide">
           <div className="flex gap-4 md:gap-6 pb-4 min-w-max md:justify-center md:flex-wrap pt-4">

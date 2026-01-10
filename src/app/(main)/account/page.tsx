@@ -317,7 +317,7 @@ export default function AccountPage() {
                 </div>
 
                 <div className="flex flex-col gap-3 sm:gap-4 pb-4 border-b border-gray-100">
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+                  <div className="flex flex-row items-center gap-3 sm:gap-4 flex-wrap">
                     <div className="p-2 bg-amber-100 rounded-lg text-amber-600 flex-shrink-0">
                       <EmailIcon />
                     </div>

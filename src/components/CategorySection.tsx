@@ -9,14 +9,14 @@ export default function CategorySection({
   // className = '' 
 }: { categories: any }) {
   return (
-    <section className={`w-full bg-theme-cream py-8 md:py-12`}>
+    <section className={`w-full py-8 md:py-12  `} >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-6 md:mb-8 text-center">
           Shop by Category
         </h2>
         
         {/* Horizontal Scrollable Container */}
-        <div className="overflow-x-auto scrollbar-hide">
+        <div className="overflow-x-auto scrollbar-hide px-2">
           <div className="flex gap-4 md:gap-6 pb-4 min-w-max md:min-w-0 md:justify-center md:flex-wrap pt-[1rem]  ">
             {categories.map((category: any) => (
               <Link
