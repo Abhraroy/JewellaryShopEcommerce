@@ -52,7 +52,7 @@ function Collection() {
 
               {/* Dark overlay */}
               <div className="absolute inset-0 bg-black/40" aria-hidden />
-              <div className="relative z-10 flex flex-col items-center gap-3 md:gap-4 lg:gap-5 text-center">
+              <div className="relative z-10 flex flex-col items-center gap-3 md:gap-4 lg:gap-10 text-center">
                 {/* Heading */}
                 <h2 className="text-4xl md:text-5xl lg:text-8xl font-sacramento text-white drop-shadow tracking-wider">
                   {collection.heading}

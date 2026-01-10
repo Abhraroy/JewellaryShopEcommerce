@@ -21,7 +21,6 @@ interface ProductData {
   category: string;
   material: string;
   weight: string;
-  sku: string;
 }
 
 export default function ProductDisplay({
@@ -237,9 +236,7 @@ export default function ProductDisplay({
                   </div>
                 )}
                 
-                <p className="text-xs text-gray-500 font-medium">
-                  SKU: <span className="text-gray-700">{productDetails[0]?.sku}</span>
-                </p>
+                
               </div>
 
               {/* Price */}
@@ -583,9 +580,7 @@ export default function ProductDisplay({
                   </div>
                 )}
                 
-                <p className="text-sm text-gray-500 font-medium">
-                  SKU: <span className="text-gray-700">{product?.sku}</span>
-                </p>
+              
                 {product?.categories?.category_name && (
                   <p className="text-sm text-gray-500">
                     {product.categories.category_name}
@@ -901,9 +896,7 @@ export default function ProductDisplay({
                   </div>
                 )}
                 
-                <p className="text-sm text-gray-500 font-medium">
-                  SKU: <span className="text-gray-700">{productDetails[0]?.sku}</span>
-                </p>
+                
                 {productDetails[0]?.categories?.category_name && (
                   <p className="text-base text-gray-600">
                     {productDetails[0]?.categories?.category_name}
