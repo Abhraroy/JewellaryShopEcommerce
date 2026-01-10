@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { createClient } from "@/app/utils/supabase/client";
-import { getProducts, uploadProductImages, createProduct, updateProduct, deleteProduct } from "../actions/Product";
+import { getProducts, uploadProductImages, createProduct, updateProduct, deleteProduct, deleteProductImage } from "../actions/Product";
 import { Category, getCategories } from "../actions/categories";
 import { uploadImageToCloudflare } from "@/app/utils/cloudflare";
 
@@ -125,6 +125,7 @@ export default function Products({ isDarkTheme }: ProductsProps) {
     description: "",
     category_id: "",
     subcategory_id: "",
+    sku: "",
     base_price: "",
     discount_percentage: "0",
     final_price: "",
@@ -142,10 +143,12 @@ export default function Products({ isDarkTheme }: ProductsProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
   const [showImageViewer, setShowImageViewer] = useState(false);
-  const [viewerImages, setViewerImages] = useState<string[]>([]);
+  const [viewerImages, setViewerImages] = useState<{ id: string; url: string }[]>([]);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isEditingProduct, setIsEditingProduct] = useState(false);
   const [editingProductId, setEditingProductId] = useState<string | null>(null);
+  const [viewerProductId, setViewerProductId] = useState<string | null>(null);
+  const [isDeletingImage, setIsDeletingImage] = useState(false);
 
   // Categories and their subcategories
   const [tags, setTags] = useState<string[]>([]);
@@ -385,6 +388,7 @@ export default function Products({ isDarkTheme }: ProductsProps) {
         description: "",
         category_id: "",
         subcategory_id: "",
+        sku: "",
         base_price: "",
         discount_percentage: "0",
         final_price: "",
@@ -422,6 +426,7 @@ export default function Products({ isDarkTheme }: ProductsProps) {
       description: product.description,
       category_id: product.category_id,
       subcategory_id: product.subcategory_id,
+      sku: product.sku || "",
       base_price: product.base_price,
       discount_percentage: product.discount_percentage,
       final_price: product.final_price,
@@ -455,6 +460,7 @@ export default function Products({ isDarkTheme }: ProductsProps) {
         description: "",
         category_id: "",
         subcategory_id: "",
+        sku: "",
         base_price: "",
         discount_percentage: "0",
         final_price: "",
@@ -586,6 +592,31 @@ export default function Products({ isDarkTheme }: ProductsProps) {
                     } focus:outline-none focus:ring-2 focus:ring-[#E94E8B]`}
                     required
                     maxLength={255}
+                  />
+                </div>
+
+                {/* SKU */}
+                <div className="md:col-span-2">
+                  <label
+                    className={`block text-sm font-medium mb-2 ${
+                      isDarkTheme ? "text-gray-300" : "text-gray-700"
+                    }`}
+                  >
+                    SKU (Stock Keeping Unit) *
+                  </label>
+                  <input
+                    type="text"
+                    name="sku"
+                    value={formData.sku}
+                    onChange={handleInputChange}
+                    placeholder="e.g., NKL-GOLD-001"
+                    className={`w-full px-4 py-2 rounded-lg border transition-colors ${
+                      isDarkTheme
+                        ? "bg-gray-800 border-gray-700 text-white placeholder-gray-500"
+                        : "bg-white border-gray-300 text-gray-900 placeholder-gray-400"
+                    } focus:outline-none focus:ring-2 focus:ring-[#E94E8B]`}
+                    required
+                    maxLength={100}
                   />
                 </div>
 
@@ -1098,11 +1129,11 @@ export default function Products({ isDarkTheme }: ProductsProps) {
                   </label>
                 </div>
               ) : (
-                <div className="relative">
+                <div className="relative w-2/3 max-w-xs">
                   <img
                     src={thumbnailImagePreview}
                     alt="Thumbnail preview"
-                    className="w-full h-48 object-cover rounded-lg border"
+                    className="w-full aspect-[2/3] object-cover rounded-lg border"
                   />
                   <button
                     type="button"
@@ -1200,6 +1231,15 @@ export default function Products({ isDarkTheme }: ProductsProps) {
                     }`}
                   >
                     Product Name
+                  </th>
+                  <th
+                    className={`text-center py-3 px-4 font-semibold text-sm border whitespace-nowrap ${
+                      isDarkTheme
+                        ? "border-gray-700 text-gray-300 bg-gray-800"
+                        : "border-gray-300 text-gray-700 bg-gray-50"
+                    }`}
+                  >
+                    SKU
                   </th>
                   <th
                     className={`text-center py-3 px-4 font-semibold text-sm border whitespace-nowrap ${
@@ -1370,6 +1410,15 @@ export default function Products({ isDarkTheme }: ProductsProps) {
                       >
                         {product.product_name}
                       </Link>
+                    </td>
+                    <td
+                      className={`text-center py-3 px-4 border whitespace-nowrap ${
+                        isDarkTheme
+                          ? "border-gray-700 text-gray-300"
+                          : "border-gray-300 text-gray-900"
+                      }`}
+                    >
+                      {product.sku || "—"}
                     </td>
                     <td
                       className={`text-center py-3 px-4 border whitespace-nowrap ${
@@ -1616,12 +1665,16 @@ export default function Products({ isDarkTheme }: ProductsProps) {
                       {product.product_images && product.product_images.length > 0 ? (
                         <button
                           onClick={() => {
-                            // Extract image URLs from product_images array
-                            const imageUrls = product.product_images.map(
-                              (img: any) => img.image_url || img
+                            // Extract image data from product_images array
+                            const imageData = product.product_images.map(
+                              (img: any) => ({
+                                id: img.image_id || img.id || "",
+                                url: img.image_url || img,
+                              })
                             );
-                            setViewerImages(imageUrls);
+                            setViewerImages(imageData);
                             setCurrentImageIndex(0);
+                            setViewerProductId(product.product_id);
                             setShowImageViewer(true);
                           }}
                           className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
@@ -1883,11 +1936,60 @@ export default function Products({ isDarkTheme }: ProductsProps) {
               )}
 
               {/* Main Image */}
-              <img
-                src={viewerImages[currentImageIndex]}
-                alt={`Product image ${currentImageIndex + 1}`}
-                className="max-w-full max-h-[70vh] object-contain rounded-lg"
-              />
+              <div className="relative">
+                <img
+                  src={viewerImages[currentImageIndex]?.url}
+                  alt={`Product image ${currentImageIndex + 1}`}
+                  className="max-w-full max-h-[70vh] object-contain rounded-lg"
+                />
+                {/* Delete Button */}
+                <button
+                  onClick={async () => {
+                    const imageToDelete = viewerImages[currentImageIndex];
+                    if (!imageToDelete?.id) {
+                      alert("Cannot delete this image - no ID found");
+                      return;
+                    }
+                    if (!confirm("Are you sure you want to delete this image?")) {
+                      return;
+                    }
+                    setIsDeletingImage(true);
+                    const result = await deleteProductImage(imageToDelete.id);
+                    setIsDeletingImage(false);
+                    if (result.success) {
+                      // Remove from viewer
+                      const newImages = viewerImages.filter((_, i) => i !== currentImageIndex);
+                      if (newImages.length === 0) {
+                        setShowImageViewer(false);
+                      } else {
+                        setViewerImages(newImages);
+                        setCurrentImageIndex(Math.min(currentImageIndex, newImages.length - 1));
+                      }
+                      // Refresh products list
+                      const productsResult = await getProducts();
+                      if (productsResult.success) {
+                        setProducts(productsResult.data as any[]);
+                      }
+                      alert("Image deleted successfully");
+                    } else {
+                      alert("Failed to delete image: " + result.error);
+                    }
+                  }}
+                  disabled={isDeletingImage}
+                  className={`absolute top-2 right-2 p-2 rounded-full transition-colors ${
+                    isDarkTheme
+                      ? "bg-red-600 hover:bg-red-500 text-white"
+                      : "bg-red-500 hover:bg-red-600 text-white"
+                  } ${isDeletingImage ? "opacity-50 cursor-not-allowed" : ""}`}
+                  title="Delete this image"
+                >
+                  {isDeletingImage ? (
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                  ) : (
+                    <DeleteIcon className="w-5 h-5" />
+                  )}
+                </button>
+              </div>
 
               {/* Next Button */}
               {viewerImages.length > 1 && (
@@ -1930,7 +2032,7 @@ export default function Products({ isDarkTheme }: ProductsProps) {
                       }`}
                     >
                       <img
-                        src={image}
+                        src={image.url}
                         alt={`Thumbnail ${index + 1}`}
                         className="w-16 h-16 object-cover rounded-lg border-2 border-transparent"
                       />

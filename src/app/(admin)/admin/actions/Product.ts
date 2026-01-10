@@ -40,7 +40,8 @@ export async function getProducts() {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("products")
-    .select("*,categories(*),product_images(*),sub_categories(*)");
+    .select("*,categories(*),product_images(*),sub_categories(*)")
+    .order("created_at", { ascending: false });
   if (error) {
     console.log("error", error);
     return { success: false, data: null, message: error.message };
@@ -197,6 +198,51 @@ export async function updateProduct(productId: string, productData: any) {
       success: false,
       error:
         error instanceof Error ? error.message : "Failed to update product",
+    };
+  }
+}
+
+export async function deleteProductImage(imageId: string) {
+  try {
+    const supabase = await createClient();
+    
+    // First, get the image record to retrieve the URL
+    const { data: imageData, error: fetchError } = await supabase
+      .from("product_images")
+      .select("*")
+      .eq("image_id", imageId)
+      .single();
+    
+    if (fetchError) {
+      console.error("Error fetching image:", fetchError);
+      return { success: false, error: fetchError.message };
+    }
+    
+    if (imageData && imageData.image_url) {
+      // Extract R2 key and delete from Cloudflare
+      const r2Key = extractR2KeyFromUrl(imageData.image_url);
+      if (r2Key) {
+        await deleteImageFromCloudflare(r2Key);
+      }
+    }
+    
+    // Delete the image record from database
+    const { error: deleteError } = await supabase
+      .from("product_images")
+      .delete()
+      .eq("image_id", imageId);
+    
+    if (deleteError) {
+      console.error("Error deleting image from database:", deleteError);
+      return { success: false, error: deleteError.message };
+    }
+    
+    return { success: true, message: "Image deleted successfully" };
+  } catch (error) {
+    console.error("Error deleting product image:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to delete image",
     };
   }
 }
