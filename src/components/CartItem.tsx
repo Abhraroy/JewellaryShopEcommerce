@@ -47,7 +47,7 @@ export default function CartItem({
       }}
     >
       {/* Product Image */}
-      <div className="relative w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 flex-shrink-0 bg-white rounded-lg overflow-hidden border border-[#7A1C1C]/20">
+      <div className="relative w-30 h-30 sm:w-30 sm:h-30 md:w-30 md:h-30 flex-shrink-0 bg-white rounded-lg overflow-hidden border border-[#7A1C1C]/20">
         {productImage ? (
           <Image
             src={productImage}
@@ -72,11 +72,9 @@ export default function CartItem({
 
         {/* Quantity Controls */}
         <div className="flex items-center gap-2 sm:gap-3 mt-auto">
-          <div className="flex items-center gap-0 border border-[#7A1C1C]/30 rounded-lg bg-white overflow-hidden">
+          <div className="flex items-center gap-2 sm:gap-3 p-1.5 sm:p-2 border border-[#7A1C1C]/30 rounded-full bg-white">
             <button
-              className="p-1 sm:p-1.5 text-[#7A1C1C] bg-transparent transition-transform duration-200 flex-shrink-0 hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FD7979]/60 disabled:opacity-50 disabled:cursor-not-allowed
-              cursor-pointer
-              "
+              className="p-1.5 sm:p-2 text-[#7A1C1C] bg-transparent rounded-full transition-all duration-200 flex-shrink-0 hover:shadow-[0_0_12px_rgba(122,28,28,0.3)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FD7979]/60 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               disabled={quantity === 1}
               aria-label="Decrease quantity"
               onClick={(e) => {
@@ -95,11 +93,11 @@ export default function CartItem({
                 <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 12h-15" />
               </svg>
             </button>
-            <span className="px-2 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm font-semibold text-[#7A1C1C] min-w-[2.5rem] sm:min-w-[3rem] text-center tabular-nums flex-shrink-0">
+            <span className="px-1 sm:px-2 text-xs sm:text-sm font-semibold text-[#7A1C1C] min-w-[1.5rem] sm:min-w-[2rem] text-center tabular-nums flex-shrink-0">
               {quantity}
             </span>
             <button
-              className="p-1 sm:p-1.5 text-[#7A1C1C] bg-transparent transition-transform duration-200 flex-shrink-0 hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FD7979]/60 cursor-pointer"
+              className="p-1.5 sm:p-2 text-[#7A1C1C] bg-transparent rounded-full transition-all duration-200 flex-shrink-0 hover:shadow-[0_0_12px_rgba(122,28,28,0.3)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FD7979]/60 cursor-pointer"
               aria-label="Increase quantity"
               onClick={(e) => {
                 e.stopPropagation();

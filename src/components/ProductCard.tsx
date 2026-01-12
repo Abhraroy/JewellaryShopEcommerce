@@ -14,6 +14,7 @@ import {
   removeFromDbWishlist,
   checkIfWishlisted
 } from "@/utilityFunctions/WishListFunctions";
+import { toast } from "react-toastify";
 
 
 // export interface Product {
@@ -126,6 +127,16 @@ export default function ProductCard({
       const updatedItem = addToLocalCart(product)
       setCartItems(updatedItem);
     }
+    
+    // Show success toast
+    toast.success(`Item added to cart!`,{
+      style:{
+        backgroundColor:"#eec0c8",
+        color:"#360000",
+      },
+      position:"top-right"
+    });
+    
     // Reset animation after it completes
     setTimeout(() => {
       setIsCartClicked(false);
@@ -230,7 +241,7 @@ export default function ProductCard({
           </svg>
         </button>
 
-        {/* Quick View Overlay - Appears on Hover */}
+        {/* Quick View Overlay - Appears on Hover
         <div
           className={`absolute inset-0 bg-black/0 flex items-center justify-center transition-all duration-300 ${
             isHovered ? "bg-black/5 opacity-100" : "opacity-0"
@@ -249,13 +260,13 @@ export default function ProductCard({
           >
             Quick View
           </button>
-        </div>
+        </div> */}
       </div>
 
       {/* Product Info */}
       <div className="p-3 md:p-5 flex flex-col flex-grow">
         {/* Title */}
-        <h3 className="text-sm md:text-lg font-semibold text-gray-900 line-clamp-2 mb-2 md:mb-3 leading-tight group-hover:text-gray-700 transition-colors duration-300">
+        <h3 className="text-sm md:text-lg font-semibold text-gray-900 truncate mb-2 md:mb-3 leading-tight group-hover:text-gray-700 transition-colors duration-300">
           {product.product_name}
         </h3>
 

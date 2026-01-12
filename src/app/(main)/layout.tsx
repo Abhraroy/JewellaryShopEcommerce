@@ -7,6 +7,8 @@ import "./globals.css";
 import ParentNavbar from "@/components/ParentNavbar";
 import Footer from "@/components/Footer";
 import PaymentGatewayWrapper from "@/components/PaymentGatewayWrapper";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -77,6 +79,18 @@ export default function RootLayout({
         {children}
         <Footer />
         <PaymentGatewayWrapper />
+        <ToastContainer
+          position="bottom-right"
+          autoClose={3000}
+          hideProgressBar={false}
+          newestOnTop
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+          theme="light"
+        />
       </body>
     </html>
   );
