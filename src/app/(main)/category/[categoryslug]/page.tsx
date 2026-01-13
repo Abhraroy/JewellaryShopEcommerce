@@ -140,7 +140,7 @@ export default function CategoryPage() {
             <div className="flex items-center justify-between gap-4">
               {/* Heading */}
               <div className="flex-1 min-w-0">
-                <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900">
+                <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-[#360000] font-josefin-sans tracking-wider">
                   {categoryInfo?.category_name || 
                     (decodedCategorySlug.charAt(0).toUpperCase() + decodedCategorySlug.slice(1))}
                 </h1>
@@ -153,7 +153,7 @@ export default function CategoryPage() {
               <div className="shrink-0 relative">
                 <button
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                  className="flex items-center gap-2 px-3 md:px-4 py-2 text-sm font-medium text-theme-olive bg-white border border-theme-sage/30 rounded-lg hover:border-theme-olive hover:text-theme-sage transition-all"
+                  className="flex items-center gap-2 px-3 md:px-4 py-2 text-sm font-medium text-[#360000] bg-white border border-[#360000] rounded-lg hover:border-[#360000]/90 hover:bg-[#360000]/90 hover:text-white transition-all"
                 >
                   <span className="hidden md:inline">
                     {sortOptions.find((opt) => opt.value === selectedSort)
@@ -184,7 +184,7 @@ export default function CategoryPage() {
                       className="fixed inset-0 z-10"
                       onClick={() => setIsDropdownOpen(false)}
                     />
-                    <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-20">
+                    <div className="absolute right-0 mt-2 w-48 bg-white border border-[#360000] rounded-lg shadow-lg z-20">
                       <div className="py-1">
                         {sortOptions.map((option) => (
                           <button
@@ -196,8 +196,8 @@ export default function CategoryPage() {
                             }}
                             className={`w-full text-left px-4 py-2 text-sm transition-colors ${
                               selectedSort === option.value
-                                ? "bg-theme-sage text-white"
-                                : "text-theme-olive hover:bg-theme-cream"
+                                ? "bg-[#360000]/10 text-[#360000]"
+                                : "text-[#360000] hover:bg-[#360000]/10 hover:text-[#360000]"
                             }`}
                           >
                             {option.label}
@@ -214,10 +214,10 @@ export default function CategoryPage() {
 
         {/* Subcategory Filter Section - Below Heading */}
         {subcategories.length > 0 && (
-          <div className="bg-white border-b border-gray-100">
+          <div className=" border-b border-gray-100">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 md:py-6">
               <div className="overflow-x-auto scrollbar-hide">
-                <div className="flex gap-4 md:gap-6 pb-4 min-w-max md:min-w-0 md:justify-center md:flex-wrap pt-[1rem]">
+                <div className="flex gap-4 md:gap-6 pb-4 min-w-max md:min-w-0 md:justify-center md:flex-wrap pt-[1rem] px-2 ">
                   {/* All Products Option */}
                   <button
                     onClick={() => setSelectedSubcategory("all")}
@@ -232,7 +232,7 @@ export default function CategoryPage() {
                     >
                       <span className="text-sm md:text-base font-bold text-gray-700">All</span>
                     </div>
-                    <span className="text-xs md:text-sm font-medium text-theme-olive group-hover:text-theme-sage text-center transition-colors duration-200 leading-tight">
+                    <span className="text-xs md:text-sm font-medium text-[#360000] font-open-sans group-hover:text-[#360000]/90 text-center transition-colors duration-200 leading-tight">
                       All Products
                     </span>
                   </button>
@@ -262,7 +262,7 @@ export default function CategoryPage() {
                           />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center bg-gray-100">
-                            <span className="text-base md:text-lg font-semibold text-gray-600">
+                            <span className="text-base md:text-lg font-semibold text-[#360000] font-open-sans">
                               {subcategory.subcategory_name.charAt(0).toUpperCase()}
                             </span>
                           </div>
@@ -270,7 +270,7 @@ export default function CategoryPage() {
                       </div>
 
                       {/* Subcategory Name */}
-                      <span className="text-xs md:text-sm font-medium text-theme-olive group-hover:text-theme-sage text-center transition-colors duration-200 leading-tight">
+                      <span className="text-xs md:text-sm font-medium text-[#360000] font-open-sans group-hover:text-[#360000]/90 text-center transition-colors duration-200 leading-tight">
                         {subcategory.subcategory_name}
                       </span>
                     </button>
@@ -282,12 +282,12 @@ export default function CategoryPage() {
         )}
 
         {/* Products Grid */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Product Count */}
           <div className="mb-6">
-            <p className="text-gray-600 text-sm">
+            <p className="text-[#360000] text-sm md:text-base font-open-sans">
               Showing{" "}
-              <span className="font-semibold text-gray-900">
+              <span className="font-semibold text-[#360000] font-open-sans">
                 {sortedProducts.length}
               </span>{" "}
               products

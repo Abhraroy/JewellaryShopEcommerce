@@ -12,7 +12,7 @@ import OtpInput from "@/components/OtpInput";
 import { useEffect, useState } from "react";
 import { createClient } from "@/app/utils/supabase/client";
 import Cart from "@/components/Cart";
-import { addToDbCart, createCart } from "@/utilityFunctions/CartFunctions";
+import { addToDbCart, createCart, calculateCartCount, getDbCartCount, getLocalCartCount } from "@/utilityFunctions/CartFunctions";
 import { Product } from "@/utilityFunctions/TypeInterface";
 import Collection from "@/components/Collection";
 import Link from "next/link";
@@ -75,7 +75,7 @@ export default function LandingPage() {
     // Implement your wishlist logic here
   };
 
-  // ✅ FIXED - Get full cart after merging
+  // ✅ FIXED - Get full cart after merging with quantity handling
   const mergeLocalCartItems = async (cartId: string): Promise<void> => {
     try {
       const localCartItems = localStorage.getItem("cartItems");
@@ -90,12 +90,56 @@ export default function LandingPage() {
         return;
       }
 
-      // Process all items in parallel
-      const addPromises = localCartItemsArray.map((item) =>
-        addToDbCart(item.products, cartId, supabase)
+      // First, fetch current cart items from DB to check what already exists
+      const { data: existingCartItems, error: fetchError } = await supabase
+        .from("cart_items")
+        .select("product_id, quantity")
+        .eq("cart_id", cartId);
+
+      if (fetchError) {
+        console.error("Error fetching existing cart items:", fetchError);
+        return;
+      }
+
+      // Create a map of existing products for quick lookup
+      const existingProductsMap = new Map(
+        (existingCartItems || []).map((item) => [item.product_id, item.quantity])
       );
 
-      await Promise.allSettled(addPromises);
+      // Process each local cart item
+      const updatePromises = localCartItemsArray.map(async (item) => {
+        const productId = item.products?.product_id || item.product_id;
+        const localQuantity = item.quantity || 1;
+
+        if (existingProductsMap.has(productId)) {
+          // Product exists - update quantity by adding local quantity
+          const currentQuantity = existingProductsMap.get(productId) || 0;
+          const { error: updateError } = await supabase
+            .from("cart_items")
+            .update({ quantity: currentQuantity + localQuantity })
+            .eq("cart_id", cartId)
+            .eq("product_id", productId);
+
+          if (updateError) {
+            console.error(`Error updating cart item ${productId}:`, updateError);
+          }
+        } else {
+          // Product doesn't exist - add it with local quantity
+          const { error: insertError } = await supabase
+            .from("cart_items")
+            .insert({
+              cart_id: cartId,
+              product_id: productId,
+              quantity: localQuantity,
+            });
+
+          if (insertError) {
+            console.error(`Error inserting cart item ${productId}:`, insertError);
+          }
+        }
+      });
+
+      await Promise.allSettled(updatePromises);
 
       // Fetch the complete updated cart from DB
       const { data: cartData, error } = await supabase
@@ -106,11 +150,7 @@ export default function LandingPage() {
 
       if (!error && cartData) {
         setCartItems(cartData.cart_items);
-        const totalCount = cartData.cart_items.reduce(
-          (sum: number, item: any) => sum + item.quantity,
-          0
-        );
-        setCartCount(totalCount);
+        setCartCount(calculateCartCount(cartData.cart_items));
       }
 
       localStorage.removeItem("cartItems");
@@ -126,6 +166,8 @@ export default function LandingPage() {
       if (error || !data?.user) {
         console.log("User not authenticated");
         setAuthenticatedState(false);
+        // Set cart count from local storage for unauthenticated users
+        setCartCount(getLocalCartCount());
         return;
       }
       setAuthenticatedState(true);
@@ -167,12 +209,7 @@ export default function LandingPage() {
         return; // Exit early
       }
       setCartId(cartData?.cart_id);
-      const Count =
-        cartData?.cart_items?.reduce(
-          (sum: number, item: any) => sum + item.quantity,
-          0
-        ) ?? 0;
-      setCartCount(Count);
+      setCartCount(calculateCartCount(cartData?.cart_items ?? []));
       console.log("calling mergeLocalCartItems");
       mergeLocalCartItems(cartData?.cart_id);
     };

@@ -234,3 +234,34 @@ export const decreaseQuantityFromDbCart = async(product:any,CartId:string,supaba
         }
     }
 }
+
+// Calculate cart count from cart items array
+export const calculateCartCount = (cartItems: any[]): number => {
+    if (!Array.isArray(cartItems) || cartItems.length === 0) return 0;
+    return cartItems.reduce((sum: number, item: any) => sum + (item.quantity ?? 1), 0);
+}
+
+// Get cart count from local storage
+export const getLocalCartCount = (): number => {
+    if (typeof window === 'undefined') return 0;
+    const localCartItems = localStorage.getItem('cartItems');
+    if (!localCartItems) return 0;
+    try {
+        const cartItems = JSON.parse(localCartItems);
+        return calculateCartCount(cartItems);
+    } catch {
+        return 0;
+    }
+}
+
+// Get cart count from database
+export const getDbCartCount = async (cartId: string, supabase: any): Promise<number> => {
+    if (!cartId) return 0;
+    const { data, error } = await supabase
+        .from("cart_items")
+        .select("quantity")
+        .eq("cart_id", cartId);
+    
+    if (error || !data) return 0;
+    return data.reduce((sum: number, item: any) => sum + (item.quantity ?? 0), 0);
+}

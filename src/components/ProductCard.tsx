@@ -4,7 +4,7 @@ import Image from "next/image";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useStore } from "@/zustandStore/zustandStore";
-import { addToDbCart, addToLocalCart } from "@/utilityFunctions/CartFunctions";
+import { addToDbCart, addToLocalCart, calculateCartCount, getLocalCartCount } from "@/utilityFunctions/CartFunctions";
 import { createClient } from "@/app/utils/supabase/client";
 import { Product } from "@/utilityFunctions/TypeInterface";
 import { 
@@ -56,7 +56,7 @@ export default function ProductCard({
   const [imageError, setImageError] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [isCartClicked, setIsCartClicked] = useState(false);
-  const { cartItems, setCartItems, AuthenticatedState, AuthUserId, CartId, setWishListItems } = useStore();
+  const { cartItems, setCartItems, AuthenticatedState, AuthUserId, CartId, setWishListItems, setCartCount } = useStore();
   const supabase = createClient();
 
   // Check if product is wishlisted when component mounts (for authenticated users)
@@ -122,10 +122,16 @@ export default function ProductCard({
       console.log("CartId",CartId)
       const updatedItem = await addToDbCart(product,CartId,supabase)
       setCartItems(updatedItem);
+      // Update cart count for authenticated users
+      if (updatedItem && Array.isArray(updatedItem)) {
+        setCartCount(calculateCartCount(updatedItem));
+      }
     }
     else{
       const updatedItem = addToLocalCart(product)
       setCartItems(updatedItem);
+      // Update cart count for unauthenticated users
+      setCartCount(getLocalCartCount());
     }
     
     // Show success toast

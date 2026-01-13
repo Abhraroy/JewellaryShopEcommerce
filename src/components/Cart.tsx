@@ -3,7 +3,7 @@
 import { useStore } from "@/zustandStore/zustandStore";
 import { useEffect, useState } from "react";
 import { createClient } from "@/app/utils/supabase/client";
-import { addToDbCart, addToLocalCart, decreaseQuantityFromDbCart, decreaseQuantityFromLocalCart, getCartData, removeFromDbCart, removeFromLocalCart } from "@/utilityFunctions/CartFunctions";
+import { addToDbCart, addToLocalCart, decreaseQuantityFromDbCart, decreaseQuantityFromLocalCart, getCartData, removeFromDbCart, removeFromLocalCart, calculateCartCount, getLocalCartCount } from "@/utilityFunctions/CartFunctions";
 import CartItem from "./CartItem";
 
 interface CartProps {
@@ -12,7 +12,7 @@ interface CartProps {
 }
 
 export default function Cart({ isOpen = false, onClose }: CartProps) {
-  const { AuthenticatedState, cartItems, setCartItems ,CartId,setInitiatingCheckout,initiatingCheckout } = useStore();
+  const { AuthenticatedState, cartItems, setCartItems ,CartId,setInitiatingCheckout,initiatingCheckout, setCartCount } = useStore();
   const [subtotal, setSubtotal] = useState(0);
   const [loading, setLoading] = useState(true);
   // Sample cart items for UI demonstration
@@ -34,10 +34,16 @@ export default function Cart({ isOpen = false, onClose }: CartProps) {
        const updatedItem = await decreaseQuantityFromDbCart(product,CartId,supabase)
        console.log("updatedItem",updatedItem)
         setCartItems(updatedItem);
+        // Update cart count for authenticated users
+        if (updatedItem && Array.isArray(updatedItem)) {
+          setCartCount(calculateCartCount(updatedItem));
+        }
     }
     else{
       const updatedItem = await decreaseQuantityFromLocalCart(product)
       setCartItems(updatedItem);
+      // Update cart count for unauthenticated users
+      setCartCount(getLocalCartCount());
     }
   }
 
@@ -45,10 +51,16 @@ export default function Cart({ isOpen = false, onClose }: CartProps) {
     if(AuthenticatedState){
       const updatedItem = await removeFromDbCart(product,CartId,supabase)
       setCartItems(updatedItem);
+      // Update cart count for authenticated users
+      if (updatedItem && Array.isArray(updatedItem)) {
+        setCartCount(calculateCartCount(updatedItem));
+      }
     }
     else{
       const updatedItem = await removeFromLocalCart(product)
       setCartItems(updatedItem);
+      // Update cart count for unauthenticated users
+      setCartCount(getLocalCartCount());
     }
   }
   
@@ -60,11 +72,17 @@ export default function Cart({ isOpen = false, onClose }: CartProps) {
       console.log("supabase",supabase)
       const updatedItem = await addToDbCart(product,CartId,supabase)
       setCartItems(updatedItem);
+      // Update cart count for authenticated users
+      if (updatedItem && Array.isArray(updatedItem)) {
+        setCartCount(calculateCartCount(updatedItem));
+      }
     }
     else{
       console.log("User is not authenticated adding to local cart")
       const updatedItem = addToLocalCart(product.products)
       setCartItems(updatedItem);
+      // Update cart count for unauthenticated users
+      setCartCount(getLocalCartCount());
     }
   }
 
@@ -137,7 +155,7 @@ export default function Cart({ isOpen = false, onClose }: CartProps) {
         <div className="flex flex-col h-full">
           {/* Cart Header */}
           <div className="flex items-center justify-between p-3 sm:p-4 md:p-6 border-b border-white/20 bg-[#FDACAC] sticky top-0 z-10">
-            <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-white">
+            <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-[#360000] font-josefin-sans ">
               Shopping Cart
             </h2>
             <button
@@ -163,7 +181,8 @@ export default function Cart({ isOpen = false, onClose }: CartProps) {
           </div>
 
           {/* Cart Items */}
-          <div className="flex-1 overflow-y-auto py-3 sm:py-4 px-3 sm:px-4 md:px-6">
+          <div className="flex-1 overflow-y-auto py-3 sm:py-4 px-3 sm:px-4 md:px-6 scrollbar-hide
+          ">
             {loading ? (
               <div className="space-y-3">
                 {Array.from({ length: 4 }).map((_, idx) => (
@@ -213,7 +232,7 @@ export default function Cart({ isOpen = false, onClose }: CartProps) {
                 </button>
               </div>
             ) : (
-              <div className="space-y-3 sm:space-y-4">
+              <div className="space-y-3 sm:space-y-4  ">
                 {cartItems &&
                   cartItems.map((item: any) => {
                     // Use stable unique key - cart_item_id for DB items, product_id for local items

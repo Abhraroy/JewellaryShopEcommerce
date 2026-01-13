@@ -46,10 +46,12 @@ export async function GET(request: NextRequest) {
     headers: orderStatusRequestHeaders,
   });
   console.log("orderStatusResponse", orderStatusResponse.data);
-  
+
   // Get payment state from response
-  const paymentState = orderStatusResponse.data?.paymentDetails?.[0]?.state || orderStatusResponse.data?.state;
-  
+  const paymentState =
+    orderStatusResponse.data?.paymentDetails?.[0]?.state ||
+    orderStatusResponse.data?.state;
+
   if (paymentState === "COMPLETED") {
     const { data: orderData, error } = await supabase
       .from("orders")
@@ -67,50 +69,63 @@ export async function GET(request: NextRequest) {
     if (error) {
       console.log("error", error);
       return NextResponse.json(
-        { message: "Error updating order", orderStatusResponse: { state: "FAILED" } },
+        {
+          message: "Error updating order",
+          orderStatusResponse: { state: "FAILED" },
+        },
         { status: 500 }
       );
     }
-    console.log("order updated successfully ", JSON.stringify(orderData?.[0], null, 2));
-    console.log("order_items:", JSON.stringify(orderData?.[0]?.order_items, null, 2));
+    console.log(
+      "order updated successfully ",
+      JSON.stringify(orderData?.[0], null, 2)
+    );
+    console.log(
+      "order_items:",
+      JSON.stringify(orderData?.[0]?.order_items, null, 2)
+    );
     const updatedOrderData = orderData?.[0];
 
     // Parse address_text into separate variables
     // Format: "street_address, address_line1, address_line2, city, state - postal_code"
     const addressText = updatedOrderData?.address_text || "";
-    const addressParts = addressText.split(", ").map((part: string) => part.trim());
-    
+    const addressParts = addressText
+      .split(", ")
+      .map((part: string) => part.trim());
+
     // Last part contains "state - postal_code"
     const lastPart = addressParts[addressParts.length - 1] || "";
     const statePostalMatch = lastPart.match(/^(.+?)\s*-\s*(\d+)$/);
-    
+
     const parsedAddress = {
-      streetAddress: addressParts[0] && addressParts[0] !== "null" ? addressParts[0] : "",
-      addressLine1: addressParts[1] && addressParts[1] !== "null" ? addressParts[1] : "",
-      addressLine2: addressParts[2] && addressParts[2] !== "null" ? addressParts[2] : "",
-      city: addressParts[3] && addressParts[3] !== "null" ? addressParts[3] : "",
+      streetAddress:
+        addressParts[0] && addressParts[0] !== "null" ? addressParts[0] : "",
+      addressLine1:
+        addressParts[1] && addressParts[1] !== "null" ? addressParts[1] : "",
+      addressLine2:
+        addressParts[2] && addressParts[2] !== "null" ? addressParts[2] : "",
+      city:
+        addressParts[3] && addressParts[3] !== "null" ? addressParts[3] : "",
       state: statePostalMatch ? statePostalMatch[1].trim() : "",
       postalCode: statePostalMatch ? statePostalMatch[2].trim() : "",
     };
 
     // Create order items payload
-    const orderItemsPayload = updatedOrderData?.order_items?.map((item: any) => ({
-      itemName: item.products?.product_name || "",
-      sku: item.products?.sku || item.product_id,
-      units: item.quantity || 1,
-      unitPrice: item.unit_price || item.products?.final_price || 0,
-      productWeight: item.products?.weight_grams || 0,
-      imageURL: item.products?.thumbnail_image || "",
-      tax:0,
-    })) || [];
+    const orderItemsPayload =
+      updatedOrderData?.order_items?.map((item: any) => ({
+        itemName: item.products?.product_name || "",
+        sku: item.products?.sku || item.product_id,
+        units: item.quantity || 1,
+        unitPrice: item.unit_price || item.products?.final_price || 0,
+        productWeight: item.products?.weight_grams || 0,
+        imageURL: item.products?.thumbnail_image || "",
+        tax: 0,
+      })) || [];
 
-    console.log("orderItemsPayload:", JSON.stringify(orderItemsPayload, null, 2));
-
-
-
-
-
-
+    console.log(
+      "orderItemsPayload:",
+      JSON.stringify(orderItemsPayload, null, 2)
+    );
 
     const rapidShypPayload = {
       orderId: updatedOrderData?.order_number,
@@ -131,18 +146,22 @@ export async function GET(request: NextRequest) {
         phone: userData?.phone_number || "",
       },
       orderItems: orderItemsPayload,
-      paymentMethod:"PREPAID",
-      totalOrderValue:updatedOrderData?.total_amount,
+      paymentMethod: "PREPAID",
+      totalOrderValue: updatedOrderData?.total_amount,
     };
     console.log("rapidShypPayload", JSON.stringify(rapidShypPayload, null, 2));
 
     try {
-      const rapidShypResponse = await axios.post("https://api.rapidshyp.com/rapidshyp/apis/v1/create_order", rapidShypPayload, {
-        headers: {
-          "Content-Type": "application/json",
-          "rapidshyp-token": `${process.env.RAPIDSHYP_API_KEY}`
+      const rapidShypResponse = await axios.post(
+        "https://api.rapidshyp.com/rapidshyp/apis/v1/create_order",
+        rapidShypPayload,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            "rapidshyp-token": `${process.env.RAPIDSHYP_API_KEY}`,
+          },
         }
-      });
+      );
       console.log("rapidShypResponse", rapidShypResponse.data);
     } catch (rapidShypError: any) {
       // Log the full error response from RapidShyp
@@ -150,28 +169,37 @@ export async function GET(request: NextRequest) {
         status: rapidShypError.response?.status,
         statusText: rapidShypError.response?.statusText,
         data: JSON.stringify(rapidShypError.response?.data, null, 2),
-        message: rapidShypError.message
+        message: rapidShypError.message,
       });
       // Don't fail the whole request, just log the error
       // The payment was successful, shipping order creation failed
     }
-  
-    return NextResponse.json({ 
-      message: "Order updated successfully",
-      orderStatusResponse: { state: "COMPLETED" }
-    }, { status: 200 });
+
+    return NextResponse.json(
+      {
+        message: "Order updated successfully",
+        orderStatusResponse: { state: "COMPLETED" },
+      },
+      { status: 200 }
+    );
   }
-  
+
   if (paymentState === "FAILED") {
-    return NextResponse.json({ 
-      message: "Payment failed",
-      orderStatusResponse: { state: "FAILED" }
-    }, { status: 200 });
+    return NextResponse.json(
+      {
+        message: "Payment failed",
+        orderStatusResponse: { state: "FAILED" },
+      },
+      { status: 200 }
+    );
   }
-  
+
   // Return PENDING state for any other case
-  return NextResponse.json({ 
-    message: "Order status is pending",
-    orderStatusResponse: { state: "PENDING" }
-  }, { status: 200 });
+  return NextResponse.json(
+    {
+      message: "Order status is pending",
+      orderStatusResponse: { state: "PENDING" },
+    },
+    { status: 200 }
+  );
 }

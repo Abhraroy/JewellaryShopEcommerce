@@ -156,10 +156,18 @@ export default function AccountPage() {
   const fetchUserProfile = async () => {
     setLoadingProfile(true);
     try {
+      // First check if there's an active session
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData?.session) {
+        console.log("No active session, redirecting to home");
+        router.push("/");
+        return;
+      }
+      
       const { data, error } = await supabase.auth.getUser();
       if (error) {
         console.error("Error fetching user profile:", error);
-        alert("Error fetching user profile. Please try again.");
+        router.push("/");
         return;
       }
       if (!data?.user?.phone) {

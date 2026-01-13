@@ -245,11 +245,14 @@ button{
   font-size: 16px;
   line-height: 1.5;
   letter-spacing: 0.01em;
-  text-transform: none;
-  text-decoration: none;
-  text-align: center;
-  vertical-align: middle;
-  cursor: pointer;
-  user-select: none;
-  background-color: transparent;
+}
+
+
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;     /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;             /* Chrome, Safari, Opera */
 }

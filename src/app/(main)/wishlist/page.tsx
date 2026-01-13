@@ -27,6 +27,13 @@ export default function WishlistPage() {
   // Check authentication and fetch user data
   useEffect(() => {
     const checkAuthAndFetchWishlist = async () => {
+      // First check if there's an active session
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData?.session) {
+        setLoading(false);
+        return;
+      }
+      
       const {
         data: { user },
       } = await supabase.auth.getUser();
