@@ -39,6 +39,7 @@ export default function ProductDisplay({
   const [truncatedDescription, setTruncatedDescription] = useState("");
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [cartSuccess, setCartSuccess] = useState(false);
+  const [productImageView,setProductImageView] = useState(false);
   console.log(productDetails);
 
   const { cartItems, setCartItems, AuthenticatedState, CartId, setIsCartOpen } = useStore();
@@ -70,13 +71,31 @@ export default function ProductDisplay({
     }
   }, [productDetails]);
 
-  // const handleQuantityChange = (type: 'increment' | 'decrement') => {
-  //   if (type === 'increment' && quantity < product.stockCount) {
-  //     setQuantity(quantity + 1);
-  //   } else if (type === 'decrement' && quantity > 1) {
-  //     setQuantity(quantity - 1);
-  //   }
-  // };
+  // Handle ESC key to close image viewer and prevent body scroll
+  useEffect(() => {
+    if (productImageView) {
+      // Prevent body scroll when viewer is open
+      document.body.style.overflow = "hidden";
+      
+      // Handle ESC key press
+      const handleEsc = (e: KeyboardEvent) => {
+        if (e.key === "Escape") {
+          setProductImageView(false);
+        }
+      };
+      
+      window.addEventListener("keydown", handleEsc);
+      
+      return () => {
+        document.body.style.overflow = "unset";
+        window.removeEventListener("keydown", handleEsc);
+      };
+    } else {
+      document.body.style.overflow = "unset";
+    }
+  }, [productImageView]);
+
+  
 
   const handleAddToCart = async () => {
     if (!product) {
@@ -171,8 +190,9 @@ export default function ProductDisplay({
                   }
                   alt={productImages[selectedImage]?.image_url}
                   fill
-                  className="object-cover"
+                  className="object-cover cursor-pointer"
                   priority
+                  onClick={() => setProductImageView(true)}
                 />
               </div>
               {/* Thumbnail Images */}
@@ -477,6 +497,7 @@ export default function ProductDisplay({
             </div>
           </div>
         </div>
+        
       </>
       {/* Tablet Layout (768px - 1365px) */}
       <div className="hidden md:block xl:hidden">
@@ -519,6 +540,7 @@ export default function ProductDisplay({
                   fill
                   className="object-cover"
                   priority
+                  onClick={() => setProductImageView(true)}
                 />
               </div>
             </div>
@@ -833,8 +855,9 @@ export default function ProductDisplay({
                   src={productDetails[0]?.product_images[selectedImage]?.image_url}
                   alt={productDetails[0]?.product_images[selectedImage]?.image_url}
                   fill
-                  className="object-cover"
+                  className="object-cover cursor-pointer"
                   priority
+                  onClick={() => setProductImageView(true)}
                 />
               </div>
             </div>
@@ -1092,6 +1115,55 @@ export default function ProductDisplay({
           </div>
         </div>
       </div>
+      {/* Full Screen Image Viewer */}
+      {productImageView && (
+        <div
+          className="fixed inset-0 bg-white z-[100] flex items-center justify-center transition-opacity duration-300 ease-in-out"
+          onClick={() => setProductImageView(false)}
+        >
+          {/* Close Button */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setProductImageView(false);
+            }}
+            className="absolute top-4 right-4 sm:top-6 sm:right-6 md:top-8 md:right-8 z-[101] p-2 sm:p-3 bg-gray-900/10 hover:bg-gray-900/20 rounded-full transition-all duration-200 hover:scale-110 active:scale-95"
+            aria-label="Close image viewer"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={2.5}
+              stroke="currentColor"
+              className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 text-gray-900"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+          </button>
+
+          {/* Product Image */}
+          <div
+            className="relative w-full h-full flex items-center justify-center p-4 sm:p-8 md:p-12"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="relative w-full h-full max-w-7xl max-h-[90vh]">
+              <Image
+                src={productDetails[0]?.product_images[selectedImage]?.image_url}
+                alt={productDetails[0]?.product_images[selectedImage]?.image_url || "Product image"}
+                fill
+                className="object-contain"
+                priority
+                sizes="100vw"
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
