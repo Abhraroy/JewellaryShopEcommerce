@@ -148,19 +148,19 @@ export default function Cart({ isOpen = false, onClose }: CartProps) {
 
       {/* Cart Sidebar */}
       <div
-        className={`fixed top-0 right-0 h-full w-full max-w-full sm:w-96 md:w-[420px] lg:w-[480px] bg-[#FDACAC] text-white shadow-2xl z-[70] transform transition-transform duration-300 ease-in-out ${
+        className={`fixed top-0 right-0 h-full w-full max-w-full sm:w-96 md:w-[420px] lg:w-[480px] bg-[#DECAF2] text-white shadow-2xl z-[70] transform transition-transform duration-300 ease-in-out ${
           isOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
         <div className="flex flex-col h-full">
           {/* Cart Header */}
-          <div className="flex items-center justify-between p-3 sm:p-4 md:p-6 border-b border-white/20 bg-[#FDACAC] sticky top-0 z-10">
-            <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-[#360000] font-josefin-sans ">
+          <div className="flex items-center justify-between p-3 sm:p-4 md:p-6 border-b border-white/20 bg-[#DECAF2] sticky top-0 z-10">
+            <h2 className="text-2xl sm:text-xl md:text-2xl font-bold text-[#360000] font-josefin-sans tracking-wider">
               Shopping Cart
             </h2>
             <button
               onClick={onClose}
-              className="p-2 text-white hover:text-[#FFCDC9] hover:bg-[#FD7979] rounded-full transition-colors duration-200"
+              className="p-2 text-[#360000] hover:text-[#360000]/80 hover:scale-125 rounded-full transition-all duration-200 ease-in-out  cursor-pointer"
               aria-label="Close cart"
             >
               <svg
@@ -202,7 +202,7 @@ export default function Cart({ isOpen = false, onClose }: CartProps) {
               </div>
             ) : cartItems && cartItems.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-center py-8 sm:py-12 px-4 text-white">
-                <div className="w-20 h-20 sm:w-24 sm:h-24 bg-[#FFCDC9] rounded-full flex items-center justify-center mb-4">
+                <div className="w-20 h-20 sm:w-24 sm:h-24 bg-[#CAF2FF] rounded-full flex items-center justify-center mb-4">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
@@ -218,10 +218,10 @@ export default function Cart({ isOpen = false, onClose }: CartProps) {
                     />
                   </svg>
                 </div>
-                <h3 className="text-base sm:text-lg font-semibold text-white mb-2">
+                <h3 className="text-base sm:text-lg font-semibold text-[#360000] font-open-sans tracking-wider mb-2">
                   Your cart is empty
                 </h3>
-                <p className="text-white/80 text-xs sm:text-sm mb-4 sm:mb-6">
+                <p className="text-[#360000]/80 text-xs sm:text-sm mb-4 sm:mb-6 font-open-sans tracking-wider">
                   Looks like you haven't added anything to your cart yet.
                 </p>
                 <button
@@ -259,19 +259,19 @@ export default function Cart({ isOpen = false, onClose }: CartProps) {
 
           {/* Cart Footer - Summary & Checkout */}
           {cartItems && cartItems.length > 0 && (
-            <div className="border-t border-white/20 bg-[#FFCDC9] text-[#7A1C1C] p-3 sm:p-4 md:p-6 space-y-3 sm:space-y-4 sticky bottom-0">
+            <div className="border-t border-white/20 bg-[#DECAF2] text-[#7A1C1C] p-3 sm:p-4 md:p-6 space-y-3 sm:space-y-4 sticky bottom-0">
               {/* Price Summary */}
               <div className="space-y-2 sm:space-y-3">
                 <div className="flex justify-between text-xs sm:text-sm">
-                  <span className="text-[#7A1C1C]/80">Subtotal</span>
-                  <span className="font-medium text-[#7A1C1C]">
+                  <span className="text-[#360000] font-extrabold font-open-sans tracking-wider">Subtotal</span>
+                  <span className="font-medium text-[#360000] font-open-sans tracking-wider">
                     ₹{subtotal.toFixed(2)}
                   </span>
                 </div>
                 <div className="flex justify-between text-xs sm:text-sm">
-                  <span className="text-[#7A1C1C]/80">Shipping</span>
-                  <span className="font-medium text-base sm:text-lg text-[#7A1C1C]">
-                    <span className="font-medium text-[#B03030] line-through text-xs sm:text-sm mr-2">
+                  <span className="text-[#360000] font-extrabold font-open-sans tracking-wider">Shipping</span>
+                  <span className=" text-base sm:text-lg text-[#360000] font-bold font-open-sans tracking-wider">
+                    <span className="font-medium text-[#360000]/80 line-through text-xs sm:text-sm mr-2 font-open-sans tracking-wider">
                       ₹70
                     </span>
                     Free
@@ -279,10 +279,10 @@ export default function Cart({ isOpen = false, onClose }: CartProps) {
                 </div>
                 <div className="border-t border-gray-200 pt-2 sm:pt-3">
                   <div className="flex justify-between">
-                    <span className="text-sm sm:text-base font-semibold text-gray-900">
+                    <span className="text-sm sm:text-base font-semibold text-[#360000] font-open-sans tracking-wider">
                       Total
                     </span>
-                    <span className="text-lg sm:text-xl font-bold text-[#7A1C1C]">
+                    <span className="text-lg sm:text-xl font-bold text-[#360000] font-open-sans tracking-wider">
                       ₹{subtotal.toFixed(2)}
                     </span>
                   </div>
@@ -291,7 +291,7 @@ export default function Cart({ isOpen = false, onClose }: CartProps) {
 
               {/* Checkout Button */}
               <button 
-                className="w-full bg-[#FFCDC9] text-[#7A1C1C] font-semibold py-2.5 sm:py-3 md:py-3.5 px-4 sm:px-6 rounded-xl hover:bg-[#FD7979] transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg text-sm sm:text-base"
+                className="w-full bg-[#CAF2FF] text-[#360000] font-bold py-2.5 sm:py-3 md:py-3.5 px-4 sm:px-6 rounded-xl hover:bg-[#CAF2FF]/70 transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg text-sm sm:text-base font-open-sans tracking-wider"
                 onClick={()=>{
                   setInitiatingCheckout(true);
                   onClose?.(); // Close the cart sidebar
@@ -304,7 +304,7 @@ export default function Cart({ isOpen = false, onClose }: CartProps) {
               {/* Continue Shopping Link */}
               <button
                 onClick={onClose}
-                className="w-full text-center text-xs sm:text-sm text-[#7A1C1C] hover:text-[#B03030] font-medium transition-colors duration-200"
+                className="w-full text-center text-xs sm:text-sm text-[#360000] hover:text-[#360000] font-medium transition-colors duration-200 font-open-sans tracking-wider"
               >
                 Continue Shopping
               </button>

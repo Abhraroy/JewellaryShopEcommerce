@@ -52,20 +52,20 @@ export default function HamburgerSidebar({
       )}
 
       <div
-        className={`fixed top-0 left-0 h-full w-80 bg-[#FDACAC] text-white shadow-xl z-50 transition-transform duration-300 ease-in-out md:hidden ${
+        className={`fixed top-0 left-0 h-full w-80 bg-[#DECAF2] text-[#360000] shadow-xl z-50 transition-transform duration-300 ease-in-out md:hidden ${
           isSidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
         <div className="flex flex-col h-full">
           {/* Sidebar Header */}
           <div className="flex items-center justify-between p-4 border-b border-white/30">
-            <h2 className="text-xl font-bold text-white">Menu</h2>
+            <h2 className="text-2xl font-extrabold text-[#360000] font-josefin-sans tracking-wider">Menu</h2>
             <button
               onClick={onClose}
               className="p-2 text-white hover:text-[#FFCDC9] transition-colors"
               aria-label="Close menu"
             >
-              <CloseIcon />
+              <CloseIcon className="w-7 h-7 text-[#360000] hover:text-[#360000]/80 hover:scale-125 rounded-full transition-all duration-200 ease-in-out  cursor-pointer" />
             </button>
           </div>
 
@@ -76,7 +76,7 @@ export default function HamburgerSidebar({
               {categories && categories.length > 0 ? (
                 <>
                   <li className="px-4 py-2 mt-4 mb-2">
-                    <h3 className="text-sm font-semibold text-white uppercase tracking-wider">
+                    <h3 className="text-xl font-semibold text-[#360000] font-open-sans tracking-wider">
                       Categories
                     </h3>
                   </li>
@@ -84,10 +84,10 @@ export default function HamburgerSidebar({
                     <li key={category.category_id}>
                       <Link
                         href={`/category/${category.slug}`}
-                        className="flex items-center gap-3 px-4 py-3 bg-[#FFCDC9] text-[#7A1C1C] hover:bg-[#FD7979] rounded-lg transition-colors"
+                        className="flex items-center gap-3 px-4 py-3 bg-[#CAF2FF] text-[#360000] hover:bg-[#CAF2FF]/70 rounded-lg transition-colors"
                         onClick={onClose}
                       >
-                        <span className="font-medium">
+                        <span className="font-medium font-open-sans tracking-wider">
                           {category.category_name}
                         </span>
                       </Link>
@@ -118,10 +118,10 @@ export default function HamburgerSidebar({
                     <li key={index}>
                       <button
                         onClick={onAccountClick}
-                        className="w-full flex items-center gap-3 px-4 py-3 bg-[#FFCDC9] text-[#7A1C1C] hover:bg-[#FD7979] rounded-lg transition-colors text-left"
+                        className="w-full flex items-center gap-3 px-4 py-3 bg-[#CAF2FF] text-[#360000] hover:bg-[#CAF2FF]/70 rounded-lg transition-colors text-left"
                       >
                         {item.icon}
-                        <span className="font-medium">{item.label}</span>
+                        <span className="font-medium font-open-sans tracking-wider">{item.label}</span>
                       </button>
                     </li>
                   );
@@ -130,11 +130,11 @@ export default function HamburgerSidebar({
                   <li key={index}>
                     <a
                       href={item.href}
-                      className="flex items-center gap-3 px-4 py-3 bg-[#FFCDC9] text-[#7A1C1C] hover:bg-[#FD7979] rounded-lg transition-colors"
+                      className="flex items-center gap-3 px-4 py-3 bg-[#CAF2FF] text-[#360000] hover:bg-[#CAF2FF]/70 rounded-lg transition-colors"
                       onClick={onClose}
                     >
                       {item.icon}
-                      <span className="font-medium">{item.label}</span>
+                      <span className="font-medium font-open-sans tracking-wider">{item.label}</span>
                     </a>
                   </li>
                 );

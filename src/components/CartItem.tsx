@@ -35,7 +35,7 @@ export default function CartItem({
 
   return (
     <div
-      className="flex gap-3 sm:gap-4 p-3 sm:p-4 bg-[#FFCDC9] text-[#7A1C1C] rounded-xl hover:bg-[#FFCDC9]/70 transition-colors duration-200 cursor-pointer"
+      className="flex gap-3 sm:gap-4 p-3 sm:p-4 bg-[#CAF2FF] text-[#360000] rounded-xl hover:bg-[#CAF2FF]/70 transition-colors duration-200 cursor-pointer"
       onClick={handleNavigate}
       role="button"
       tabIndex={0}
@@ -57,16 +57,16 @@ export default function CartItem({
             sizes="(max-width: 640px) 64px, (max-width: 768px) 80px, 96px"
           />
         ) : (
-          <div className="w-full h-full bg-[#FFE4E1]" />
+          <div className="w-full h-full bg-[#CAF2FF]" />
         )}
       </div>
 
       {/* Product Details */}
       <div className="flex-1 min-w-0 flex flex-col">
-        <h3 className="text-xs sm:text-sm font-semibold text-[#7A1C1C] line-clamp-2 mb-1 flex-shrink-0">
+        <h3 className="text-base font-semibold text-[#360000] line-clamp-2 mb-1 flex-shrink-0 font-open-sans-sans tracking-wider">
           {productName}
         </h3>
-        <p className="text-base sm:text-lg font-bold text-[#7A1C1C] mb-2 sm:mb-3 flex-shrink-0">
+        <p className="text-base sm:text-lg font-bold text-[#360000] mb-2 sm:mb-3 flex-shrink-0 font-open-sans tracking-wider">
           ₹{price}
         </p>
 
@@ -119,7 +119,7 @@ export default function CartItem({
 
           {/* Remove Button */}
           <button
-            className="p-1 sm:p-1.5 text-[#7A1C1C] hover:text-[#B03030] hover:bg-[#FD7979] rounded transition-colors duration-200 flex-shrink-0 cursor-pointer"
+            className="p-1 sm:p-1.5 text-[#360000] hover:text-[#360000] hover:bg-[#E6F9D7]/70 rounded-full transition-colors duration-200 flex-shrink-0 cursor-pointer"
             aria-label="Remove item"
             onClick={(e) => {
               e.stopPropagation();
@@ -132,7 +132,7 @@ export default function CartItem({
               viewBox="0 0 24 24"
               strokeWidth={2}
               stroke="currentColor"
-              className="w-4 h-4 sm:w-5 sm:h-5"
+              className="w-5 h-5"
             >
               <path
                 strokeLinecap="round"
