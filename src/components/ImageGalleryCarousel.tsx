@@ -43,6 +43,16 @@ const defaultImages: GalleryImage[] = [
     alt: "Pearl jewelry set",
     title: "Pearl Collection",
   },
+  {
+    src: "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=800&q=80",
+    alt: "Pearl jewelry set",
+    title: "Pearl Collection",
+  },
+  {
+    src: "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=800&q=80",
+    alt: "Pearl jewelry set",
+    title: "Pearl Collection",
+  },
 ];
 
 export default function ImageGalleryCarousel({
@@ -88,10 +98,11 @@ export default function ImageGalleryCarousel({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center mb-10 md:mb-14">
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-3">
+          <h2 className="text-3xl md:text-4xl lg:text-6xl font-bold text-[#360000] mb-3 font-josefin-sans tracking-wider
+          ">
             Our Gallery
           </h2>
-          <p className="text-gray-400 text-sm md:text-base max-w-2xl mx-auto">
+          <p className="text-[#360000] text-sm md:text-base max-w-2xl mx-auto font-open-sans tracking-wider">
             Explore our exquisite collection of handcrafted jewelry pieces
           </p>
         </div>
@@ -117,7 +128,7 @@ export default function ImageGalleryCarousel({
                     className={`absolute transition-all duration-500 ease-out cursor-pointer
                       ${isActive 
                         ? "z-20 scale-100 opacity-100" 
-                        : "z-10 scale-[0.75] opacity-50 blur-[1px]"
+                        : "z-10 scale-[0.75] opacity-80 blur-[1px]"
                       }
                       ${offset === -1 ? "-translate-x-[55%] md:-translate-x-[60%]" : ""}
                       ${offset === 1 ? "translate-x-[55%] md:translate-x-[60%]" : ""}
@@ -150,7 +161,7 @@ export default function ImageGalleryCarousel({
                       {/* Title */}
                       {image.title && isActive && (
                         <div className="absolute bottom-0 left-0 right-0 p-4 md:p-6 transform transition-all duration-500">
-                          <h3 className="text-white text-lg md:text-2xl font-semibold">
+                          <h3 className="text-white text-lg md:text-2xl font-semibold font-josefin-sans tracking-wider">
                             {image.title}
                           </h3>
                         </div>
@@ -167,7 +178,7 @@ export default function ImageGalleryCarousel({
             onClick={goToPrev}
             className="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 z-30
               w-10 h-10 md:w-12 md:h-12 flex items-center justify-center
-              bg-[#000000] hover:bg-[#000000]/20 backdrop-blur-md rounded-full
+              bg-[#000000] hover:bg-[#000000]/50 backdrop-blur-md rounded-full
               border border-white/20 transition-all duration-300
               hover:scale-110 group"
             aria-label="Previous slide"
@@ -179,7 +190,7 @@ export default function ImageGalleryCarousel({
             onClick={goToNext}
             className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 z-30
               w-10 h-10 md:w-12 md:h-12 flex items-center justify-center
-              bg-[#000000] hover:bg-[#000000]/20 backdrop-blur-md rounded-full
+              bg-[#000000] hover:bg-[#000000]/50 backdrop-blur-md rounded-full
               border border-white/20 transition-all duration-300
               hover:scale-110 group"
             aria-label="Next slide"
