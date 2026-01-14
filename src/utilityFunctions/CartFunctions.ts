@@ -108,6 +108,8 @@ export const getCartData = async(CartId:string,supabase:any)=>{
     products(*)
     `)
     .eq("cart_id",CartId)
+    // Ensure stable ordering so UI list doesn't reorder on quantity updates
+    .order("cart_item_id", { ascending: true })
     if(error){
         console.log("error",error)
         return {success:false,data:null,message:error.message}

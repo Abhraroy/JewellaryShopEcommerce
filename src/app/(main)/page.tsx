@@ -48,6 +48,8 @@ export default function LandingPage() {
     "https://battulaaljewels.com/website/images/product-banner.webp",
     "https://battulaaljewels.com/website/images/product-banner.webp",
     "https://battulaaljewels.com/website/images/product-banner.webp",
+    "https://battulaaljewels.com/website/images/product-banner.webp",
+    "https://battulaaljewels.com/website/images/product-banner.webp",
   ].map((src, index) => (
     <div
       key={index}

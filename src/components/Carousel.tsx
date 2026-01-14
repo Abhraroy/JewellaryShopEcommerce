@@ -111,7 +111,7 @@ export default function Carousel({
       {/* Previous Button */}
       <button
         onClick={goToPrevious}
-        className="hidden sm:flex absolute left-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-white rounded-full p-2 shadow-lg transition-all duration-200 z-10"
+        className="hidden sm:flex absolute left-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-[#360000] rounded-full p-2 shadow-lg transition-all duration-200 z-10"
         aria-label="Previous slide"
       >
         <svg
@@ -133,7 +133,7 @@ export default function Carousel({
       {/* Next Button */}
       <button
         onClick={goToNext}
-        className="hidden sm:flex absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-white rounded-full p-2 shadow-lg transition-all duration-200 z-10"
+        className="hidden sm:flex absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-[#360000] rounded-full p-2 shadow-lg transition-all duration-200 z-10"
         aria-label="Next slide"
       >
         <svg

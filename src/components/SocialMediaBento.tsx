@@ -6,10 +6,10 @@ export default function SocialMediaBento() {
           <div className="w-full">
             {/* Heading row */}
             <div className="flex flex-col items-center justify-center gap-3 md:gap-4 mb-8 px-4 sm:px-6 lg:px-10 text-center">
-              <p className="text-xs md:text-sm font-semibold uppercase tracking-[0.25em] text-lime-500">
+              <p className="text-2xl md:text-3xl font-semibold uppercase text-[#360000] font-josefin-sans tracking-wider">
                 Social Gallery
               </p>
-              <h2 className="text-2xl md:text-3xl font-bold text-gray-900">
+              <h2 className="text-xl md:text-2xl font-bold text-[#360000] font-josefin-sans tracking-wider">
                 See how our jewellery lives on social
               </h2>
               <button
