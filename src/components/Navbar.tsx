@@ -5,7 +5,7 @@ import { useStore } from '../zustandStore/zustandStore';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from "next/image";
-import HamburgerSidebar from './HamburgerSidebar';
+import HamburgerSidebar from './NavbarUI/HamburgerSidebar';
 
 interface NavbarProps {
   cartCount?: number;

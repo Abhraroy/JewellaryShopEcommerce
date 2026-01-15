@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { createClient } from "@/app/utils/supabase/client";
 import { useStore } from "@/zustandStore/zustandStore";
 import { useRouter } from "next/navigation";
-import ProductCard from "@/components/ProductCard";
+import ProductCard from "@/components/ProductUI/ProductCard";
 import { removeFromLocalWishList } from "@/utilityFunctions/WishListFunctions";
 import { addToDbCart, addToLocalCart } from "@/utilityFunctions/CartFunctions";
 

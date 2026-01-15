@@ -7,9 +7,9 @@ import {
   MdOutlineKeyboardArrowDown,
   MdOutlineKeyboardArrowUp,
 } from "react-icons/md";
-import PhoneNumberInput from "./PhoneNumberInput";
-import OtpInput from "./OtpInput";
-import AddressForm from "./AddressForm";
+import PhoneNumberInput from "../AuthUI/PhoneNumberInput";
+import OtpInput from "../AuthUI/OtpInput";
+import AddressForm from "../Address/AddressForm";
 import { createClient } from "@/app/utils/supabase/client";
 
 export default function PaymentGatewayComponent() {

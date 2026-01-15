@@ -7,8 +7,8 @@ import BentoGrid from "@/components/BentoGrid";
 import Image from "next/image";
 import Footer from "@/components/Footer";
 import { useStore } from "@/zustandStore/zustandStore";
-import PhoneNumberInput from "@/components/PhoneNumberInput";
-import OtpInput from "@/components/OtpInput";
+import PhoneNumberInput from "@/components/AuthUI/PhoneNumberInput";
+import OtpInput from "@/components/AuthUI/OtpInput";
 import { useEffect, useState } from "react";
 import { createClient } from "@/app/utils/supabase/client";
 import Cart from "@/components/Cart";
@@ -16,7 +16,7 @@ import { addToDbCart, createCart } from "@/utilityFunctions/CartFunctions";
 import { Product } from "@/utilityFunctions/TypeInterface";
 import Collection from "@/components/Collection";
 import Link from "next/link";
-import ProductCard from "@/components/ProductCard";
+import ProductCard from "@/components/ProductUI/ProductCard";
 
 export default function LandingPage() {
   const {

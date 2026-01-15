@@ -1,7 +1,7 @@
 "use client";
 import { createClient } from "@/app/utils/supabase/client";
 
-import AddressSection from "@/components/AddressSection";
+import AddressSection from "@/components/Address/AddressSection";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useStore } from "@/zustandStore/zustandStore";

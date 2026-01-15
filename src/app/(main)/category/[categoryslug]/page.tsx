@@ -5,7 +5,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ProductCard, {
   // Product as ProductCardProduct,
-} from "@/components/ProductCard";
+} from "@/components/ProductUI/ProductCard";
 import Link from "next/link";
 import Image from "next/image";
 import { useParams } from "next/navigation";
