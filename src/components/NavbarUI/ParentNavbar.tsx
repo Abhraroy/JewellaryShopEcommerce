@@ -1,10 +1,9 @@
 "use client";
 import { useStore } from "@/zustandStore/zustandStore";
-import Navbar from "../Navbar";
+import Navbar from "./Navbar";
 import OtpInput from "../AuthUI/OtpInput";
 import PhoneNumberInput from "../AuthUI/PhoneNumberInput";
 import Cart from "../CartUI/Cart";
-import { useEffect, useState } from "react";
 export default function ParentNavbar() {
     const { setIsCartOpen, MobnoInputState, OtpInputState, isCartOpen, cartCount } = useStore();
     const handleOpenCart = () => {

@@ -145,16 +145,31 @@ export default function AccountPage() {
   const [addresses, setAddresses] = useState<any[]>([]);
   const [orders, setOrders] = useState<any[]>([]);
   const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null);
-  const [loadingOrderItems, setLoadingOrderItems] = useState<string | null>(null);
+  const [loadingOrderItems, setLoadingOrderItems] = useState<string | null>(
+    null
+  );
   const [loadingProfile, setLoadingProfile] = useState(true);
   const [loadingOrders, setLoadingOrders] = useState(true);
   const router = useRouter();
 
   const supabase = createClient();
-  const { refresh, setRefresh, setAuthenticatedState, setAuthUserId, setCartId, setCartItems, setCartCount, setWishListItems, setInitiatingCheckout, setPaymentConcluded, setShowPaymentConcluded } = useStore();
-  
+  const {
+    refresh,
+    setRefresh,
+    setAuthenticatedState,
+    setAuthUserId,
+    setCartId,
+    setCartItems,
+    setCartCount,
+    setWishListItems,
+    setInitiatingCheckout,
+    setPaymentConcluded,
+    setShowPaymentConcluded,
+  } = useStore();
+
   const fetchUserProfile = async () => {
     setLoadingProfile(true);
+    setLoadingOrders(true);
     try {
       // First check if there's an active session
       const { data: sessionData } = await supabase.auth.getSession();
@@ -163,7 +178,7 @@ export default function AccountPage() {
         router.push("/");
         return;
       }
-      
+
       const { data, error } = await supabase.auth.getUser();
       if (error) {
         console.error("Error fetching user profile:", error);
@@ -174,76 +189,59 @@ export default function AccountPage() {
         router.push("/");
         return;
       }
+      
+      // Merged query: fetch user with addresses and orders in a single query
       const { data: user, error: userError } = await supabase
         .from("users")
-        .select("*, addresses(*)")
+        .select(`
+          *,
+          addresses(*),
+          orders(
+            *,
+            order_items(*, products(*)),
+            shipping_address:addresses!orders_shipping_address_id_fkey(*)
+          )
+        `)
         .eq("phone_number", "+" + data.user.phone)
         .single();
+        
       if (userError) {
         console.error("Error fetching user profile:", userError);
         alert("Error fetching user profile. Please try again.");
         return;
       }
+      
       console.log("user", user);
+      
+      // Sort orders by order_date descending and limit to 3
+      const sortedOrders = (user?.orders ?? [])
+        .sort((a: any, b: any) => {
+          const dateA = new Date(a.order_date).getTime();
+          const dateB = new Date(b.order_date).getTime();
+          return dateB - dateA;
+        })
+        .slice(0, 3);
+      
       setUserData(user);
       setAddresses(user?.addresses ?? []);
+      setOrders(sortedOrders ?? []);
       setCreatedAt(user?.created_at?.split("T")[0] || "N/A");
     } catch (err) {
       console.error("Unexpected error fetching profile:", err);
     } finally {
       setLoadingProfile(false);
-    }
-  };
-
-  const fetchOrders = async (userId: string) => {
-    setLoadingOrders(true);
-    try {
-      const { data, error } = await supabase
-        .from("orders")
-        .select(`*,
-    order_items(*, products(*)),
-    shipping_address:addresses!orders_shipping_address_id_fkey(*)
-    `)
-        .eq("user_id", userId)
-        .order("order_date", { ascending: false })
-        .limit(3);
-
-      if (error) {
-        console.error("Error fetching orders:", error);
-        alert("Error fetching orders. Please try again.");
-        return;
-      }
-
-      console.log("orders", data);
-      setOrders(data ?? []);
-    } catch (err) {
-      console.error("Unexpected error fetching orders:", err);
-    } finally {
       setLoadingOrders(false);
     }
   };
 
-
   useEffect(() => {
     fetchUserProfile();
   }, [refresh]);
-  
-  useEffect(() => {
-    if (userData?.user_id) fetchOrders(userData.user_id);
-  }, [userData]);
-
-
-
-
-
-
-
-
 
   const handleEmailUpdateState = () => {
     setEmailUpdateState(!emailUpdateState);
   };
-  
+
   const handleNameUpdateState = () => {
     setNameUpdateState(!nameUpdateState);
   };
@@ -253,7 +251,7 @@ export default function AccountPage() {
     const email = (e.target as HTMLFormElement).email.value;
     console.log("email", email);
     console.log("userId", userData?.user_id);
-    
+
     if (!userData?.user_id) {
       console.error("User ID is missing");
       alert("Unable to update email. Please try again.");
@@ -286,7 +284,7 @@ export default function AccountPage() {
     const lastName = (e.target as HTMLFormElement).lastName.value;
     console.log("firstName", firstName, "lastName", lastName);
     console.log("userId", userData?.user_id);
-    
+
     if (!userData?.user_id) {
       console.error("User ID is missing");
       alert("Unable to update name. Please try again.");
@@ -307,17 +305,19 @@ export default function AccountPage() {
     }
 
     if (data) {
-      setUserData((prev: any) => ({ ...(prev ?? {}), first_name: data.first_name, last_name: data.last_name }));
+      setUserData((prev: any) => ({
+        ...(prev ?? {}),
+        first_name: data.first_name,
+        last_name: data.last_name,
+      }));
       setNameUpdateState(false);
       alert("Name updated successfully");
     }
   };
 
-
   const toggleOrder = (orderId: string) => {
-    setExpandedOrderId(prev => (prev === orderId ? null : orderId));
-  };  
-
+    setExpandedOrderId((prev) => (prev === orderId ? null : orderId));
+  };
 
   return (
     <div className="min-h-screen bg-theme-cream">
@@ -357,8 +357,10 @@ export default function AccountPage() {
                         <Skeleton className="h-4 w-40" />
                       ) : (
                         <span className="text-sm sm:text-base text-gray-900 font-medium break-words">
-                          {userData?.first_name || userData?.last_name 
-                            ? `${userData?.first_name || ""} ${userData?.last_name || ""}`.trim() 
+                          {userData?.first_name || userData?.last_name
+                            ? `${userData?.first_name || ""} ${
+                                userData?.last_name || ""
+                              }`.trim()
                             : "Not provided"}
                         </span>
                       )}
@@ -368,9 +370,15 @@ export default function AccountPage() {
                         className={`${primaryButtonClass} self-start sm:self-auto`}
                         onClick={handleNameUpdateState}
                       >
-                        <span className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-out" aria-hidden="true" />
+                        <span
+                          className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-out"
+                          aria-hidden="true"
+                        />
                         <span className="relative flex items-center gap-1.5 md:gap-2">
-                          <span className="inline-block h-2 w-2 rounded-full bg-white/70" aria-hidden="true" />
+                          <span
+                            className="inline-block h-2 w-2 rounded-full bg-white/70"
+                            aria-hidden="true"
+                          />
                           <span>Update Name</span>
                         </span>
                       </button>
@@ -465,9 +473,15 @@ export default function AccountPage() {
                         className={`${primaryButtonClass} self-start sm:self-auto`}
                         onClick={handleEmailUpdateState}
                       >
-                        <span className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-out" aria-hidden="true" />
+                        <span
+                          className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-out"
+                          aria-hidden="true"
+                        />
                         <span className="relative flex items-center gap-1.5 md:gap-2">
-                          <span className="inline-block h-2 w-2 rounded-full bg-white/70" aria-hidden="true" />
+                          <span
+                            className="inline-block h-2 w-2 rounded-full bg-white/70"
+                            aria-hidden="true"
+                          />
                           <span>Update Email</span>
                         </span>
                       </button>
@@ -541,7 +555,10 @@ export default function AccountPage() {
               {loadingOrders ? (
                 <div className="space-y-4">
                   {Array.from({ length: 2 }).map((_, idx) => (
-                    <div key={idx} className="border border-gray-200 rounded-lg p-4">
+                    <div
+                      key={idx}
+                      className="border border-gray-200 rounded-lg p-4"
+                    >
                       <div className="flex flex-col gap-3">
                         <Skeleton className="h-4 w-32" />
                         <Skeleton className="h-4 w-24" />
@@ -563,11 +580,12 @@ export default function AccountPage() {
                       : "N/A";
                     const shippingAddress = order?.shipping_address;
                     const isExpanded = expandedOrderId === order?.order_id;
-                    const orderItems = order?.order_items && Array.isArray(order.order_items)
-                      ? order.order_items
-                      : order?.order_items
-                      ? [order.order_items]
-                      : [];
+                    const orderItems =
+                      order?.order_items && Array.isArray(order.order_items)
+                        ? order.order_items
+                        : order?.order_items
+                        ? [order.order_items]
+                        : [];
 
                     return (
                       <div
@@ -579,7 +597,10 @@ export default function AccountPage() {
                           <div className="flex-1">
                             <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-2">
                               <span className="text-xs sm:text-sm font-semibold text-gray-900">
-                                Order #{order?.order_number?.slice(-8) ?? order?.order_id?.slice(0, 8) ?? "N/A"}
+                                Order #
+                                {order?.order_number?.slice(-8) ??
+                                  order?.order_id?.slice(0, 8) ??
+                                  "N/A"}
                               </span>
                               <span
                                 className={`px-2.5 py-1 rounded-full text-xs font-medium w-fit ${
@@ -594,7 +615,8 @@ export default function AccountPage() {
                                     : "bg-gray-100 text-gray-700"
                                 }`}
                               >
-                                {order?.order_status?.toUpperCase() ?? "PENDING"}
+                                {order?.order_status?.toUpperCase() ??
+                                  "PENDING"}
                               </span>
                             </div>
                             <div className="space-y-1 text-sm text-gray-600">
@@ -620,7 +642,10 @@ export default function AccountPage() {
                                   />
                                 </svg>
                                 <span className="font-semibold text-gray-900">
-                                  ₹{order?.total_amount?.toFixed(2) ?? order?.order_total?.toFixed(2) ?? "0.00"}
+                                  ₹
+                                  {order?.total_amount?.toFixed(2) ??
+                                    order?.order_total?.toFixed(2) ??
+                                    "0.00"}
                                 </span>
                               </p>
                               {shippingAddress && (
@@ -645,17 +670,21 @@ export default function AccountPage() {
                                     />
                                   </svg>
                                   <span className="text-xs">
-                                    {shippingAddress.street_address}, {shippingAddress.city}, {shippingAddress.state} - {shippingAddress.postal_code}
+                                    {shippingAddress.street_address},{" "}
+                                    {shippingAddress.city},{" "}
+                                    {shippingAddress.state} -{" "}
+                                    {shippingAddress.postal_code}
                                   </span>
                                 </p>
                               )}
                             </div>
                           </div>
-                          <button
-                            onClick={() => toggleOrder(order?.order_id)}
-                            disabled={loadingOrderItems === order?.order_id}
-                            className={`${primaryButtonClass} w-full sm:w-auto text-xs sm:text-sm`}
-                          >
+                          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+                            <button
+                              onClick={() => toggleOrder(order?.order_id)}
+                              disabled={loadingOrderItems === order?.order_id}
+                              className={`${primaryButtonClass} w-full sm:w-auto text-xs sm:text-sm`}
+                            >
                             {loadingOrderItems === order?.order_id ? (
                               <>
                                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
@@ -698,7 +727,32 @@ export default function AccountPage() {
                                 View Details
                               </>
                             )}
-                          </button>
+                            </button>
+                            {order?.order_status === "delivered" && orderItems.length > 0 && (
+                              <a
+                                href={`/product/${orderItems[0]?.products?.product_id || ''}`}
+                                className={`${primaryButtonClass} w-full sm:w-auto text-xs sm:text-sm bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-500 hover:from-amber-600 hover:via-yellow-600 hover:to-amber-600`}
+                              >
+                                <span className="relative flex items-center gap-1.5 md:gap-2">
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    strokeWidth={2}
+                                    stroke="currentColor"
+                                    className="w-4 h-4"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z"
+                                    />
+                                  </svg>
+                                  <span>Give Review</span>
+                                </span>
+                              </a>
+                            )}
+                          </div>
                         </div>
 
                         {/* Order Items - Expandable */}
@@ -708,69 +762,98 @@ export default function AccountPage() {
                               <div className="flex items-center justify-center py-8">
                                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-theme-sage"></div>
                               </div>
-                            ) : order?.order_items && order?.order_items.length > 0 ? (
+                            ) : order?.order_items &&
+                              order?.order_items.length > 0 ? (
                               <>
                                 <h4 className="text-sm font-semibold text-gray-900 mb-3">
-                                  Order Items ({order?.order_items?.length ?? 0})
+                                  Order Items ({order?.order_items?.length ?? 0}
+                                  )
                                 </h4>
                                 <div className="space-y-3">
-                                  {order?.order_items?.map((item: any, index: number) => (
-                                    <div
-                                      key={item?.order_item_id ?? index}
-                                      className="flex flex-col sm:flex-row items-start gap-3 sm:gap-4 p-3 sm:p-4 bg-gray-50 rounded-lg border border-gray-200"
-                                    >
-                                      {/* Product Image */}
-                                      {item?.products?.thumbnail_image && (
-                                        <div className="flex-shrink-0 w-full sm:w-auto">
-                                          <img
-                                            src={item.products.thumbnail_image}
-                                            alt={item?.products?.product_name ?? "Product"}
-                                            className="w-full sm:w-16 h-auto sm:h-16 object-cover rounded-md"
-                                          />
+                                  {order?.order_items?.map(
+                                    (item: any, index: number) => (
+                                      <div
+                                        key={item?.order_item_id ?? index}
+                                        className="flex flex-col sm:flex-row items-start gap-3 sm:gap-4 p-3 sm:p-4 bg-gray-50 rounded-lg border border-gray-200"
+                                      >
+                                        {/* Product Image */}
+                                        {item?.products?.thumbnail_image && (
+                                          <div className="flex-shrink-0 w-full sm:w-auto">
+                                            <img
+                                              src={
+                                                item.products.thumbnail_image
+                                              }
+                                              alt={
+                                                item?.products?.product_name ??
+                                                "Product"
+                                              }
+                                              className="w-full sm:w-16 h-auto sm:h-16 object-cover rounded-md"
+                                            />
+                                          </div>
+                                        )}
+                                        {/* Product Details */}
+                                        <div className="flex-1 min-w-0 w-full">
+                                          <p className="text-xs sm:text-sm font-semibold text-gray-900">
+                                            {item?.products?.product_name ??
+                                              "N/A"}
+                                          </p>
+                                          {item?.products?.description && (
+                                            <p className="text-xs text-gray-600 mt-1 line-clamp-2">
+                                              {item.products.description}
+                                            </p>
+                                          )}
+                                          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mt-2 text-xs text-gray-600">
+                                            <span>
+                                              Quantity:{" "}
+                                              <span className="font-medium">
+                                                {item?.quantity ?? "N/A"}
+                                              </span>
+                                            </span>
+                                            <span>
+                                              Unit Price:{" "}
+                                              <span className="font-medium">
+                                                ₹
+                                                {item?.products?.final_price?.toFixed(
+                                                  2
+                                                ) ?? "0.00"}
+                                              </span>
+                                            </span>
+                                          </div>
+                                          {item?.products?.metal_type && (
+                                            <p className="text-xs text-gray-500 mt-1">
+                                              Metal: {item.products.metal_type}
+                                            </p>
+                                          )}
                                         </div>
-                                      )}
-                                      {/* Product Details */}
-                                      <div className="flex-1 min-w-0 w-full">
-                                        <p className="text-xs sm:text-sm font-semibold text-gray-900">
-                                          {item?.products?.product_name ?? "N/A"}
-                                        </p>
-                                        {item?.products?.description && (
-                                          <p className="text-xs text-gray-600 mt-1 line-clamp-2">
-                                            {item.products.description}
+                                        {/* Price */}
+                                        <div className="flex-shrink-0 w-full sm:w-auto text-left sm:text-right">
+                                          <p className="text-sm sm:text-base font-bold text-gray-900">
+                                            ₹
+                                            {(item?.products?.final_price?.toFixed(
+                                              2
+                                            ) ?? 0) * (item?.quantity ?? 0)}
                                           </p>
-                                        )}
-                                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mt-2 text-xs text-gray-600">
-                                          <span>
-                                            Quantity: <span className="font-medium">{item?.quantity ?? "N/A"}</span>
-                                          </span>
-                                          <span>
-                                            Unit Price: <span className="font-medium">₹{item?.products?.final_price?.toFixed(2) ?? "0.00"}</span>
-                                          </span>
+                                          {item?.products?.final_price &&
+                                            item?.quantity && (
+                                              <p className="text-xs text-gray-500 mt-1">
+                                                ₹
+                                                {item.products.final_price.toFixed(
+                                                  2
+                                                )}{" "}
+                                                x {item.quantity}
+                                              </p>
+                                            )}
                                         </div>
-                                        {item?.products?.metal_type && (
-                                          <p className="text-xs text-gray-500 mt-1">
-                                            Metal: {item.products.metal_type}
-                                          </p>
-                                        )}
                                       </div>
-                                      {/* Price */}
-                                      <div className="flex-shrink-0 w-full sm:w-auto text-left sm:text-right">
-                                        <p className="text-sm sm:text-base font-bold text-gray-900">
-                                          ₹{(item?.products?.final_price?.toFixed(2) ?? 0) * (item?.quantity ?? 0)}
-                                        </p>
-                                        {item?.products?.final_price && item?.quantity && (
-                                          <p className="text-xs text-gray-500 mt-1">
-                                            ₹{item.products.final_price.toFixed(2)} x {item.quantity}
-                                          </p>
-                                        )}
-                                      </div>
-                                    </div>
-                                  ))}
+                                    )
+                                  )}
                                 </div>
                               </>
                             ) : (
                               <div className="text-center py-6">
-                                <p className="text-sm text-gray-600">No items found for this order</p>
+                                <p className="text-sm text-gray-600">
+                                  No items found for this order
+                                </p>
                               </div>
                             )}
                           </div>
@@ -827,8 +910,7 @@ export default function AccountPage() {
                     const { error } = await supabase.auth.signOut();
                     if (error) {
                       console.log("error", error);
-                    }
-                    else{
+                    } else {
                       console.log("Logout successful");
                       setAuthenticatedState(false);
                       setAuthUserId("");
@@ -852,12 +934,13 @@ export default function AccountPage() {
             </div>
 
             {/* Addresses Card */}
-             <AddressSection addresses={addresses ?? []} userId={userData?.user_id ?? "" as string} />
+            <AddressSection
+              addresses={addresses ?? []}
+              userId={userData?.user_id ?? ("" as string)}
+            />
           </div>
         </div>
       </main>
-
-      
     </div>
   );
 }

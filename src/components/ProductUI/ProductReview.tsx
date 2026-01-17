@@ -4,12 +4,17 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import { FaStar } from "react-icons/fa";
 import { IoIosClose } from "react-icons/io";
+import ReviewForm from "./ReviewForm";
+import { useParams } from "next/navigation";
 
 export default function ProductReview({ reviews }: { reviews: any }) {
+  const params = useParams();
+  const productId = params?.product_id as string;
   const [selectedRatingFilter, setSelectedRatingFilter] = useState<number | null>(null);
   const [showImageModal, setShowImageModal] = useState(false);
   const [modalImageIndex, setModalImageIndex] = useState(0);
   const [modalImage, setModalImage] = useState<string>("");
+  const [showReviewForm, setShowReviewForm] = useState(false);
 
   // Collect all review images
   const allReviewImages = reviews
@@ -168,10 +173,33 @@ export default function ProductReview({ reviews }: { reviews: any }) {
     );
   };
 
+  const handleReviewSuccess = () => {
+    // Close the form and reload the page to refresh reviews
+    setShowReviewForm(false);
+    if (typeof window !== "undefined") {
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
+    }
+  };
+
   return (
     <div className="bg-white py-6 md:py-8 px-4 md:px-6 lg:px-8">
       <div className="max-w-6xl mx-auto">
-        <h2 className="text-2xl font-bold text-gray-900 mb-6">Customer Reviews</h2>
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-2xl font-bold text-gray-900">Customer Reviews</h2>
+          {productId && (
+            <button
+              onClick={() => setShowReviewForm(true)}
+              className="px-4 py-2 bg-gradient-to-r from-rose-500 via-pink-500 to-rose-500 hover:from-rose-600 hover:via-pink-600 hover:to-rose-600 text-white font-medium rounded-lg transition-all shadow-md hover:shadow-lg"
+            >
+              <span className="flex items-center gap-2">
+                <FaStar className="w-4 h-4" />
+                Rate Product
+              </span>
+            </button>
+          )}
+        </div>
 
         {/* Summary Section - Compact */}
         <div className="grid md:grid-cols-3 gap-4 md:gap-6 mb-6">
@@ -344,6 +372,15 @@ export default function ProductReview({ reviews }: { reviews: any }) {
             )}
           </div>
         </div>
+      )}
+
+      {/* Review Form Modal */}
+      {showReviewForm && productId && (
+        <ReviewForm
+          productId={productId}
+          onClose={() => setShowReviewForm(false)}
+          onSuccess={handleReviewSuccess}
+        />
       )}
     </div>
   );

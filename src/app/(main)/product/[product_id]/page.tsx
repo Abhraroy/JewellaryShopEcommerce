@@ -211,7 +211,7 @@ export default function ProductPage() {
         <ProductDisplay productDetails={productDetails} />
       )}
 
-      {reviews && Array.isArray(reviews) && (
+      {reviews && Array.isArray(reviews) && product_id && (
         <ProductReview reviews={reviews} />
       )}
     </div>

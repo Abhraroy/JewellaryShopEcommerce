@@ -10,7 +10,7 @@ interface OtpInputProps {
   onClick?: () => void;
 }
 
-export default function OtpInput({ length = 6, onComplete, containerClassName = 'w-full bg-gradient-to-r from-amber-50 to-orange-50 border-b border-amber-200 fixed top-[70px] md:top-[80px] z-50 shadow-sm flex items-center justify-center transition-all duration-300', onClick }: OtpInputProps) {
+export default function OtpInput({ length = 6, onComplete, containerClassName = 'w-full bg-white border-b border-amber-200 sticky top-[70px] md:top-[80px] z-50 shadow-sm flex items-center justify-center transition-all ease-in-out duration-900', onClick }: OtpInputProps) {
   const [otp, setOtp] = useState<string[]>(Array(length).fill(''));
   const [error, setError] = useState('');
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);

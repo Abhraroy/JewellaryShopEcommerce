@@ -1,11 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useStore } from '../zustandStore/zustandStore';
+import { useStore } from '../../zustandStore/zustandStore';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from "next/image";
-import HamburgerSidebar from './NavbarUI/HamburgerSidebar';
+import HamburgerSidebar from './HamburgerSidebar';
 
 interface NavbarProps {
   cartCount?: number;
@@ -376,7 +376,11 @@ export default function Navbar({ cartCount = 0, isAuthenticated = false, onCartC
             {desktopIcons.map((iconItem, index) => (
               <button
                 key={index}
-                onClick={iconItem.onClick}
+                data-account-icon={iconItem.label === 'Account' ? 'true' : undefined}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  iconItem.onClick?.();
+                }}
                 className="p-2 text-[#360000]/70 hover:text-[#360000]/50 transition-colors relative"
                 aria-label={iconItem.label}
               >

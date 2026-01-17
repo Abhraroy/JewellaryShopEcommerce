@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import Navbar from "@/components/Navbar";
+import Navbar from "@/components/NavbarUI/Navbar";
 import Footer from "@/components/Footer";
 import ProductCard, {
   // Product as ProductCardProduct,

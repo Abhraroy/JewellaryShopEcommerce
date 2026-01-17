@@ -186,7 +186,7 @@ export default function PaymentGatewayComponent() {
       {/* Payment Gateway Modal */}
       <div className="fixed inset-0 sm:inset-auto sm:top-[50%] sm:left-[50%] sm:transform sm:-translate-x-1/2 sm:-translate-y-1/2 w-full sm:w-[85vw] md:w-[75vw] lg:w-[65vw] xl:w-[55vw] 2xl:w-[45vw] sm:max-w-md h-full sm:h-[90vh] sm:max-h-[90vh] bg-white rounded-none sm:rounded-xl shadow-2xl z-[70] overflow-hidden flex flex-col ">
         {/* Header */}
-        <div className="pt-4 sm:pt-5 pb-4 sm:pb-5 border-b border-amber-600/30 flex items-center justify-between gap-4 px-4 sm:px-6 bg-gradient-to-r from-amber-500 to-orange-500">
+        <div className="pt-4 sm:pt-5 pb-4 sm:pb-5 border-b border-amber-600/30 flex items-center justify-between gap-4 px-4 sm:px-6 bg-[#CAF2FF]">
           <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
             <button
               onClick={() => setInitiatingCheckout(false)}
@@ -199,7 +199,7 @@ export default function PaymentGatewayComponent() {
                 viewBox="0 0 24 24"
                 strokeWidth={2.5}
                 stroke="currentColor"
-                className="w-5 h-5 sm:w-6 sm:h-6 text-white"
+                className="w-5 h-5 sm:w-6 sm:h-6 text-[#360000]"
               >
                 <path
                   strokeLinecap="round"
@@ -208,7 +208,7 @@ export default function PaymentGatewayComponent() {
                 />
               </svg>
             </button>
-            <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-white truncate">
+            <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-[#360000] truncate">
               Payment Gateway
             </h1>
           </div>
@@ -218,7 +218,7 @@ export default function PaymentGatewayComponent() {
         <div className="flex-1 overflow-y-auto px-3 sm:px-4 py-3 sm:py-4">
           <div className="w-full space-y-4">
             {/* Order Summary Card */}
-            <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg border border-gray-200 p-3 shadow-sm">
+            <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg border border-black p-3 shadow-sm">
               <button
                 onClick={() => setShowOrderdetails(!showOrderdetails)}
                 className="w-full flex items-center justify-between"
@@ -428,7 +428,7 @@ export default function PaymentGatewayComponent() {
                   )}
                 </div>
               )}
-              <div className="bg-white rounded-lg border border-gray-200 p-4 space-y-3">
+              <div className="bg-white rounded-lg border border-black p-4 space-y-3">
                 <div className="flex items-center justify-between">
                   <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2">
                     <svg
@@ -565,7 +565,7 @@ export default function PaymentGatewayComponent() {
                 onClick={() => {
                   getAuthToken();
                 }}
-                className="w-full px-4 py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold rounded-lg transition-all duration-200 text-sm shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none flex items-center justify-center gap-2"
+                className="w-full px-4 py-2.5 bg-[#DECAF2] text-[#360000] font-semibold rounded-lg transition-all duration-200 text-sm shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none flex items-center justify-center gap-2"
                 disabled={
                   isLoadingPayment || 
                   !AuthenticatedState || 
@@ -577,7 +577,7 @@ export default function PaymentGatewayComponent() {
               >
                 {isLoadingPayment ? (
                   <>
-                    <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <svg className="animate-spin h-5 w-5 text-[#360000]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>

@@ -1,5 +1,5 @@
 "use client";
-import Navbar from "@/components/Navbar";
+import Navbar from "@/components/NavbarUI/Navbar";
 import Carousel from "@/components/Carousel";
 import CategorySection from "@/components/CategorySection";
 import ProductCarousel from "@/components/ProductCarousel";

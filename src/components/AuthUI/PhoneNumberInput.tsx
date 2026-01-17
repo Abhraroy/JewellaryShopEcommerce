@@ -7,7 +7,7 @@ interface PhoneNumberInputProps {
     onClick?: () => void;
 }
 
-export default function PhoneNumberInput({ containerClassName = 'w-full bg-gradient-to-r from-amber-50 to-orange-50 border-b border-amber-200 fixed top-[70px] md:top-[80px] z-50 shadow-sm flex items-center justify-center transition-all duration-300', onClick }: PhoneNumberInputProps) {
+export default function PhoneNumberInput({ containerClassName = 'w-full bg-white border-b border-amber-200 sticky top-[70px] md:top-[80px] z-50 shadow-sm flex items-center justify-center transition-all duration-300', onClick }: PhoneNumberInputProps) {
     const { setOtpInputState, setMobnoInputState, setCustomerMobno } = useStore();
     const [phoneNumber, setPhoneNumber] = useState('');
     const [error, setError] = useState('');
@@ -17,8 +17,17 @@ export default function PhoneNumberInput({ containerClassName = 'w-full bg-gradi
     // Close the phone input when clicking outside of it
     useEffect(() => {
       const handleClickOutside = (event: MouseEvent | TouchEvent) => {
-        if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
-          setMobnoInputState();
+        const target = event.target as Node;
+        // Check if click is outside the container
+        if (containerRef.current && !containerRef.current.contains(target)) {
+          // Check if the click is on the account icon button (exclude it so account icon's onClick handles toggling)
+          const clickedElement = target as HTMLElement;
+          const isAccountIcon = clickedElement.closest('[data-account-icon]') !== null;
+          
+          // If not clicking on account icon, close the input
+          if (!isAccountIcon) {
+            setMobnoInputState();
+          }
         }
       };
 
