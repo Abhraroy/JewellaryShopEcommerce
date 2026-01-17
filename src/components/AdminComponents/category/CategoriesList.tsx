@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { Category, deleteCategory, createSubCategory, updateSubCategory, deleteSubCategory } from '../../../app/(admin)/admin/actions/categories';
 import { useRouter } from 'next/navigation';
+import axios from 'axios';
 
 const PlusIcon = ({ className = 'w-5 h-5' }) => (
     <svg
@@ -177,38 +178,70 @@ export default function CategoriesList({ category, isDarkTheme }: { category: Ca
     e.preventDefault();
     setSubmitting(true);
     console.log("category_id",category_id)
-    // TODO: Add submit logic here
     console.log('Subcategory form data:', formData);
-    const formDataWithCategoryId = {
-        ...formData,
-        category_id: category_id
-    }
-    console.log("formDataWithCategoryId",formDataWithCategoryId)
-   if(isEditingSubCategory){
-    const result = await updateSubCategory(formDataWithCategoryId)
-    console.log("result of update sub category",result)
-    if(result.success){
-       router.refresh();
-      handleCancel();
-      setShowAddSubCategory(false)
-      setSubmitting(false);
-      return;
-    }else{
-      alert(`Failed to update sub category: ${result?.error}`)
-      setSubmitting(false);
-      return;
-    }
-   }
+    
+    try {
+      let imageUrl: string | undefined = undefined;
 
-    const result = await createSubCategory(formDataWithCategoryId)
-    if(result.success){
-     router.refresh();
-     handleCancel();
-      setShowAddSubCategory(false)
-    }else{
-      alert(`Failed to create sub category: ${result?.error}`)
+      // Upload image via API if it's a new file
+      if (formData.subcategory_image_url instanceof File) {
+        const formDataToSend = new FormData();
+        formDataToSend.append("file", formData.subcategory_image_url);
+        formDataToSend.append("folder", "sub_categories");
+
+        const response = await axios.post("/admin/api/uploadImage", formDataToSend, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        });
+
+        if (!response.data.success || !response.data.url) {
+          throw new Error(response.data.error || "Image upload failed");
+        }
+
+        imageUrl = response.data.url;
+      } else if (typeof formData.subcategory_image_url === 'string') {
+        // If it's already a URL (editing mode), use it as is
+        imageUrl = formData.subcategory_image_url;
+      }
+
+      const formDataWithCategoryId = {
+        ...formData,
+        category_id: category_id,
+        subcategory_image_url: imageUrl || formData.subcategory_image_url
+      }
+      console.log("formDataWithCategoryId",formDataWithCategoryId)
+      
+      if(isEditingSubCategory){
+        const result = await updateSubCategory(formDataWithCategoryId)
+        console.log("result of update sub category",result)
+        if(result.success){
+          router.refresh();
+          handleCancel();
+          setShowAddSubCategory(false)
+          setSubmitting(false);
+          return;
+        }else{
+          alert(`Failed to update sub category: ${result?.error}`)
+          setSubmitting(false);
+          return;
+        }
+      }
+
+      const result = await createSubCategory(formDataWithCategoryId)
+      if(result.success){
+        router.refresh();
+        handleCancel();
+        setShowAddSubCategory(false)
+      }else{
+        alert(`Failed to create sub category: ${result?.error}`)
+      }
+    } catch (error) {
+      console.error('Submit error:', error);
+      alert(error instanceof Error ? error.message : 'An unexpected error occurred. Please try again.');
+    } finally {
+      setSubmitting(false);
     }
-    setSubmitting(false);
   };
 
   const handleEditSubCategory = (subcategory_id: string,subcategory_name: string,subcategory_image_url: string,subcategory_image_url_preview: string,is_active: boolean) => {

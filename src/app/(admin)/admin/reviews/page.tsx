@@ -1,44 +1,32 @@
-"use client";
+import { createClient } from "@/app/utils/supabase/server";
+import Reviews from "@/components/AdminComponents/review/Reviews";
 
-import { useState, useEffect } from "react";
+export default async function ReviewsPage() {
+  const supabase = await createClient();
+  
+  const { data: reviewsData, error } = await supabase
+    .from("reviews")
+    .select(
+      `
+      *,
+      products(*),
+      users(*),
+      review_images(*)
+    `
+    )
+    .order("created_at", { ascending: false })
+    .limit(500);
 
-export default function ReviewsPage() {
-  const [isDarkTheme, setIsDarkTheme] = useState(false);
-
-  useEffect(() => {
-    const checkTheme = () => {
-      const body = document.body;
-      setIsDarkTheme(body.classList.contains("dark") || 
-        window.matchMedia("(prefers-color-scheme: dark)").matches);
-    };
-    checkTheme();
-    const observer = new MutationObserver(checkTheme);
-    observer.observe(document.body, { attributes: true, attributeFilter: ["class"] });
-    return () => observer.disconnect();
-  }, []);
-
-  return (
-    <div className="p-6">
-      <h1
-        className={`text-3xl font-bold mb-6 ${
-          isDarkTheme ? "text-white" : "text-gray-900"
-        }`}
-      >
-        Reviews Management
-      </h1>
-      <div
-        className={`${
-          isDarkTheme ? "bg-black border border-gray-700" : "bg-white"
-        } rounded-lg shadow p-6`}
-      >
-        <div
-          className={`text-center py-12 ${
-            isDarkTheme ? "text-gray-400" : "text-gray-500"
-          }`}
-        >
-          Reviews management interface will be implemented here
+  if (error) {
+    console.error("Error fetching reviews:", error);
+    return (
+      <div className="w-full p-6">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <p className="text-red-800">Error fetching reviews: {error.message}</p>
         </div>
       </div>
-    </div>
-  );
+    );
+  }
+
+  return <Reviews initialReviews={reviewsData ?? []} />;
 }

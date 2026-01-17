@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { createCategory, updateCategory, type Category, type CreateCategoryData, type UpdateCategoryData } from '../../../app/(admin)/admin/actions';
 import { useRouter } from 'next/navigation';
 import useAdminStore from '../../../zustandStore/AdminZustandStore';
+import axios from 'axios';
 
 // Icon Components
 const ImageIcon = ({ className = 'w-5 h-5' }) => (
@@ -148,12 +149,36 @@ export default function Categories({ isDarkTheme, category }: CategoriesProps) {
     setSubmitting(true);
 
     try {
+      let imageUrl: string | undefined = undefined;
+
+      // Upload image via API if it's a new file
+      if (formData.image instanceof File) {
+        const formDataToSend = new FormData();
+        formDataToSend.append("file", formData.image);
+        formDataToSend.append("folder", "categories");
+
+        const response = await axios.post("/admin/api/uploadImage", formDataToSend, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        });
+
+        if (!response.data.success || !response.data.url) {
+          throw new Error(response.data.error || "Image upload failed");
+        }
+
+        imageUrl = response.data.url;
+      } else if (typeof formData.image === 'string') {
+        // If it's already a URL (editing mode), use it as is
+        imageUrl = formData.image;
+      }
+
       const categoryData: CreateCategoryData = {
         category_id: category?.category_id || '',
         category_name: formData.category_name,
         slug: formData.slug,
         description: formData.description || undefined,
-        category_image_url: formData.image || undefined,
+        category_image_url: imageUrl || undefined,
         is_active: formData.is_active,
       };
 
@@ -183,7 +208,7 @@ export default function Categories({ isDarkTheme, category }: CategoriesProps) {
       }
     } catch (error) {
       console.error('Submit error:', error);
-      alert('An unexpected error occurred. Please try again.');
+      alert(error instanceof Error ? error.message : 'An unexpected error occurred. Please try again.');
     } finally {
       setSubmitting(false);
     }

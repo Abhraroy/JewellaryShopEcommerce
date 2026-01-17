@@ -26,13 +26,13 @@ export interface CreateCategoryData {
   category_name: string;
   slug: string;
   description?: string;
-  category_image_url?: File;
+  category_image_url?: File | string;
   sub_categories?: Array<{
     sub_category_id: string;
     sub_category_name: string;
     slug: string;
     description?: string;
-    sub_category_image?: File;
+    sub_category_image?: File | string;
     is_active?: boolean;
   }>;
   is_active?: boolean;
@@ -124,24 +124,30 @@ export async function createCategory(
     let imageUrl: string | null = null;
     let uploadedImageKey: string | null = null;
 
-    // Upload image to Cloudflare R2 if provided
+    // Handle image - if it's a File, upload it; if it's a string (URL), use it directly
     if (formData.category_image_url) {
-      const uploadResult = await uploadImageToCloudflare(
-        formData.category_image_url,
-        {
-          folder: "categories",
+      if (formData.category_image_url instanceof File) {
+        // Upload image to Cloudflare R2 if it's a File
+        const uploadResult = await uploadImageToCloudflare(
+          formData.category_image_url,
+          {
+            folder: "categories",
+          }
+        );
+
+        if (!uploadResult.success) {
+          return {
+            success: false,
+            error: uploadResult.error || "Failed to upload image",
+          };
         }
-      );
 
-      if (!uploadResult.success) {
-        return {
-          success: false,
-          error: uploadResult.error || "Failed to upload image",
-        };
+        imageUrl = uploadResult.url || null;
+        uploadedImageKey = uploadResult.key || null;
+      } else {
+        // If it's already a URL string, use it directly
+        imageUrl = formData.category_image_url;
       }
-
-      imageUrl = uploadResult.url || null;
-      uploadedImageKey = uploadResult.key || null;
     }
 
     // Create category in database
@@ -210,30 +216,35 @@ export async function updateCategory(
 
     // Upload new image to Cloudflare if provided
     if (formData.category_image_url) {
-      // Delete old image if it exists
-      if (currentCategory.category_image_url) {
-        // Extract R2 key from URL
-        const r2Key = extractR2KeyFromUrl(currentCategory.category_image_url);
-        if (r2Key) {
-          await deleteImageFromCloudflare(r2Key);
+      if (formData.category_image_url instanceof File) {
+        // Delete old image if it exists
+        if (currentCategory.category_image_url) {
+          // Extract R2 key from URL
+          const r2Key = extractR2KeyFromUrl(currentCategory.category_image_url);
+          if (r2Key) {
+            await deleteImageFromCloudflare(r2Key);
+          }
         }
-      }
 
-      const uploadResult = await uploadImageToCloudflare(
-        formData.category_image_url,
-        {
-          folder: "categories",
+        const uploadResult = await uploadImageToCloudflare(
+          formData.category_image_url,
+          {
+            folder: "categories",
+          }
+        );
+
+        if (!uploadResult.success) {
+          return {
+            success: false,
+            error: uploadResult.error || "Failed to upload image",
+          };
         }
-      );
 
-      if (!uploadResult.success) {
-        return {
-          success: false,
-          error: uploadResult.error || "Failed to upload image",
-        };
+        imageUrl = uploadResult.url || null;
+      } else {
+        // If it's already a URL string, use it directly
+        imageUrl = formData.category_image_url;
       }
-
-      imageUrl = uploadResult.url || null;
     }
 
     // Update category in database
@@ -332,22 +343,29 @@ export async function createSubCategory(formData: any) {
     const supabase = await createClient();
     let imageUrl: string | null = null;
     let uploadedImageKey: string | null = null;
+    
+    // Handle image - if it's a File, upload it; if it's a string (URL), use it directly
     if (formData.subcategory_image_url) {
-      const uploadResult = await uploadImageToCloudflare(
-        formData.subcategory_image_url,
-        {
-          folder: "sub_categories",
-        }
-      );
+      if (formData.subcategory_image_url instanceof File) {
+        const uploadResult = await uploadImageToCloudflare(
+          formData.subcategory_image_url,
+          {
+            folder: "sub_categories",
+          }
+        );
 
-      if (!uploadResult.success) {
-        return {
-          success: false,
-          error: uploadResult.error || "Failed to upload image",
-        };
+        if (!uploadResult.success) {
+          return {
+            success: false,
+            error: uploadResult.error || "Failed to upload image",
+          };
+        }
+        imageUrl = uploadResult.url || null;
+        uploadedImageKey = uploadResult.key || null;
+      } else {
+        // If it's already a URL string, use it directly
+        imageUrl = formData.subcategory_image_url;
       }
-      imageUrl = uploadResult.url || null;
-      uploadedImageKey = uploadResult.key || null;
     }
 
     const subCategoryData = {
@@ -399,12 +417,25 @@ export async function updateSubCategory(formData: any) {
   try {
     const supabase = await createClient();
 
+    // Handle image - if it's a File, upload it; if it's a string (URL), use it directly
     if (formData.subcategory_image_url instanceof File) {
       console.log("subcategory_image_url is a file");
-      const r2Key = extractR2KeyFromUrl(formData.subcategory_image_url);
-      if (r2Key) {
-        await deleteImageFromCloudflare(r2Key);
+      
+      // Get current subcategory to delete old image if needed
+      const { data: currentSubcategory } = await supabase
+        .from("sub_categories")
+        .select("subcategory_image_url")
+        .eq("subcategory_id", formData.subcategory_id)
+        .single();
+
+      // Delete old image if it exists
+      if (currentSubcategory?.subcategory_image_url) {
+        const r2Key = extractR2KeyFromUrl(currentSubcategory.subcategory_image_url);
+        if (r2Key) {
+          await deleteImageFromCloudflare(r2Key);
+        }
       }
+
       const uploadResult = await uploadImageToCloudflare(
         formData.subcategory_image_url,
         {
@@ -418,58 +449,38 @@ export async function updateSubCategory(formData: any) {
         };
       }
       formData.subcategory_image_url = uploadResult.url || null;
-      console.log(
-        "formData of update sub category after upload image to cloudflare",
-        formData
-      );
-      const { data, error } = await supabase
-        .from("sub_categories")
-        .update(formData)
-        .eq("subcategory_id", formData.subcategory_id)
-        .select()
-        .single();
-      console.log(
-        "data of update sub category after update from function in backend ",
-        data
-      );
-      console.log("error of update sub category after update", error);
-      if (error) {
-        console.error("Error updating sub category:", error);
-        return {
-          success: false,
-          error: error.message,
-        };
-      }
-      return {
-        success: true,
-        data: data,
-      };
     } else {
-      console.log("subcategory_image_url is not a file");
+      // If it's already a URL string, use it as is
+      console.log("subcategory_image_url is a URL string");
       formData.subcategory_image_url = formData.subcategory_image_url;
-      const { data, error } = await supabase
-        .from("sub_categories")
-        .update(formData)
-        .eq("subcategory_id", formData.subcategory_id)
-        .select()
-        .single();
-      console.log(
-        "data of update sub category after update from function in backend ",
-        data
-      );
-      console.log("error of update sub category after update", error);
-      if (error) {
-        console.error("Error updating sub category:", error);
-        return {
-          success: false,
-          error: error.message,
-        };
-      }
+    }
+
+    console.log(
+      "formData of update sub category after processing image",
+      formData
+    );
+    const { data, error } = await supabase
+      .from("sub_categories")
+      .update(formData)
+      .eq("subcategory_id", formData.subcategory_id)
+      .select()
+      .single();
+    console.log(
+      "data of update sub category after update from function in backend ",
+      data
+    );
+    console.log("error of update sub category after update", error);
+    if (error) {
+      console.error("Error updating sub category:", error);
       return {
-        success: true,
-        data: data,
+        success: false,
+        error: error.message,
       };
     }
+    return {
+      success: true,
+      data: data,
+    };
   } catch (error) {
     console.error("Update sub category error:", error);
     return {

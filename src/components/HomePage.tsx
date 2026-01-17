@@ -88,7 +88,7 @@ export default function HomePage(
   ].map((src, index) => (
     <div
       key={index}
-      className="w-full h-[400px] md:h-[500px] lg:h-[600px] relative"
+      className="w-full h-full relative"
     >
       <Image
         src={src}
@@ -97,7 +97,7 @@ export default function HomePage(
         className="object-cover"
         priority={index === 0}
         fetchPriority={index === 0 ? "high" : "auto"}
-        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+        sizes="100vw"
       />
     </div>
   ));
@@ -316,7 +316,7 @@ export default function HomePage(
         <Carousel
           items={carouselItems}
           autoSlideInterval={3000}
-          className="h-[250px] md:h-[500px] lg:h-[600px]"
+          className="w-full h-[300px] sm:h-[400px] md:h-[500px] lg:h-[600px] xl:h-[700px]"
         />
         <CategorySection categories={categoriesProps} />
 

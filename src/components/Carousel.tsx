@@ -90,9 +90,9 @@ export default function Carousel({
       onTouchEnd={onTouchEnd}
     >
       {/* Carousel Container */}
-      <div className="relative h-full">
+      <div className="relative w-full h-full">
         <div
-          className="flex transition-transform duration-500 ease-in-out"
+          className="flex transition-transform duration-500 ease-in-out h-full"
           style={{
             transform: `translateX(-${currentIndex * 100}%)`,
           }}
@@ -100,7 +100,7 @@ export default function Carousel({
           {items.map((item, index) => (
             <div
               key={index}
-              className="min-w-full flex-shrink-0"
+              className="min-w-full w-full flex-shrink-0 h-full"
             >
               {item}
             </div>

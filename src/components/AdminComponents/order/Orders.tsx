@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useEffect, useMemo, useState } from "react";
+import { Fragment, useMemo, useState } from "react";
 import { createClient } from "@/app/utils/supabase/client";
 
 type OrderStatus =
@@ -101,53 +101,18 @@ const formatDate = (value?: string | null) =>
 const formatDateTime = (value?: string | null) =>
   value ? dateTimeFormatter.format(new Date(value)) : null;
 
-export default function Orders() {
+interface OrdersProps {
+  initialOrders: Order[];
+}
+
+export default function Orders({ initialOrders }: OrdersProps) {
   const supabase = createClient();
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [orders, setOrders] = useState<Order[]>(initialOrders);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | OrderStatus>("all");
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [expandedOrders, setExpandedOrders] = useState<Set<string>>(new Set());
-
-  useEffect(() => {
-    const fetchOrders = async () => {
-      try {
-        setLoading(true);
-        const { data, error } = await supabase
-          .from("orders")
-          .select(
-            `
-            *,
-            users(*),
-            shipping:addresses!orders_shipping_address_id_fkey(*),
-            order_items(*, products(*))
-          `
-          )
-          .order("order_date", { ascending: false })
-          .limit(100);
-
-        if (error) {
-          console.error("Error fetching orders:", error);
-          setError("Failed to load orders");
-          setOrders([]);
-        } else {
-          console.log("Orders fetched:", data);
-          setOrders((data as Order[]) || []);
-          setError(null);
-        }
-      } catch (err) {
-        console.error("Error fetching orders:", err);
-        setError("Failed to load orders");
-        setOrders([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchOrders();
-  }, []);
 
   const filteredOrders = useMemo(() => {
     return orders.filter((order) => {
@@ -295,29 +260,21 @@ export default function Orders() {
               </tr>
             </thead>
             <tbody>
-              {loading && (
-                <tr>
-                  <td colSpan={7} className="py-10 text-center text-gray-500">
-                    Loading orders...
-                  </td>
-                </tr>
-              )}
-              {!loading && error && (
+              {error && (
                 <tr>
                   <td colSpan={7} className="py-10 text-center text-red-600">
                     {error}
                   </td>
                 </tr>
               )}
-              {!loading && !error && filteredOrders.length === 0 && (
+              {!error && filteredOrders.length === 0 && (
                 <tr>
                   <td colSpan={7} className="py-10 text-center text-gray-500">
                     No orders found.
                   </td>
                 </tr>
               )}
-              {!loading &&
-                !error &&
+              {!error &&
                 filteredOrders.map((order) => {
                   const isExpanded = expandedOrders.has(order.order_id);
                   const itemCount =

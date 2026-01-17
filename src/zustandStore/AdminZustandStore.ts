@@ -15,6 +15,8 @@ interface AdminStoreState {
     setLoading: (loading: boolean) => void;
     error: string;
     setError: (error: string) => void;
+    showAddProduct: boolean;
+    setShowAddProduct: (showAddProduct: boolean) => void;
 }
 
 const useAdminStore = create<AdminStoreState>((set) => ({
@@ -32,6 +34,8 @@ const useAdminStore = create<AdminStoreState>((set) => ({
     setLoading: (loading: boolean) => set({ loading }),
     error: '',
     setError: (error: string) => set({ error }),
+    showAddProduct: false,
+    setShowAddProduct: (showAddProduct: boolean) => set({ showAddProduct }),
 }))
 
 
