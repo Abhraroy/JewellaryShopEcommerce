@@ -1,6 +1,7 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
+import Chart from "chart.js/auto";
 
 // Icon Components
 const ProductIcon = ({ className = 'w-5 h-5' }) => (
@@ -54,11 +55,250 @@ const ReviewIcon = ({ className = 'w-5 h-5' }) => (
   </svg>
 );
 
-interface DashboardProps {
-  isDarkTheme: boolean;
+interface DailyRevenue {
+  date: string;
+  dateLabel: string;
+  total: number;
+  orderCount: number;
 }
 
-export default function Dashboard({ isDarkTheme }: DashboardProps) {
+interface TopCategory {
+  categoryId: string;
+  categoryName: string;
+  itemCount: number;
+}
+
+interface DashboardStats {
+  totalProducts: number;
+  totalOrders: number;
+  totalReviews: number;
+  totalRevenue: number;
+  formattedRevenue: string;
+  dailyRevenue: DailyRevenue[];
+  topCategories: TopCategory[];
+}
+
+interface DashboardProps {
+  isDarkTheme: boolean;
+  stats: DashboardStats;
+}
+
+export default function Dashboard({ isDarkTheme, stats }: DashboardProps) {
+  const chartRef = useRef<HTMLCanvasElement>(null);
+  const chartInstanceRef = useRef<Chart | null>(null);
+  const pieChartRef = useRef<HTMLCanvasElement>(null);
+  const pieChartInstanceRef = useRef<Chart | null>(null);
+
+  useEffect(() => {
+    if (!chartRef.current || !stats.dailyRevenue) return;
+
+    // Destroy existing chart if it exists
+    if (chartInstanceRef.current) {
+      chartInstanceRef.current.destroy();
+    }
+
+    const ctx = chartRef.current.getContext('2d');
+    if (!ctx) return;
+
+    // Prepare data for chart
+    const labels = stats.dailyRevenue.map(day => day.dateLabel);
+    const revenueData = stats.dailyRevenue.map(day => day.total);
+    const orderCounts = stats.dailyRevenue.map(day => day.orderCount);
+
+    // Format revenue for display
+    const currencyFormatter = new Intl.NumberFormat("en-IN", {
+      style: "currency",
+      currency: "INR",
+      maximumFractionDigits: 0,
+    });
+
+    chartInstanceRef.current = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [
+          {
+            label: 'Daily Revenue (₹)',
+            data: revenueData,
+            borderColor: 'rgb(236, 72, 153)', // rose-500
+            backgroundColor: 'rgba(236, 72, 153, 0.1)',
+            borderWidth: 2,
+            fill: true,
+            tension: 0.4,
+            pointBackgroundColor: 'rgb(236, 72, 153)',
+            pointBorderColor: '#fff',
+            pointBorderWidth: 2,
+            pointRadius: 4,
+            pointHoverRadius: 6,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: true,
+            position: 'top',
+            labels: {
+              usePointStyle: true,
+              padding: 15,
+              font: {
+                size: 12,
+                weight: 'normal',
+              },
+            },
+          },
+          tooltip: {
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            padding: 12,
+            titleFont: {
+              size: 14,
+              weight: 'bold',
+            },
+            bodyFont: {
+              size: 13,
+            },
+            callbacks: {
+              label: function(context) {
+                const index = context.dataIndex;
+                const revenue = context.parsed.y || 0;
+                const orders = orderCounts[index] || 0;
+                return [
+                  `Revenue: ${currencyFormatter.format(revenue)}`,
+                  `Orders: ${orders}`,
+                ];
+              },
+            },
+          },
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {
+              callback: function(value) {
+                if (typeof value === 'number') {
+                  return '₹' + value.toLocaleString('en-IN');
+                }
+                return '₹0';
+              },
+              font: {
+                size: 11,
+              },
+            },
+            grid: {
+              color: isDarkTheme ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
+            },
+          },
+          x: {
+            ticks: {
+              font: {
+                size: 11,
+              },
+            },
+            grid: {
+              display: false,
+            },
+          },
+        },
+      },
+    });
+
+    // Cleanup function
+    return () => {
+      if (chartInstanceRef.current) {
+        chartInstanceRef.current.destroy();
+      }
+    };
+  }, [stats.dailyRevenue, isDarkTheme]);
+
+  // Pie chart for top categories
+  useEffect(() => {
+    if (!pieChartRef.current || !stats.topCategories || stats.topCategories.length === 0) return;
+
+    // Destroy existing chart if it exists
+    if (pieChartInstanceRef.current) {
+      pieChartInstanceRef.current.destroy();
+    }
+
+    const ctx = pieChartRef.current.getContext('2d');
+    if (!ctx) return;
+
+    // Prepare data for pie chart
+    const labels = stats.topCategories.map(cat => cat.categoryName);
+    const data = stats.topCategories.map(cat => cat.itemCount);
+
+    // Chart.js colors - rose, pink, purple shades
+    const colors = [
+      'rgb(236, 72, 153)',   // rose-500
+      'rgb(219, 39, 119)',   // rose-600
+      'rgb(190, 24, 93)',    // rose-700
+    ];
+    const backgroundColor = colors.slice(0, stats.topCategories.length);
+    const borderColor = backgroundColor;
+
+    pieChartInstanceRef.current = new Chart(ctx, {
+      type: 'pie',
+      data: {
+        labels: labels,
+        datasets: [
+          {
+            label: 'Order Items',
+            data: data,
+            backgroundColor: backgroundColor,
+            borderColor: borderColor,
+            borderWidth: 2,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: true,
+            position: 'bottom',
+            labels: {
+              usePointStyle: true,
+              padding: 15,
+              font: {
+                size: 12,
+                weight: 'normal',
+              },
+            },
+          },
+          tooltip: {
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            padding: 12,
+            titleFont: {
+              size: 14,
+              weight: 'bold',
+            },
+            bodyFont: {
+              size: 13,
+            },
+            callbacks: {
+              label: function(context) {
+                const label = context.label || '';
+                const value = context.parsed || 0;
+                const total = context.dataset.data.reduce((a: number, b: number) => a + b, 0);
+                const percentage = ((value / total) * 100).toFixed(1);
+                return `${label}: ${value} items (${percentage}%)`;
+              },
+            },
+          },
+        },
+      },
+    });
+
+    // Cleanup function
+    return () => {
+      if (pieChartInstanceRef.current) {
+        pieChartInstanceRef.current.destroy();
+      }
+    };
+  }, [stats.topCategories, isDarkTheme]);
+
   return (
     <div className="p-6">
       <h1 className={`text-3xl font-bold mb-6 ${isDarkTheme ? 'text-white' : 'text-gray-900'}`}>Dashboard</h1>
@@ -71,7 +311,9 @@ export default function Dashboard({ isDarkTheme }: DashboardProps) {
             </div>
             <div className="ml-4">
               <p className={`text-sm font-medium ${isDarkTheme ? 'text-gray-400' : 'text-gray-600'}`}>Total Products</p>
-              <p className={`text-2xl font-bold ${isDarkTheme ? 'text-white' : 'text-gray-900'}`}>1,234</p>
+              <p className={`text-2xl font-bold ${isDarkTheme ? 'text-white' : 'text-gray-900'}`}>
+                {stats.totalProducts.toLocaleString()}
+              </p>
             </div>
           </div>
         </div>
@@ -83,7 +325,9 @@ export default function Dashboard({ isDarkTheme }: DashboardProps) {
             </div>
             <div className="ml-4">
               <p className={`text-sm font-medium ${isDarkTheme ? 'text-gray-400' : 'text-gray-600'}`}>Total Orders</p>
-              <p className={`text-2xl font-bold ${isDarkTheme ? 'text-white' : 'text-gray-900'}`}>567</p>
+              <p className={`text-2xl font-bold ${isDarkTheme ? 'text-white' : 'text-gray-900'}`}>
+                {stats.totalOrders.toLocaleString()}
+              </p>
             </div>
           </div>
         </div>
@@ -95,7 +339,9 @@ export default function Dashboard({ isDarkTheme }: DashboardProps) {
             </div>
             <div className="ml-4">
               <p className={`text-sm font-medium ${isDarkTheme ? 'text-gray-400' : 'text-gray-600'}`}>Total Reviews</p>
-              <p className={`text-2xl font-bold ${isDarkTheme ? 'text-white' : 'text-gray-900'}`}>89</p>
+              <p className={`text-2xl font-bold ${isDarkTheme ? 'text-white' : 'text-gray-900'}`}>
+                {stats.totalReviews.toLocaleString()}
+              </p>
             </div>
           </div>
         </div>
@@ -109,21 +355,39 @@ export default function Dashboard({ isDarkTheme }: DashboardProps) {
             </div>
             <div className="ml-4">
               <p className={`text-sm font-medium ${isDarkTheme ? 'text-gray-400' : 'text-gray-600'}`}>Revenue</p>
-              <p className={`text-2xl font-bold ${isDarkTheme ? 'text-white' : 'text-gray-900'}`}>$12,345</p>
+              <p className={`text-2xl font-bold ${isDarkTheme ? 'text-white' : 'text-gray-900'}`}>
+                {stats.formattedRevenue}
+              </p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Recent Activity */}
+      {/* Daily Revenue Chart */}
       <div className="mt-8">
-        <h2 className={`text-xl font-semibold mb-4 ${isDarkTheme ? 'text-white' : 'text-gray-900'}`}>Recent Activity</h2>
-        <div className={`${isDarkTheme ? 'bg-black border border-gray-700' : 'bg-white'} rounded-lg shadow overflow-hidden`}>
-          <div className={`p-6 text-center ${isDarkTheme ? 'text-gray-400' : 'text-gray-500'}`}>
-            Recent activity data will be displayed here
+        <h2 className={`text-xl font-semibold mb-4 ${isDarkTheme ? 'text-white' : 'text-gray-900'}`}>
+          Revenue Trend (Last 7 Days)
+        </h2>
+        <div className={`${isDarkTheme ? 'bg-black border border-gray-700' : 'bg-white'} rounded-lg shadow overflow-hidden p-6`}>
+          <div className="h-[400px] relative">
+            <canvas ref={chartRef} />
           </div>
         </div>
       </div>
+
+      {/* Top Categories Pie Chart */}
+      {stats.topCategories && stats.topCategories.length > 0 && (
+        <div className="mt-8">
+          <h2 className={`text-xl font-semibold mb-4 ${isDarkTheme ? 'text-white' : 'text-gray-900'}`}>
+            Top Categories by Order Items
+          </h2>
+          <div className={`${isDarkTheme ? 'bg-black border border-gray-700' : 'bg-white'} rounded-lg shadow overflow-hidden p-6`}>
+            <div className="h-[400px] relative max-w-md mx-auto">
+              <canvas ref={pieChartRef} />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
