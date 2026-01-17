@@ -1,8 +1,8 @@
 "use client"
 
-import React, { useState, useEffect } from 'react';
-import { Category, createSubCategory, updateSubCategory, deleteSubCategory } from '../actions/categories';
-import { uploadImageToCloudflare } from '@/app/utils/cloudflare';
+import React, { useState } from 'react';
+import { Category, deleteCategory, createSubCategory, updateSubCategory, deleteSubCategory } from '../../../app/(admin)/admin/actions/categories';
+import { useRouter } from 'next/navigation';
 
 const PlusIcon = ({ className = 'w-5 h-5' }) => (
     <svg
@@ -63,7 +63,8 @@ const PlusIcon = ({ className = 'w-5 h-5' }) => (
   
 
 
-export default function CategoriesList({ category, isDarkTheme, handleEdit, handleDelete, fetchCategories, setCategories }: { category: Category, isDarkTheme: boolean, handleEdit: (categoryId: string) => void, handleDelete: (categoryId: string) => void, fetchCategories: () => void, setCategories: (categories: Category[]) => void }) {
+export default function CategoriesList({ category, isDarkTheme }: { category: Category, isDarkTheme: boolean }) {
+  const router = useRouter();
   const [showSubCategories, setShowSubCategories] = useState(false);
   const [showAddSubCategory, setShowAddSubCategory] = useState(false);
   const [subCategories, setSubCategories] = useState<[]>([]);
@@ -77,6 +78,26 @@ export default function CategoriesList({ category, isDarkTheme, handleEdit, hand
     is_active: true,
   });
   const [submitting, setSubmitting] = useState(false);
+
+  const handleEdit = (categoryId: string) => {
+    router.push(`/admin/categories/${categoryId}`);
+  };
+
+  const handleDelete = async (categoryId: string) => {
+    if (confirm('Are you sure you want to delete this category? This action cannot be undone.')) {
+      try {
+        const result = await deleteCategory(categoryId);
+        if (result.success) {
+          router.refresh();
+        } else {
+          alert(`Failed to delete category: ${result.error}`);
+        }
+      } catch (error) {
+        console.error('Delete error:', error);
+        alert('An unexpected error occurred while deleting the category.');
+      }
+    }
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -167,27 +188,26 @@ export default function CategoriesList({ category, isDarkTheme, handleEdit, hand
     const result = await updateSubCategory(formDataWithCategoryId)
     console.log("result of update sub category",result)
     if(result.success){
-       fetchCategories();
+       router.refresh();
       handleCancel();
       setShowAddSubCategory(false)
+      setSubmitting(false);
       return;
     }else{
       alert(`Failed to update sub category: ${result?.error}`)
+      setSubmitting(false);
       return;
     }
    }
 
     const result = await createSubCategory(formDataWithCategoryId)
     if(result.success){
-    //   setSubCategories((prev) => [...prev, result.data as any])
-     await fetchCategories();
+     router.refresh();
      handleCancel();
       setShowAddSubCategory(false)
     }else{
       alert(`Failed to create sub category: ${result?.error}`)
     }
-    // After successful submission:
-    // handleCancel();
     setSubmitting(false);
   };
 
@@ -206,11 +226,13 @@ export default function CategoriesList({ category, isDarkTheme, handleEdit, hand
     }
   }
   const handleDeleteSubCategory = async (subcategory_id: string) => {
-    const result = await deleteSubCategory(subcategory_id)
-    if(result.success){
-      fetchCategories();
-    }else{
-      alert(`Failed to delete sub category: ${result?.error}`)
+    if (confirm('Are you sure you want to delete this sub category? This action cannot be undone.')) {
+      const result = await deleteSubCategory(subcategory_id)
+      if(result.success){
+        router.refresh();
+      }else{
+        alert(`Failed to delete sub category: ${result?.error}`)
+      }
     }
   }
   return (

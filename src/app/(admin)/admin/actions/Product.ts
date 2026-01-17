@@ -36,6 +36,38 @@ export async function uploadProductImages(productId: string, files: File[]) {
   }
 }
 
+export async function saveProductImageUrls(productId: string, imageUrls: string[]) {
+  try {
+    const supabase = await createClient();
+
+    if (!imageUrls || imageUrls.length === 0) {
+      return { success: false, error: "No image URLs provided" };
+    }
+
+    const imageRecords = imageUrls.map((url) => ({
+      product_id: productId,
+      image_url: url,
+    }));
+
+    const { data, error } = await supabase
+      .from("product_images")
+      .insert(imageRecords)
+      .select();
+
+    if (error) {
+      return { success: false, error: error.message };
+    }
+
+    return { success: true, data: data };
+  } catch (error) {
+    console.error("Error saving product image URLs:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to save image URLs",
+    };
+  }
+}
+
 export async function getProducts() {
   const supabase = await createClient();
   const { data, error } = await supabase
@@ -55,33 +87,84 @@ export async function getProducts() {
   }
 }
 
+// export async function createProduct(productData: any) {
+//   try {
+//     console.log("productData", productData);
+
+//     const supabase = await createClient();
+
+//     let imageUrl: string | null = null;
+//     let uploadedImageKey: string | null = null;
+
+//     if (productData.thumbnail_image) {
+//       const uploadResult = await uploadImageToCloudflare(
+//         productData.thumbnail_image,
+//         {
+//           folder: "products",
+//         }
+//       );
+
+//       if (!uploadResult.success) {
+//         return {
+//           success: false,
+//           error: uploadResult.error || "Failed to upload image",
+//         };
+//       }
+
+//       imageUrl = uploadResult.url || null;
+//       uploadedImageKey = uploadResult.key || null;
+//     }
+
+//     const payload = {
+//       product_name: productData.product_name,
+//       category_id: productData.category_id,
+//       subcategory_id: productData.subcategory_id,
+//       description: productData.description,
+//       base_price: productData.base_price,
+//       discount_percentage: productData.discount_percentage,
+//       final_price: productData.final_price,
+//       stock_quantity: productData.stock_quantity,
+//       weight_grams: productData.weight_grams,
+//       metal_type: productData.metal_type,
+//       thumbnail_image: imageUrl,
+//       size: productData.size || [],
+//       tags: productData.tags || [],
+//       occasion: productData.occasion || "",
+//       collection: productData.collection || "",
+//       listed_status:
+//         typeof productData.listed_status === "boolean"
+//           ? productData.listed_status
+//           : true,
+//     };
+//     const { data, error } = await supabase
+//       .from("products")
+//       .insert(payload)
+//       .select()
+//       .single();
+//     if (error) {
+//       console.error("Error creating product:", error);
+//       return {
+//         success: false,
+//         error: error.message,
+//         message: "Failed to create product",
+//       };
+//     }
+//     return { success: true, data: data };
+//   } catch (error) {
+//     console.error("Error creating product:", error);
+//     return {
+//       success: false,
+//       error:
+//         error instanceof Error ? error.message : "Failed to create product",
+//     };
+//   }
+// }
+
+
+
 export async function createProduct(productData: any) {
   try {
-    console.log("productData", productData);
-
     const supabase = await createClient();
-
-    let imageUrl: string | null = null;
-    let uploadedImageKey: string | null = null;
-
-    if (productData.thumbnail_image) {
-      const uploadResult = await uploadImageToCloudflare(
-        productData.thumbnail_image,
-        {
-          folder: "products",
-        }
-      );
-
-      if (!uploadResult.success) {
-        return {
-          success: false,
-          error: uploadResult.error || "Failed to upload image",
-        };
-      }
-
-      imageUrl = uploadResult.url || null;
-      uploadedImageKey = uploadResult.key || null;
-    }
 
     const payload = {
       product_name: productData.product_name,
@@ -93,8 +176,7 @@ export async function createProduct(productData: any) {
       final_price: productData.final_price,
       stock_quantity: productData.stock_quantity,
       weight_grams: productData.weight_grams,
-      metal_type: productData.metal_type,
-      thumbnail_image: imageUrl,
+      thumbnail_image: productData.thumbnail_image, // ✅ URL only
       size: productData.size || [],
       tags: productData.tags || [],
       occasion: productData.occasion || "",
@@ -104,29 +186,35 @@ export async function createProduct(productData: any) {
           ? productData.listed_status
           : true,
     };
+
     const { data, error } = await supabase
       .from("products")
       .insert(payload)
-      .select()
+      .select(`
+        *,
+        categories(category_name),
+        sub_categories(subcategory_name),
+        product_images(image_url)
+      `)
       .single();
-    if (error) {
-      console.error("Error creating product:", error);
-      return {
-        success: false,
-        error: error.message,
-        message: "Failed to create product",
-      };
-    }
-    return { success: true, data: data };
-  } catch (error) {
+
+    if (error) throw error;
+
+    return { success: true, data };
+  } catch (error: any) {
     console.error("Error creating product:", error);
     return {
       success: false,
-      error:
-        error instanceof Error ? error.message : "Failed to create product",
+      error: error.message || "Failed to create product",
     };
   }
 }
+
+
+
+
+
+
 
 export async function updateProduct(productId: string, productData: any) {
   try {

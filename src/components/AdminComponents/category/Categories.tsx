@@ -1,24 +1,11 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { getCategories, createCategory, updateCategory, deleteCategory, type Category, type CreateCategoryData, type UpdateCategoryData } from '../actions';
-import CategoriesList from './CategoriesList';
-import axios from 'axios';
+import { createCategory, updateCategory, type Category, type CreateCategoryData, type UpdateCategoryData } from '../../../app/(admin)/admin/actions';
+import { useRouter } from 'next/navigation';
+import useAdminStore from '../../../zustandStore/AdminZustandStore';
 
 // Icon Components
-const PlusIcon = ({ className = 'w-5 h-5' }) => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    fill="none"
-    viewBox="0 0 24 24"
-    strokeWidth={2}
-    stroke="currentColor"
-    className={className}
-  >
-    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-  </svg>
-);
-
 const ImageIcon = ({ className = 'w-5 h-5' }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -33,19 +20,6 @@ const ImageIcon = ({ className = 'w-5 h-5' }) => (
       strokeLinejoin="round"
       d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"
     />
-  </svg>
-);
-
-const EditIcon = ({ className = 'w-4 h-4' }) => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    fill="none"
-    viewBox="0 0 24 24"
-    strokeWidth={2}
-    stroke="currentColor"
-    className={className}
-  >
-    <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2v-5m-1.414-9.414a2 2 0 1 1 2.828 2.828L11.828 15H9v-2.828l8.586-8.586Z" />
   </svg>
 );
 
@@ -64,13 +38,12 @@ const DeleteIcon = ({ className = 'w-4 h-4' }) => (
 
 interface CategoriesProps {
   isDarkTheme: boolean;
+  category?: Category; // Optional category for editing
 }
 
-export default function Categories({ isDarkTheme }: CategoriesProps) {
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [showAddCategory, setShowAddCategory] = useState(false);
-  const [editingCategory, setEditingCategory] = useState<string | null>(null);
+export default function Categories({ isDarkTheme, category }: CategoriesProps) {
+  const router = useRouter();
+  const { showAddCategory, setShowAddCategory } = useAdminStore();
   const [submitting, setSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     category_name: '',
@@ -81,28 +54,29 @@ export default function Categories({ isDarkTheme }: CategoriesProps) {
     is_active: true,
   });
 
-  // Fetch categories on component mount
+  // Initialize form when category prop changes (for editing)
   useEffect(() => {
-    fetchCategories();
-  }, []);
-
-  const fetchCategories = async () => {
-    try {
-      const result = await getCategories();
-      console.log("result of getCategories",result)
-      if (result.success && result.data) {
-        setCategories(result.data);
-      } else {
-        console.error('Failed to fetch categories:', result.error);
-        alert(`Failed to load categories: ${result.error}`);
-      }
-    } catch (error) {
-      console.error('Error fetching categories:', error);
-      alert('An unexpected error occurred while loading categories.');
-    } finally {
-      setLoading(false);
+    if (category) {
+      setFormData({
+        category_name: category.category_name,
+        slug: category.slug,
+        description: category.description || '',
+        image: null,
+        imagePreview: category.category_image_url || '',
+        is_active: category.is_active,
+      });
+    } else {
+      // Reset form for new category
+      setFormData({
+        category_name: '',
+        slug: '',
+        description: '',
+        image: null,
+        imagePreview: '',
+        is_active: true,
+      });
     }
-  };
+  }, [category]);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -175,7 +149,7 @@ export default function Categories({ isDarkTheme }: CategoriesProps) {
 
     try {
       const categoryData: CreateCategoryData = {
-        category_id: editingCategory || '',
+        category_id: category?.category_id || '',
         category_name: formData.category_name,
         slug: formData.slug,
         description: formData.description || undefined,
@@ -183,79 +157,35 @@ export default function Categories({ isDarkTheme }: CategoriesProps) {
         is_active: formData.is_active,
       };
 
-      if (editingCategory) {
+      if (category) {
         // Update existing category
         const updateData: UpdateCategoryData = {
           ...categoryData,
-          category_id: editingCategory,
+          category_id: category.category_id,
         };
 
         const result = await updateCategory(updateData);
-        if (result.success && result.data) {
-          setCategories((prev) =>
-            prev.map((cat) =>
-              cat.category_id === editingCategory ? result.data! : cat
-            )
-          );
-          setEditingCategory(null);
+        if (result.success) {
+          router.refresh();
+          handleCancel();
         } else {
           alert(`Failed to update category: ${result.error}`);
-          return;
         }
       } else {
+        // Create new category
         const result = await createCategory(categoryData);
-        if (result.success && result.data) {
-          setCategories((prev) => [...prev, result.data!]);
+        if (result.success) {
+          router.refresh();
+          handleCancel();
         } else {
           alert(`Failed to create category: ${result.error}`);
-          return;
         }
       }
-
-      // Refresh categories to ensure we have the latest data
-      await fetchCategories();
-
-      // Reset form and cleanup
-      handleCancel();
     } catch (error) {
       console.error('Submit error:', error);
       alert('An unexpected error occurred. Please try again.');
     } finally {
       setSubmitting(false);
-    }
-  };
-
-  const handleEdit = (categoryId: string) => {
-    const category = categories.find(cat => cat.category_id === categoryId);
-    if (category) {
-      setFormData({
-        category_name: category.category_name,
-        slug: category.slug,
-        description: category.description || '',
-        image: null, // We don't have the actual file, just the URL
-        imagePreview: category.category_image_url || '', // Use existing image as preview
-        is_active: category.is_active,
-      });
-      setEditingCategory(categoryId);
-      setShowAddCategory(true);
-    }
-  };
-
-  const handleDelete = async (categoryId: string) => {
-    if (confirm('Are you sure you want to delete this category? This action cannot be undone.')) {
-      try {
-        const result = await deleteCategory(categoryId);
-        if (result.success) {
-          setCategories((prev) => prev.filter(cat => cat.category_id !== categoryId));
-          // Refresh categories to ensure we have the latest data
-          await fetchCategories();
-        } else {
-          alert(`Failed to delete category: ${result.error}`);
-        }
-      } catch (error) {
-        console.error('Delete error:', error);
-        alert('An unexpected error occurred while deleting the category.');
-      }
     }
   };
 
@@ -272,44 +202,21 @@ export default function Categories({ isDarkTheme }: CategoriesProps) {
       imagePreview: '',
       is_active: true,
     });
-    setEditingCategory(null);
     setShowAddCategory(false);
   };
 
-  return (
-    <div className="p-6">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className={`text-3xl font-bold ${isDarkTheme ? 'text-white' : 'text-gray-900'}`}>
-            Categories Management
-          </h1>
-          <p className={`text-sm mt-1 ${isDarkTheme ? 'text-gray-400' : 'text-gray-600'}`}>
-            Manage main categories and their subcategories for your jewelry collection
-          </p>
-        </div>
-        <button
-          onClick={() => setShowAddCategory(!showAddCategory)}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
-            isDarkTheme
-              ? 'bg-[#E94E8B] text-white hover:bg-[#d43d75]'
-              : 'bg-[#E94E8B] text-white hover:bg-[#d43d75]'
-          }`}
-        >
-          {!showAddCategory?<PlusIcon className="w-5 h-5" />:""}
-          {showAddCategory ? 'Cancel' : 'Add Category'}
-        </button>
-      </div>
+  if (!showAddCategory) return null;
 
+  return (
+    <div className="mb-6">
       {/* Add/Edit Category Form */}
-      {showAddCategory && (
-        <div
-          className={`${
-            isDarkTheme ? 'bg-black border border-gray-700' : 'bg-white'
-          } rounded-lg shadow-lg p-6 mb-6`}
-        >
+      <div
+        className={`${
+          isDarkTheme ? 'bg-black border border-gray-700' : 'bg-white'
+        } rounded-lg shadow-lg p-6`}
+      >
           <h2 className={`text-2xl font-bold mb-6 ${isDarkTheme ? 'text-white' : 'text-gray-900'}`}>
-            {editingCategory ? 'Edit Category' : 'Add New Category'}
+            {category ? 'Edit Category' : 'Add New Category'}
           </h2>
 
           <form onSubmit={handleSubmit}>
@@ -454,7 +361,7 @@ export default function Categories({ isDarkTheme }: CategoriesProps) {
                     onChange={handleImageUpload}
                     className="hidden"
                     id="category-image-upload"
-                    required={!editingCategory}
+                    required={!category}
                   />
                   <label
                     htmlFor="category-image-upload"
@@ -503,71 +410,11 @@ export default function Categories({ isDarkTheme }: CategoriesProps) {
                 disabled={submitting}
                 className="px-6 py-2 bg-[#E94E8B] text-white rounded-lg font-medium hover:bg-[#d43d75] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {submitting ? 'Saving...' : (editingCategory ? 'Update Category' : 'Add Category')}
+                {submitting ? 'Saving...' : (category ? 'Update Category' : 'Add Category')}
               </button>
             </div>
           </form>
         </div>
-      )}
-      {/* Categories List */}
-      <div
-        className={`${
-          isDarkTheme ? 'bg-black border border-gray-700' : 'bg-white'
-        } rounded-lg shadow p-6`}
-      >
-        <h2 className={`text-xl font-semibold mb-2 ${isDarkTheme ? 'text-white' : 'text-gray-900'}`}>
-          Main Categories ({categories.length})
-        </h2>
-        <p className={`text-sm mb-4 ${isDarkTheme ? 'text-gray-400' : 'text-gray-600'}`}>
-          Manage your jewelry categories.
-        </p>
-
-        {loading ? (
-          <div className={`text-center py-12 ${isDarkTheme ? 'text-gray-400' : 'text-gray-500'}`}>
-            Loading categories...
-          </div>
-        ) : categories.length === 0 ? (
-          <div className={`text-center py-12 ${isDarkTheme ? 'text-gray-400' : 'text-gray-500'}`}>
-            No categories added yet. Click &quot;Add Category&quot; to create your first category.
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className={`border-b ${isDarkTheme ? 'border-gray-700' : 'border-gray-200'}`}>
-                  <th className={`text-left py-3 px-4 font-semibold text-sm ${isDarkTheme ? 'text-gray-300' : 'text-gray-700'}`}>
-                    Image
-                  </th>
-                  <th className={`text-left py-3 px-4 font-semibold text-sm ${isDarkTheme ? 'text-gray-300' : 'text-gray-700'}`}>
-                    Category Name
-                  </th>
-                  <th className={`text-left py-3 px-4 font-semibold text-sm ${isDarkTheme ? 'text-gray-300' : 'text-gray-700'}`}>
-                    Slug
-                  </th>
-                  <th className={`text-left py-3 px-4 font-semibold text-sm ${isDarkTheme ? 'text-gray-300' : 'text-gray-700'}`}>
-                    Description
-                  </th>
-                  <th className={`text-left py-3 px-4 font-semibold text-sm ${isDarkTheme ? 'text-gray-300' : 'text-gray-700'}`}>
-                    Status
-                  </th>
-                  <th className={`text-left py-3 px-4 font-semibold text-sm ${isDarkTheme ? 'text-gray-300' : 'text-gray-700'}`}>
-                    Actions
-                  </th>
-                  <th className={`text-left py-3 px-4 font-semibold text-sm ${isDarkTheme ? 'text-gray-300' : 'text-gray-700'}`}>
-                    Sub Categories
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-              {categories.map((category : Category) => (
-              <CategoriesList key={category.category_id} category={category} isDarkTheme={isDarkTheme} handleEdit={handleEdit} handleDelete={handleDelete} fetchCategories={fetchCategories} setCategories={setCategories} />
-           
-          ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
     </div>
   );
 }

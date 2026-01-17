@@ -1,0 +1,38 @@
+import { create } from "zustand";
+
+interface AdminStoreState {
+    categories: any;
+    setCategories: (categories: any) => void;
+    showAddCategory: boolean;
+    setShowAddCategory: (showAddCategory: boolean) => void;
+    editingCategory: boolean;
+    setEditingCategory: (editingCategory: boolean) => void;
+    formData: any;
+    setFormData: (formData: any) => void;
+    submitting: boolean;
+    setSubmitting: (submitting: boolean) => void;
+    loading: boolean;
+    setLoading: (loading: boolean) => void;
+    error: string;
+    setError: (error: string) => void;
+}
+
+const useAdminStore = create<AdminStoreState>((set) => ({
+    categories: [],
+    setCategories: (categories: any) => set({ categories }),
+    showAddCategory: false,
+    setShowAddCategory: (showAddCategory: boolean) => set({ showAddCategory }),
+    editingCategory: false,
+    setEditingCategory: (editingCategory: boolean) => set({ editingCategory }),
+    formData: {},
+    setFormData: (formData: any) => set({ formData }),
+    submitting: false,
+    setSubmitting: (submitting: boolean) => set({ submitting }),
+    loading: false,
+    setLoading: (loading: boolean) => set({ loading }),
+    error: '',
+    setError: (error: string) => set({ error }),
+}))
+
+
+export default useAdminStore;

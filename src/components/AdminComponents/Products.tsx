@@ -3,9 +3,10 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { createClient } from "@/app/utils/supabase/client";
-import { getProducts, uploadProductImages, createProduct, updateProduct, deleteProduct, deleteProductImage } from "../actions/Product";
-import { Category, getCategories } from "../actions/categories";
-import { uploadImageToCloudflare } from "@/app/utils/cloudflare";
+import { getProducts, uploadProductImages, createProduct, updateProduct, deleteProduct, deleteProductImage, saveProductImageUrls } from "../../app/(admin)/admin/actions/Product";
+import { Category, getCategories } from "../../app/(admin)/admin/actions/categories";
+import axios from "axios";
+import { Loader2 } from "lucide-react";
 
 const MAX_IMAGE_UPLOAD_BYTES = 8 * 1024 * 1024; // 8MB guard to keep server action body small
 
@@ -149,7 +150,7 @@ export default function Products({ isDarkTheme }: ProductsProps) {
   const [editingProductId, setEditingProductId] = useState<string | null>(null);
   const [viewerProductId, setViewerProductId] = useState<string | null>(null);
   const [isDeletingImage, setIsDeletingImage] = useState(false);
-
+  const [isSaving, setIsSaving] = useState(false);
   // Categories and their subcategories
   const [tags, setTags] = useState<string[]>([]);
 
@@ -313,32 +314,62 @@ export default function Products({ isDarkTheme }: ProductsProps) {
       console.log("Uploading images for product:", productId);
       console.log("Files:", files);
       
-      // TODO: Implement image upload functionality
-      // This should:
-      // 1. Upload images to Cloudflare R2
-      // 2. Save image URLs to product_images table in database
-      // 3. Refresh the products list
-      
-      // Placeholder for now
-      const result = await uploadProductImages(productId, files);
-      if(result.success){
-        console.log("Images uploaded successfully and is availiable in the database");
-        const result = await getProducts();
-        if(result.success){
-          console.log("Products fetched successfully");
-          setProducts(result.data as any[]);
-        }else{
-          console.error("Error fetching products:", result.message);
-          alert("Failed to fetch products. Please try again.");
-        }
-      }else{
-        console.error("Error uploading images:", result.error);
-        alert("Failed to upload images. Please try again.");
+      if (!files || files.length === 0) {
+        alert("No files selected");
+        return;
       }
+
+      // Upload each file using the API route
+      const uploadPromises = Array.from(files).map(async (file) => {
+        const formDataToSend = new FormData();
+        formDataToSend.append("file", file);
+        formDataToSend.append("folder", "products/images");
+
+        const response = await axios.post("/admin/api/uploadImage", formDataToSend, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        });
+
+        if (!response.data.success) {
+          throw new Error(response.data.error || "Upload failed");
+        }
+
+        return response.data;
+      });
+
+      const uploadResults = await Promise.all(uploadPromises);
+      console.log("Upload results:", uploadResults);
+
+      // Extract image URLs from upload results
+      const imageUrls = uploadResults.map((result) => result.url).filter(Boolean);
       
-    } catch (error) {
+      if (imageUrls.length === 0) {
+        throw new Error("No images were successfully uploaded");
+      }
+
+      // Save image URLs to product_images table using the new server action
+      const saveResult = await saveProductImageUrls(productId, imageUrls);
+      
+      if (!saveResult.success) {
+        throw new Error(saveResult.error || "Failed to save image URLs to database");
+      }
+
+      console.log("Images uploaded and saved successfully");
+
+      // Refresh products list
+      const productsResult = await getProducts();
+      if (productsResult.success) {
+        console.log("Products fetched successfully");
+        setProducts(productsResult.data as any[]);
+        alert(`Successfully uploaded ${imageUrls.length} image(s)`);
+      } else {
+        console.error("Error fetching products:", productsResult.message);
+        alert("Images uploaded but failed to refresh products list.");
+      }
+    } catch (error: any) {
       console.error("Error uploading images:", error);
-      alert("Failed to upload images. Please try again.");
+      alert(`Failed to upload images: ${error.response?.data?.error || error.message}`);
     }
   };
 
@@ -372,17 +403,95 @@ export default function Products({ isDarkTheme }: ProductsProps) {
     setThumbnailImagePreview(null);
   };
 
+  // const handleSubmit = async (e: React.FormEvent) => {
+  //   e.preventDefault();
+  //   console.log("Product Data:", formData);
+  //   const result  = await createProduct({
+  //     ...formData,
+  //     subcategory_id: formData.subcategory_id || null,
+  //   });
+  //   if(result.success){
+  //     console.log("Product created successfully");
+  //     alert("Product created successfully");
+  //     setShowAddProduct(false);
+  //     setFormData({
+  //       product_name: "",
+  //       description: "",
+  //       category_id: "",
+  //       subcategory_id: "",
+  //       sku: "",
+  //       base_price: "",
+  //       discount_percentage: "0",
+  //       final_price: "",
+  //       stock_quantity: "0",
+  //       weight_grams: "",
+  //       thumbnail_image: null,
+  //       size: [],
+  //       tags: [],
+  //       occasion: "",
+  //       collection: "",
+  //     listed_status: true,
+  //     });
+  //     setThumbnailImagePreview(null);
+  //     const result = await getProducts();
+  //     if(result.success){
+  //       console.log("Products fetched successfully");
+  //       setProducts(result.data as any[]);
+  //     }else{
+  //       console.error("Error fetching products:", result.message);
+  //       alert("Failed to fetch products. Please try again.");
+  //     }
+
+  //   }else{
+  //     console.error("Error creating product:", result.error);
+  //     alert("Failed to create product. Please try again.");
+  //   }
+  // };
+  
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Product Data:", formData);
-    const result  = await createProduct({
-      ...formData,
-      subcategory_id: formData.subcategory_id || null,
-    });
-    if(result.success){
-      console.log("Product created successfully");
-      alert("Product created successfully");
+  
+    try {
+      setIsSaving(true);
+  
+      let thumbnailUrl: string | null = null;
+  
+      // 1️⃣ Upload thumbnail ONLY now
+      if (formData.thumbnail_image instanceof File) {
+        const formDataToSend = new FormData();
+        formDataToSend.append("file", formData.thumbnail_image);
+        formDataToSend.append("folder", "products/thumbnails");
+
+        const response = await axios.post("/admin/api/uploadImage", formDataToSend, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        });
+
+        if (!response.data.success || !response.data.url) {
+          throw new Error(response.data.error || "Thumbnail upload failed");
+        }
+
+        thumbnailUrl = response.data.url;
+      }
+  
+      // 2️⃣ Create product with URL
+      const result = await createProduct({
+        ...formData,
+        thumbnail_image: thumbnailUrl,
+        subcategory_id: formData.subcategory_id || null,
+      });
+  
+      if (!result.success) {
+        throw new Error(result.error);
+      }
+  
+      // 3️⃣ Optimistic UI update
+      setProducts(prev => [result.data, ...prev]);
+  
+      // 4️⃣ Reset form
       setShowAddProduct(false);
+      setThumbnailImagePreview(null);
       setFormData({
         product_name: "",
         description: "",
@@ -399,24 +508,20 @@ export default function Products({ isDarkTheme }: ProductsProps) {
         tags: [],
         occasion: "",
         collection: "",
-      listed_status: true,
+        listed_status: true,
       });
-      setThumbnailImagePreview(null);
-      const result = await getProducts();
-      if(result.success){
-        console.log("Products fetched successfully");
-        setProducts(result.data as any[]);
-      }else{
-        console.error("Error fetching products:", result.message);
-        alert("Failed to fetch products. Please try again.");
-      }
-
-    }else{
-      console.error("Error creating product:", result.error);
-      alert("Failed to create product. Please try again.");
+  
+      alert("Product created successfully");
+    } catch (error: any) {
+      console.error(error);
+      alert(error.message || "Failed to create product");
+    } finally {
+      setIsSaving(false);
     }
   };
   
+
+
   const handleEditProduct = (product:any) => {
     console.log("Edit product:", product);
     setIsEditingProduct(true);
@@ -1177,7 +1282,7 @@ export default function Products({ isDarkTheme }: ProductsProps) {
                     : "bg-gray-200 text-gray-700 hover:bg-gray-300"
                 }`}
               >
-                Cancel
+                {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : "Cancel"}
               </button>
               {isEditingProduct ? <button
                 type="button"
