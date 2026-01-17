@@ -56,7 +56,9 @@ export async function getCategories(): Promise<{
 
     const { data, error } = await supabase
       .from("categories")
-      .select("*, sub_categories(*)");
+      .select("*, sub_categories(*)")
+      .order("created_at", { ascending: false })
+      ;
 
     if (error) {
       console.error("Error fetching categories:", error);

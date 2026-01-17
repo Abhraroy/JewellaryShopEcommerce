@@ -36,6 +36,7 @@ export const addToLocalCart = (product: any) => {
 
 export const removeFromLocalCart = (product:any)=>{
     console.log("Removing from local cart")
+    console.log("product to remove", product)
     let cartMap = new Map();
     const localCartItems = localStorage.getItem('cartItems')
     let localCartItemsArray = localCartItems ? JSON.parse(localCartItems) : [];
@@ -44,11 +45,26 @@ export const removeFromLocalCart = (product:any)=>{
         return localCartItemsArray;
     }
     else{
+        // Get the product_id from the item structure
+        // item can be {products: {...}, quantity: 1} or the product itself
+        const productToRemove = product?.products ?? product?.product ?? product;
+        const productIdToRemove = productToRemove?.product_id;
+        
+        if(!productIdToRemove){
+            console.log("No product_id found in item to remove")
+            return localCartItemsArray;
+        }
+        
         localCartItemsArray.forEach((item: any) => {
-            cartMap.set(item.id, item)
+            const itemProductId = item?.products?.product_id;
+            if(itemProductId){
+                cartMap.set(itemProductId, item)
+            }
         })
-        if(cartMap.has(product.id)){
-            cartMap.delete(product.id)
+        
+        if(cartMap.has(productIdToRemove)){
+            cartMap.delete(productIdToRemove)
+            console.log("Item removed from cart")
         }
         else{
             console.log("Item not found in cart")
@@ -60,6 +76,7 @@ export const removeFromLocalCart = (product:any)=>{
 
 export const decreaseQuantityFromLocalCart = (product:any)=>{
     console.log("Decreasing quantity from local cart")
+    console.log("product to decrease", product)
     let cartMap = new Map();
     const localCartItems = localStorage.getItem('cartItems')
     let localCartItemsArray = localCartItems ? JSON.parse(localCartItems) : [];
@@ -68,11 +85,33 @@ export const decreaseQuantityFromLocalCart = (product:any)=>{
         return localCartItemsArray;
     }
     else{
+        // Get the product_id from the item structure
+        // item can be {products: {...}, quantity: 1} or the product itself
+        const productToDecrease = product?.products ?? product?.product ?? product;
+        const productIdToDecrease = productToDecrease?.product_id;
+        
+        if(!productIdToDecrease){
+            console.log("No product_id found in item to decrease")
+            return localCartItemsArray;
+        }
+        
         localCartItemsArray.forEach((item: any) => {
-            cartMap.set(item.id, item)
+            const itemProductId = item?.products?.product_id;
+            if(itemProductId){
+                cartMap.set(itemProductId, item)
+            }
         })
-        if(cartMap.has(product.id)){
-            cartMap.get(product.id).quantity -= 1
+        
+        if(cartMap.has(productIdToDecrease)){
+            const itemToUpdate = cartMap.get(productIdToDecrease);
+            if(itemToUpdate && itemToUpdate.quantity > 1){
+                itemToUpdate.quantity -= 1;
+                cartMap.set(productIdToDecrease, itemToUpdate);
+            }
+            else{
+                console.log("Quantity is already 1, cannot decrease further")
+                return localCartItemsArray;
+            }
         }
         else{
             console.log("Item not found in cart")

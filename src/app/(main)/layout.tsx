@@ -7,7 +7,6 @@ import {
   Sevillana,
   Playfair_Display,
   Josefin_Sans,
-  Gentium_Book_Plus,
   Adamina,
   Open_Sans,
 } from "next/font/google";
@@ -117,7 +116,7 @@ export default function RootLayout({
     <html lang="en">
       <head>
       {/* Google tag (gtag.js) */}
-      <Script
+      {/* <Script
           async
           src="https://www.googletagmanager.com/gtag/js?id=G-HLK9T5H9ZT"
           strategy="afterInteractive"
@@ -130,7 +129,7 @@ export default function RootLayout({
             gtag('js', new Date());
             gtag('config', 'G-HLK9T5H9ZT');
           `}
-        </Script>
+        </Script> */}
 
       </head>
       <body
