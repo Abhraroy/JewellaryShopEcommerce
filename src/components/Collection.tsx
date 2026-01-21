@@ -54,7 +54,7 @@ function Collection() {
               <div className="absolute inset-0 bg-black/40" aria-hidden />
               <div className="relative z-10 flex flex-col items-center gap-3 md:gap-4 lg:gap-10 text-center">
                 {/* Heading */}
-                <h2 className="text-4xl md:text-5xl lg:text-8xl font-sacramento text-white drop-shadow tracking-wider">
+                <h2 className="text-4xl md:text-5xl lg:text-8xl font-sacramento text-[#CAF2FF] drop-shadow tracking-wider">
                   {collection.heading}
                 </h2>
                 
@@ -69,7 +69,7 @@ function Collection() {
                 {/* Explore Collection Button */}
                 <Link
                   href={collection.href || "#"}
-                  className="px-6 md:px-8 py-3 md:py-3.5 bg-theme-sage text-white font-semibold rounded-lg hover:bg-theme-olive transition-colors duration-200 text-sm md:text-base shadow-sm hover:shadow-md
+                  className="px-6 md:px-8 py-3 md:py-3.5  text-[#360000] font-semibold rounded-lg transition-colors duration-200 text-sm md:text-base shadow-sm hover:shadow-md bg-gradient-to-r from-pink-500 to-rose-500
                   
                   font-open-sans tracking-wider
                   "

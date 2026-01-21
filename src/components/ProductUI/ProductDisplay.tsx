@@ -188,7 +188,7 @@ export default function ProductDisplay({
                   src={
                     productImages[selectedImage]?.image_url
                   }
-                  alt={productImages[selectedImage]?.image_url}
+                  alt={`${productDetails[0]?.product_name}`}
                   fill
                   className="object-cover cursor-pointer"
                   priority

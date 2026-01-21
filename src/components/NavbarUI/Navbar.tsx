@@ -1,11 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useStore } from '../../zustandStore/zustandStore';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from "next/image";
 import HamburgerSidebar from './HamburgerSidebar';
+import { createClient } from '@/app/utils/supabase/client';
 
 interface NavbarProps {
   cartCount?: number;
@@ -196,8 +197,16 @@ export default function Navbar({ cartCount = 0, isAuthenticated = false, onCartC
   const [searchQuery, setSearchQuery] = useState('');
   const [showMobileSearch, setShowMobileSearch] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [searchSuggestions, setSearchSuggestions] = useState<any[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
   const { setMobnoInputState, AuthenticatedState, categories } = useStore();
   const router = useRouter();
+  const supabase = createClient();
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const suggestionsRef = useRef<HTMLDivElement>(null);
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+
   // Prevent body scroll when sidebar is open
   useEffect(() => {
     if (isSidebarOpen) {
@@ -209,6 +218,105 @@ export default function Navbar({ cartCount = 0, isAuthenticated = false, onCartC
       document.body.style.overflow = 'unset';
     };
   }, [isSidebarOpen]);
+
+  // Debounced search suggestions with 300ms delay
+  useEffect(() => {
+    // Clear previous timer
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+
+    // If search query is empty, clear suggestions
+    if (!searchQuery.trim()) {
+      setSearchSuggestions([]);
+      setShowSuggestions(false);
+      return;
+    }
+
+    // Set new timer for 300ms debounce
+    debounceTimerRef.current = setTimeout(() => {
+      fetchSearchSuggestions(searchQuery.trim());
+    }, 300);
+
+    // Cleanup function
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
+  }, [searchQuery]);
+
+  // Function to call Supabase RPC function for search suggestions
+  const fetchSearchSuggestions = async (query: string) => {
+    if (!query.trim()) {
+      setSearchSuggestions([]);
+      setShowSuggestions(false);
+      return;
+    }
+
+    setIsLoadingSuggestions(true);
+    setShowSuggestions(true);
+
+    try {
+      // Call Supabase RPC function (adjust function name as needed)
+      const { data, error } = await supabase.rpc('search_products_fast', {
+        q: query,
+        result_limit: 10,
+      });
+      console.log("data", data);
+
+      if (error) {
+        console.error('Error fetching search suggestions:', error);
+        // Fallback: If RPC doesn't exist, use a direct query
+        const { data: fallbackData, error: fallbackError } = await supabase
+          .from('products')
+          .select('product_id, product_name, thumbnail_image')
+          .ilike('product_name', `%${query}%`)
+          .eq('listed_status', true)
+          .limit(5);
+
+        if (!fallbackError && fallbackData) {
+          setSearchSuggestions(fallbackData);
+        } else {
+          setSearchSuggestions([]);
+        }
+      } else {
+        setSearchSuggestions(data || []);
+      }
+    } catch (err) {
+      console.error('Error in search suggestions:', err);
+      setSearchSuggestions([]);
+    } finally {
+      setIsLoadingSuggestions(false);
+    }
+  };
+
+  // Close suggestions when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        suggestionsRef.current &&
+        !suggestionsRef.current.contains(event.target as Node) &&
+        searchInputRef.current &&
+        !searchInputRef.current.contains(event.target as Node)
+      ) {
+        setShowSuggestions(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  // Handle suggestion click
+  const handleSuggestionClick = (product: any) => {
+    router.push(`/product/${product.product_id}`);
+    setSearchQuery('');
+    setShowSuggestions(false);
+    setShowMobileSearch(false);
+  };
 
   // Sidebar menu items configuration
   const menuItems: MenuItem[] = [
@@ -356,19 +464,68 @@ export default function Navbar({ cartCount = 0, isAuthenticated = false, onCartC
           </div>
 
           {/* Search Bar Section - Hidden on mobile, visible on tablet and up */}
-          <div className="hidden md:flex flex-1 ml-auto md:max-w-[20rem] lg:max-w-2xl">
+          <div className="hidden md:flex flex-1 ml-auto md:max-w-[20rem] lg:max-w-2xl relative">
             <div className="relative w-full">
               <input
+                ref={searchInputRef}
                 type="text"
                 placeholder="Search for products"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
+                onFocus={() => {
+                  if (searchSuggestions.length > 0) {
+                    setShowSuggestions(true);
+                  }
+                }}
                 className="w-full h-10 md:h-12 px-4 pr-10 bg-white/80 rounded-lg border border-[#360000]/30 outline-none text-gray-700 placeholder-gray-500 text-sm md:text-base focus:bg-white focus:border-[#360000]/30 transition-colors"
               />
               <div className="absolute right-3 top-1/2 -translate-y-1/2">
                 <SearchIcon className="w-5 h-5 text-[#360000]/70" />
               </div>
             </div>
+
+            {/* Suggestions Dropdown - Desktop */}
+            {showSuggestions && (
+              <div
+                ref={suggestionsRef}
+                className="absolute top-full left-0 right-0 mt-2 bg-white border border-[#360000]/20 rounded-lg shadow-lg z-50 max-h-96 overflow-y-auto"
+              >
+                {isLoadingSuggestions ? (
+                  <div className="p-4 text-center text-gray-500 text-sm">
+                    Loading suggestions...
+                  </div>
+                ) : searchSuggestions.length > 0 ? (
+                  <div className="py-2">
+                    {searchSuggestions.map((suggestion: any) => (
+                      <button
+                        key={suggestion.product_id}
+                        onClick={() => handleSuggestionClick(suggestion)}
+                        className="w-full px-4 py-3 flex items-center gap-3 hover:bg-gray-50 transition-colors text-left"
+                      >
+                        {suggestion.thumbnail_image && (
+                          <div className="relative w-12 h-12 flex-shrink-0 rounded overflow-hidden">
+                            <Image
+                              src={suggestion.thumbnail_image}
+                              alt={suggestion.product_name || ''}
+                              fill
+                              className="object-cover"
+                              sizes="48px"
+                            />
+                          </div>
+                        )}
+                        <span className="text-sm text-gray-700 flex-1 truncate">
+                          {suggestion.product_name}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                ) : searchQuery.trim() ? (
+                  <div className="p-4 text-center text-gray-500 text-sm">
+                    No suggestions found
+                  </div>
+                ) : null}
+              </div>
+            )}
           </div>
 
           {/* Desktop Icons Section */}
@@ -416,13 +573,19 @@ export default function Navbar({ cartCount = 0, isAuthenticated = false, onCartC
 
         {/* Mobile Search Bar - Shows when search icon is clicked */}
         {showMobileSearch && (
-          <div className="md:hidden pb-4 px-4 ">
+          <div className="md:hidden pb-4 px-4 relative">
             <div className="relative">
               <input
+                ref={searchInputRef}
                 type="text"
                 placeholder="Search for products"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
+                onFocus={() => {
+                  if (searchSuggestions.length > 0) {
+                    setShowSuggestions(true);
+                  }
+                }}
                 className="w-full h-10 px-4 pr-10 bg-white/80 rounded-lg border border-theme-sage/30 outline-none text-gray-700 placeholder-gray-500 text-sm focus:bg-white focus:border-theme-sage transition-colors"
                 autoFocus
               />
@@ -430,6 +593,49 @@ export default function Navbar({ cartCount = 0, isAuthenticated = false, onCartC
                 <SearchIcon className="w-5 h-5 text-theme-olive" />
               </div>
             </div>
+
+            {/* Suggestions Dropdown - Mobile */}
+            {showSuggestions && (
+              <div
+                ref={suggestionsRef}
+                className="absolute top-full left-4 right-4 mt-2 bg-white border border-theme-sage/30 rounded-lg shadow-lg z-50 max-h-96 overflow-y-auto"
+              >
+                {isLoadingSuggestions ? (
+                  <div className="p-4 text-center text-gray-500 text-sm">
+                    Loading suggestions...
+                  </div>
+                ) : searchSuggestions.length > 0 ? (
+                  <div className="py-2">
+                    {searchSuggestions.map((suggestion: any) => (
+                      <button
+                        key={suggestion.product_id}
+                        onClick={() => handleSuggestionClick(suggestion)}
+                        className="w-full px-4 py-3 flex items-center gap-3 hover:bg-gray-50 transition-colors text-left"
+                      >
+                        {suggestion.thumbnail_image && (
+                          <div className="relative w-12 h-12 flex-shrink-0 rounded overflow-hidden">
+                            <Image
+                              src={suggestion.thumbnail_image}
+                              alt={suggestion.product_name || ''}
+                              fill
+                              className="object-cover"
+                              sizes="48px"
+                            />
+                          </div>
+                        )}
+                        <span className="text-sm text-gray-700 flex-1 truncate">
+                          {suggestion.product_name}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                ) : searchQuery.trim() ? (
+                  <div className="p-4 text-center text-gray-500 text-sm">
+                    No suggestions found
+                  </div>
+                ) : null}
+              </div>
+            )}
           </div>
         )}
       </div>

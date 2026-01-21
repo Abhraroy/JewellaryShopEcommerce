@@ -246,27 +246,6 @@ export default function ProductCard({
             />
           </svg>
         </button>
-
-        {/* Quick View Overlay - Appears on Hover
-        <div
-          className={`absolute inset-0 bg-black/0 flex items-center justify-center transition-all duration-300 ${
-            isHovered ? "bg-black/5 opacity-100" : "opacity-0"
-          }`}
-        >
-          <button
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-            }}
-            className={`transform transition-all duration-300 ${
-              isHovered
-                ? "translate-y-0 opacity-100"
-                : "translate-y-4 opacity-0"
-            } bg-white/95 backdrop-blur-sm text-gray-900 px-6 py-2.5 rounded-full font-medium text-sm shadow-xl hover:bg-white`}
-          >
-            Quick View
-          </button>
-        </div> */}
       </div>
 
       {/* Product Info */}

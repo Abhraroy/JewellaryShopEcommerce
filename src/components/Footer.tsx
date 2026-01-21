@@ -171,11 +171,11 @@ export default function Footer({ className = "" }: FooterProps) {
             <Link href="/" className="inline-block">
               <Image
                 src="/logo/cropped-logo.svg"
-                alt=""
+                alt="THE JWEL | Beyond the Jewellery"
                 width={100}
                 height={100}
               />
-              <span className="text-2xl md:text-3xl font-bold text-theme-olive tracking-tight">
+              <span className="text-2xl md:text-3xl font-bold text-[#360000] font-josefin-sans tracking-tight">
                 THE JWEL
               </span>
             </Link>
