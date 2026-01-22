@@ -1,309 +1,425 @@
-import Image from "next/image";
+"use client";
+
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { useMemo, useState } from "react";
+import {
+  FaFacebookF,
+  FaInstagram,
+  FaPinterestP,
+  FaTiktok,
+  FaWhatsapp,
+  FaXTwitter,
+  FaYoutube,
+} from "react-icons/fa6";
+
+type PlatformId =
+  | "instagram"
+  | "youtube"
+  | "tiktok"
+  | "facebook"
+  | "pinterest"
+  | "whatsapp"
+  | "x";
+
+type Platform = {
+  id: PlatformId;
+  name: string;
+  handle?: string;
+  href: string;
+  description: string;
+  Icon: React.ComponentType<{ className?: string }>;
+  accent: string; // tailwind color (used for small UI accents)
+  glow: string; // css rgba string for background glow
+};
+
+function safeCopy(text: string) {
+  if (!text) return Promise.resolve();
+  if (typeof navigator === "undefined") return Promise.resolve();
+  if (navigator.clipboard?.writeText) return navigator.clipboard.writeText(text);
+
+  // Fallback (older browsers)
+  return new Promise<void>((resolve) => {
+    const el = document.createElement("textarea");
+    el.value = text;
+    el.setAttribute("readonly", "");
+    el.style.position = "absolute";
+    el.style.left = "-9999px";
+    document.body.appendChild(el);
+    el.select();
+    document.execCommand("copy");
+    document.body.removeChild(el);
+    resolve();
+  });
+}
+
+function PlatformButton({
+  platform,
+  active,
+  onClick,
+}: {
+  platform: Platform;
+  active: boolean;
+  onClick: () => void;
+}) {
+  const Icon = platform.Icon;
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={[
+        "relative inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold",
+        "transition-all duration-200",
+        "ring-1 ring-black/5",
+        active
+          ? "bg-[#360000] text-white shadow-lg shadow-black/10"
+          : "bg-white text-[#360000] hover:bg-[#360000]/5",
+      ].join(" ")}
+      aria-pressed={active}
+    >
+      <Icon className="h-4 w-4" />
+      <span className="whitespace-nowrap">{platform.name}</span>
+      {active && (
+        <motion.span
+          layoutId="activePill"
+          className="absolute inset-0 rounded-full ring-1 ring-white/10"
+          transition={{ type: "spring", stiffness: 500, damping: 40 }}
+        />
+      )}
+    </button>
+  );
+}
 
 export default function SocialMediaBento() {
+  const shouldReduceMotion = useReducedMotion();
+
+  const platforms = useMemo<Platform[]>(
+    () => [
+      {
+        id: "instagram",
+        name: "Instagram",
+        handle: "@yourbrand",
+        href: "https://instagram.com",
+        description: "Daily styling, new drops, and customer spotlights.",
+        Icon: FaInstagram,
+        accent: "text-pink-600",
+        glow: "rgba(236, 72, 153, 0.28)",
+      },
+      {
+        id: "youtube",
+        name: "YouTube",
+        handle: "@yourbrand",
+        href: "https://youtube.com",
+        description: "Craft stories, behind-the-scenes, and lookbooks.",
+        Icon: FaYoutube,
+        accent: "text-red-600",
+        glow: "rgba(239, 68, 68, 0.22)",
+      },
+      {
+        id: "tiktok",
+        name: "TikTok",
+        handle: "@yourbrand",
+        href: "https://tiktok.com",
+        description: "Trends, quick try-ons, and studio moments.",
+        Icon: FaTiktok,
+        accent: "text-slate-900",
+        glow: "rgba(2, 6, 23, 0.20)",
+      },
+      {
+        id: "whatsapp",
+        name: "WhatsApp",
+        handle: "+91 XXXXX XXXXX",
+        href: "https://wa.me/",
+        description: "Instant support, order help, and custom requests.",
+        Icon: FaWhatsapp,
+        accent: "text-emerald-600",
+        glow: "rgba(16, 185, 129, 0.22)",
+      },
+      {
+        id: "facebook",
+        name: "Facebook",
+        handle: "/yourbrand",
+        href: "https://facebook.com",
+        description: "Community updates, offers, and announcements.",
+        Icon: FaFacebookF,
+        accent: "text-blue-600",
+        glow: "rgba(37, 99, 235, 0.22)",
+      },
+      {
+        id: "pinterest",
+        name: "Pinterest",
+        handle: "yourbrand",
+        href: "https://pinterest.com",
+        description: "Moodboards and inspiration you can save for later.",
+        Icon: FaPinterestP,
+        accent: "text-rose-600",
+        glow: "rgba(244, 63, 94, 0.20)",
+      },
+      {
+        id: "x",
+        name: "X",
+        handle: "@yourbrand",
+        href: "https://x.com",
+        description: "Drops, news, and quick announcements.",
+        Icon: FaXTwitter,
+        accent: "text-slate-900",
+        glow: "rgba(15, 23, 42, 0.18)",
+      },
+    ],
+    []
+  );
+
+  const [activeId, setActiveId] = useState<PlatformId>("instagram");
+  const [copiedId, setCopiedId] = useState<PlatformId | null>(null);
+
+  const active = platforms.find((p) => p.id === activeId) ?? platforms[0];
+  const ActiveIcon = active.Icon;
+
+  const onCopy = async () => {
+    await safeCopy(active.handle ?? active.href);
+    setCopiedId(active.id);
+    window.setTimeout(() => setCopiedId(null), 1200);
+  };
+
   return (
-    <section className="w-full py-12 md:py-16 px-0">
-          <div className="w-full">
-            {/* Heading row */}
-            <div className="flex flex-col items-center justify-center gap-3 md:gap-4 mb-8 px-4 sm:px-6 lg:px-10 text-center">
-              <p className="text-2xl md:text-3xl font-semibold uppercase text-[#360000] font-josefin-sans tracking-wider">
-                Social Gallery
-              </p>
-              <h2 className="text-xl md:text-2xl font-bold text-[#360000] font-josefin-sans tracking-wider">
-                See how our jewellery lives on social
-              </h2>
-              <button
-                type="button"
-                className="inline-flex items-center justify-center px-5 py-2.5 rounded-full bg-gray-900 text-white text-sm md:text-base font-semibold shadow-lg hover:shadow-xl hover:bg-lime-400 hover:text-black transition-all duration-200"
+    <section className="w-full py-14 md:py-20 px-4 sm:px-6 lg:px-8 bg-[#fafafa] overflow-hidden">
+      <div className="max-w-7xl mx-auto">
+        {/* Animated ambient background */}
+        <div className="relative">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={active.id}
+              className="pointer-events-none absolute -top-24 -left-24 h-80 w-80 rounded-full blur-3xl"
+              style={{ background: active.glow }}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{
+                opacity: 1,
+                scale: 1,
+                x: shouldReduceMotion ? 0 : [0, 18, 0],
+                y: shouldReduceMotion ? 0 : [0, -14, 0],
+              }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              transition={
+                shouldReduceMotion
+                  ? { duration: 0.2 }
+                  : { duration: 6, repeat: Infinity, ease: "easeInOut" }
+              }
+            />
+          </AnimatePresence>
+
+          <div className="pointer-events-none absolute -bottom-24 -right-24 h-96 w-96 rounded-full blur-3xl bg-[#360000]/10" />
+
+          {/* Header */}
+          <div className="text-center">
+            <p className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-[#360000] ring-1 ring-black/5 shadow-sm">
+              Social connectivity
+              <span className="h-1 w-1 rounded-full bg-[#360000]/60" />
+              Stay close
+            </p>
+            <h2 className="mt-5 text-3xl md:text-5xl font-semibold text-[#360000] font-josefin-sans">
+              Connect with us everywhere
+            </h2>
+            <p className="mt-4 text-sm md:text-base text-[#360000]/70 max-w-2xl mx-auto">
+              Follow, watch, save, or chat — pick a platform and we’ll take you
+              there. Tap to switch, copy handles instantly, and open in one
+              click.
+            </p>
+          </div>
+
+          {/* Content */}
+          <div className="mt-10 grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
+            {/* Left: Switcher + quick actions */}
+            <div className="lg:col-span-6">
+              <div className="flex flex-wrap justify-center lg:justify-start gap-3">
+                {platforms.map((p) => (
+                  <PlatformButton
+                    key={p.id}
+                    platform={p}
+                    active={p.id === active.id}
+                    onClick={() => setActiveId(p.id)}
+                  />
+                ))}
+              </div>
+
+              <div className="mt-6 rounded-3xl bg-white ring-1 ring-black/5 shadow-sm p-5 md:p-7">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex items-start gap-4">
+                    <motion.div
+                      className={[
+                        "h-12 w-12 rounded-2xl grid place-items-center ring-1 ring-black/5",
+                        "bg-[#fafafa]",
+                      ].join(" ")}
+                      animate={shouldReduceMotion ? {} : { rotate: [0, -2, 0] }}
+                      transition={
+                        shouldReduceMotion
+                          ? { duration: 0 }
+                          : { duration: 2.8, repeat: Infinity, ease: "easeInOut" }
+                      }
+                    >
+                      <ActiveIcon className={`h-6 w-6 ${active.accent}`} />
+                    </motion.div>
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#360000]/70">
+                        Selected
+                      </p>
+                      <h3 className="mt-1 text-2xl md:text-3xl font-semibold text-[#360000]">
+                        {active.name}
+                      </h3>
+                      <p className="mt-2 text-sm text-gray-600">
+                        {active.description}
+                      </p>
+                      {active.handle && (
+                        <p className="mt-3 inline-flex items-center gap-2 rounded-full bg-[#fafafa] px-3 py-1 text-sm font-semibold text-[#360000] ring-1 ring-black/5">
+                          <span className="opacity-70">Handle:</span>
+                          <span>{active.handle}</span>
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="hidden md:flex flex-col items-end gap-2">
+                    <p className="text-xs text-gray-500">Quick actions</p>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={onCopy}
+                        className="inline-flex items-center justify-center rounded-full bg-[#360000]/5 px-4 py-2 text-sm font-semibold text-[#360000] ring-1 ring-black/5 hover:bg-[#360000]/10 transition"
+                      >
+                        {copiedId === active.id ? "Copied" : "Copy"}
+                      </button>
+                      <a
+                        href={active.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center justify-center rounded-full bg-[#360000] px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-black/10 hover:shadow-xl hover:shadow-black/15 transition"
+                      >
+                        Open ↗
+                      </a>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Mobile CTAs */}
+                <div className="mt-6 flex md:hidden gap-3">
+                  <button
+                    type="button"
+                    onClick={onCopy}
+                    className="flex-1 inline-flex items-center justify-center rounded-full bg-[#360000]/5 px-4 py-2 text-sm font-semibold text-[#360000] ring-1 ring-black/5 hover:bg-[#360000]/10 transition"
+                  >
+                    {copiedId === active.id ? "Copied" : "Copy"}
+                  </button>
+                  <a
+                    href={active.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-1 inline-flex items-center justify-center rounded-full bg-[#360000] px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-black/10 hover:shadow-xl hover:shadow-black/15 transition"
+                  >
+                    Open ↗
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            {/* Right: Animated “hub” card */}
+            <div className="lg:col-span-6">
+              <motion.div
+                className="relative overflow-hidden rounded-3xl ring-1 ring-black/5 bg-white shadow-sm"
+                initial={{ opacity: 0, y: 10 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.2 }}
+                transition={{ duration: 0.5, ease: "easeOut" }}
               >
-                Follow our socials
-                <span className="ml-2 text-lg leading-none">↗</span>
-              </button>
-            </div>
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(54,0,0,0.08),transparent_45%),radial-gradient(circle_at_80%_30%,rgba(0,0,0,0.06),transparent_40%)]" />
 
-            {/* Bento grid inspired by reference image - now using images in each tile */}
-            <div className="grid grid-cols-4 md:grid-cols-8 gap-3 md:gap-4 text-white px-2 sm:px-4 lg:px-6">
-              {/* Left column cluster */}
-              <div className="col-span-4 md:col-span-3 space-y-3 md:space-y-4">
-                <div className="grid grid-cols-4 gap-3 md:gap-4">
-                  {/* Reels card */}
-                  <div className="col-span-2 relative rounded-2xl overflow-hidden">
-                    <Image
-                      src="https://battulaaljewels.com/website/images/product-banner.webp"
-                      alt="Reels preview"
-                      fill
-                      className="object-cover"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-                    <div className="relative z-10 p-4 flex flex-col justify-between h-full">
-                      <span className="text-[11px] uppercase tracking-[0.18em] text-lime-300">
-                        Reels
-                      </span>
-                      <p className="text-lg md:text-xl font-extrabold leading-tight mt-2">
-                        No filter,
-                        <br />
-                        just shine.
+                <div className="relative p-6 md:p-8">
+                  <div className="flex items-center justify-between gap-4">
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#360000]/70">
+                        Live preview
                       </p>
+                      <h3 className="mt-1 text-xl md:text-2xl font-semibold text-[#360000]">
+                        {active.name} hub
+                      </h3>
                     </div>
+                    <motion.div
+                      className="h-12 w-12 rounded-2xl grid place-items-center ring-1 ring-black/5 bg-[#fafafa]"
+                      animate={
+                        shouldReduceMotion ? {} : { y: [0, -6, 0], rotate: [0, 1, 0] }
+                      }
+                      transition={
+                        shouldReduceMotion
+                          ? { duration: 0 }
+                          : { duration: 3.6, repeat: Infinity, ease: "easeInOut" }
+                      }
+                    >
+                      <ActiveIcon className={`h-6 w-6 ${active.accent}`} />
+                    </motion.div>
                   </div>
-                  {/* Stories card */}
-                  <div className="col-span-2 relative rounded-2xl overflow-hidden">
-                    <Image
-                      src="https://battulaaljewels.com/website/images/product-banner.webp"
-                      alt="Stories preview"
-                      fill
-                      className="object-cover"
-                    />
-                    <div className="absolute inset-0 bg-black/40" />
-                    <div className="relative z-10 p-3 md:p-4 flex flex-col justify-between h-full text-black">
-                      <span className="text-[11px] font-semibold uppercase tracking-[0.18em] bg-white/80 px-2 py-1 rounded-full w-fit">
-                        Stories
-                      </span>
-                      <p className="mt-1 text-xs md:text-sm font-medium text-white">
-                        Daily styling tips & drops.
-                      </p>
-                    </div>
-                  </div>
-                </div>
 
-                <div className="grid grid-cols-4 gap-3 md:gap-4">
-                  {/* Instagram card */}
-                  <div className="col-span-3 relative rounded-2xl overflow-hidden">
-                    <Image
-                      src="https://battulaaljewels.com/website/images/product-banner.webp"
-                      alt="Instagram grid"
-                      fill
-                      className="object-cover"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-r from-blue-900/80 via-blue-700/50 to-transparent" />
-                    <div className="relative z-10 p-4 flex flex-col justify-between h-full">
-                      <p className="text-xs uppercase tracking-[0.2em] text-blue-100">
-                        Instagram
-                      </p>
-                      <p className="mt-2 text-lg md:text-xl font-bold leading-tight">
-                        Plastic free,
-                        <br />
-                        planet friendly
-                      </p>
-                      <span className="mt-3 inline-flex items-center text-[11px] font-medium bg-black/60 px-2 py-1 rounded-full w-fit">
-                        @yourbrand
-                      </span>
-                    </div>
-                  </div>
-                  {/* New drops small tile */}
-                  <div className="col-span-1 relative rounded-2xl overflow-hidden">
-                    <Image
-                      src="https://battulaaljewels.com/website/images/product-banner.webp"
-                      alt="New drops"
-                      fill
-                      className="object-cover"
-                    />
-                    <div className="absolute inset-0 bg-black/40" />
-                    <div className="relative z-10 p-2 flex items-center justify-center">
-                      <span className="text-xs font-semibold text-white text-center bg-black/50 px-2 py-1 rounded-full">
-                        New
-                        <br />
-                        drops
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
+                  <AnimatePresence mode="wait">
+                    <motion.div
+                      key={active.id}
+                      className="mt-6"
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -6 }}
+                      transition={{ duration: 0.28, ease: "easeOut" }}
+                    >
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="rounded-2xl bg-[#fafafa] ring-1 ring-black/5 p-4">
+                          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">
+                            What you’ll find
+                          </p>
+                          <p className="mt-2 text-sm text-gray-700 leading-relaxed">
+                            {active.description}
+                          </p>
+                        </div>
+                        <div className="rounded-2xl bg-[#fafafa] ring-1 ring-black/5 p-4">
+                          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">
+                            Best for
+                          </p>
+                          <p className="mt-2 text-sm text-gray-700 leading-relaxed">
+                            {active.id === "whatsapp"
+                              ? "Quick support, custom requests, order help."
+                              : active.id === "youtube"
+                              ? "Long-form videos, craftsmanship, lookbooks."
+                              : active.id === "pinterest"
+                              ? "Saving ideas and building moodboards."
+                              : "Discovering new drops and styling inspiration."}
+                          </p>
+                        </div>
+                      </div>
 
-              {/* Center tall tiles */}
-              <div className="col-span-4 md:col-span-3 space-y-3 md:space-y-4">
-                {/* More glow banner */}
-                <div className="relative rounded-2xl overflow-hidden h-32 md:h-40">
-                  <Image
-                    src="https://battulaaljewels.com/website/images/product-banner.webp"
-                    alt="More glow banner"
-                    fill
-                    className="object-cover"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/20 to-transparent" />
-                  <div className="relative z-10 p-4 flex items-center justify-center h-full">
-                    <p className="text-xl md:text-2xl font-extrabold tracking-tight text-white text-center">
-                      More glow,
-                      <span className="text-black ml-1 px-2 py-1 rounded-full bg-yellow-300">
-                        less noise
-                      </span>
-                    </p>
-                  </div>
+                      <div className="mt-5 flex flex-wrap items-center gap-3">
+                        <a
+                          href={active.href}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center justify-center rounded-full bg-[#360000] px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-black/10 hover:shadow-xl hover:shadow-black/15 transition"
+                        >
+                          Connect on {active.name} ↗
+                        </a>
+                        <button
+                          type="button"
+                          onClick={onCopy}
+                          className="inline-flex items-center justify-center rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-[#360000] ring-1 ring-black/5 hover:bg-[#360000]/5 transition"
+                        >
+                          {copiedId === active.id
+                            ? "Copied!"
+                            : `Copy ${active.handle ? "handle" : "link"}`}
+                        </button>
+                      </div>
+                    </motion.div>
+                  </AnimatePresence>
                 </div>
-                {/* TikTok / YouTube row */}
-                <div className="grid grid-cols-4 gap-3 md:gap-4 h-40 md:h-48">
-                  <div className="col-span-2 relative rounded-2xl overflow-hidden">
-                    <Image
-                      src="https://battulaaljewels.com/website/images/product-banner.webp"
-                      alt="TikTok behind the scenes"
-                      fill
-                      className="object-cover"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-                    <div className="relative z-10 p-4 flex flex-col justify-between h-full">
-                      <p className="text-xs uppercase tracking-[0.2em] text-purple-200">
-                        TikTok
-                      </p>
-                      <p className="text-sm md:text-base font-medium mt-2">
-                        Behind-the-scenes
-                        <br />
-                        from our studio.
-                      </p>
-                    </div>
-                  </div>
-                  <div className="col-span-2 relative rounded-2xl overflow-hidden">
-                    <Image
-                      src="https://battulaaljewels.com/website/images/product-banner.webp"
-                      alt="YouTube stories"
-                      fill
-                      className="object-cover"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-                    <div className="relative z-10 p-4 flex flex-col justify-between h-full">
-                      <p className="text-xs uppercase tracking-[0.2em] text-blue-50">
-                        YouTube
-                      </p>
-                      <p className="text-lg md:text-xl font-bold leading-tight mt-2">
-                        Craft stories
-                        <br />
-                        in motion.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              </motion.div>
 
-              {/* Right narrow column */}
-              <div className="hidden md:flex md:flex-col md:col-span-2 space-y-4">
-                <div className="relative rounded-2xl overflow-hidden h-32">
-                  <Image
-                    src="https://battulaaljewels.com/website/images/product-banner.webp"
-                    alt="Choose positivity"
-                    fill
-                    className="object-cover"
-                  />
-                  <div className="absolute inset-0 bg-white/80" />
-                  <div className="relative z-10 p-4 text-black flex flex-col justify-between h-full">
-                    <p className="text-[11px] uppercase tracking-[0.18em]">
-                      Choose
-                    </p>
-                    <div className="flex items-center justify-between mt-2 text-xs font-semibold">
-                      <span className="px-2 py-1 rounded-full bg-black text-white">
-                        Love
-                      </span>
-                      <span className="px-2 py-1 rounded-full bg-pink-500 text-white">
-                        Shine
-                      </span>
-                    </div>
-                  </div>
-                </div>
-                <div className="relative rounded-2xl overflow-hidden h-40">
-                  <Image
-                    src="https://battulaaljewels.com/website/images/product-banner.webp"
-                    alt="Community looks"
-                    fill
-                    className="object-cover"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-emerald-700/80 via-emerald-400/40 to-transparent" />
-                  <div className="relative z-10 p-4 flex flex-col justify-between h-full">
-                    <p className="text-xs uppercase tracking-[0.2em] text-emerald-100">
-                      Community
-                    </p>
-                    <p className="text-sm font-medium">
-                      Tag us in your
-                      <br />
-                      favourite looks.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Second bento row to fill width more strongly, also image-based */}
-            <div className="mt-6 grid grid-cols-4 md:grid-cols-8 gap-3 md:gap-4 text-white px-2 sm:px-4 lg:px-6">
-              <div className="col-span-4 md:col-span-4 grid grid-cols-4 gap-3 md:gap-4">
-                <div className="col-span-2 relative rounded-2xl overflow-hidden">
-                  <Image
-                    src="https://battulaaljewels.com/website/images/product-banner.webp"
-                    alt="Live sparkle"
-                    fill
-                    className="object-cover"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-                  <div className="relative z-10 p-4 flex flex-col justify-between h-full">
-                    <p className="text-[11px] uppercase tracking-[0.18em] text-emerald-100">
-                      Live
-                    </p>
-                    <p className="text-lg md:text-xl font-extrabold leading-tight mt-2">
-                      Sparkle in
-                      <br />
-                      real time.
-                    </p>
-                  </div>
-                </div>
-                <div className="col-span-2 relative rounded-2xl overflow-hidden">
-                  <Image
-                    src="https://battulaaljewels.com/website/images/product-banner.webp"
-                    alt="Collab edits"
-                    fill
-                    className="object-cover"
-                  />
-                  <div className="absolute inset-0 bg-pink-600/70" />
-                  <div className="relative z-10 p-4 flex flex-col justify-between h-full">
-                    <p className="text-[11px] uppercase tracking-[0.18em] text-pink-100">
-                      Collabs
-                    </p>
-                    <p className="text-xs md:text-sm font-medium mt-2">
-                      Creator edits &
-                      <br />
-                      style challenges.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="col-span-4 md:col-span-4 grid grid-cols-4 gap-3 md:gap-4">
-                <div className="col-span-2 relative rounded-2xl overflow-hidden">
-                  <Image
-                    src="https://battulaaljewels.com/website/images/product-banner.webp"
-                    alt="Pinterest moodboard"
-                    fill
-                    className="object-cover"
-                  />
-                  <div className="absolute inset-0 bg-indigo-900/70" />
-                  <div className="relative z-10 p-4 flex flex-col justify-between h-full">
-                    <p className="text-[11px] uppercase tracking-[0.18em] text-indigo-200">
-                      Pinterest
-                    </p>
-                    <p className="text-sm md:text-base font-medium mt-2">
-                      Save dream looks
-                      <br />
-                      for later.
-                    </p>
-                  </div>
-                </div>
-                <div className="col-span-2 relative rounded-2xl overflow-hidden">
-                  <Image
-                    src="https://battulaaljewels.com/website/images/product-banner.webp"
-                    alt="Highlights grid"
-                    fill
-                    className="object-cover"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-yellow-300/90 via-orange-500/70 to-transparent" />
-                  <div className="relative z-10 p-4 flex flex-col justify-between h-full">
-                    <p className="text-[11px] uppercase tracking-[0.18em] text-black">
-                      Highlights
-                    </p>
-                    <p className="text-lg md:text-xl font-extrabold leading-tight text-black mt-2">
-                      Let&apos;s
-                      <br />
-                      make it great.
-                    </p>
-                  </div>
-                </div>
-              </div>
+              <p className="mt-4 text-xs text-center lg:text-left text-[#360000]/55">
+                Tip: Tap a platform to switch. Hover for micro-interactions.
+              </p>
             </div>
           </div>
-        </section>
+        </div>
+      </div>
+    </section>
   );
 }
