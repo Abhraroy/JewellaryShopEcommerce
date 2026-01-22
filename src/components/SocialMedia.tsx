@@ -89,7 +89,7 @@ function PlatformButton({
   );
 }
 
-export default function SocialMediaBento() {
+export default function SocialMedia() {
   const shouldReduceMotion = useReducedMotion();
 
   const platforms = useMemo<Platform[]>(

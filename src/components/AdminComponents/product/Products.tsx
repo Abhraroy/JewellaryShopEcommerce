@@ -35,7 +35,8 @@ const ImageIcon = ({ className = "w-5 h-5" }) => (
 
 export default function ProductForm({ isDarkTheme, product }: ProductFormProps) {
   const router = useRouter();
-  const { showAddProduct, setShowAddProduct } = useAdminStore();
+  const { showAddProduct, setShowAddProduct, selectedProduct, setSelectedProduct } = useAdminStore();
+  const editingProduct = product ?? selectedProduct;
   const [categoriesList, setCategoriesList] = useState<Category[]>([]);
   const [subCategoriesList, setSubCategoriesList] = useState<any[]>([]);
   const [formData, setFormData] = useState({
@@ -76,28 +77,41 @@ export default function ProductForm({ isDarkTheme, product }: ProductFormProps) 
 
   // Initialize form when product prop changes (for editing)
   useEffect(() => {
-    if (product) {
+    if (editingProduct) {
+      const safeString = (v: any) => (v === null || v === undefined ? "" : String(v));
+      const safeNumber = (v: any, fallback = 0) => {
+        if (v === null || v === undefined || v === "") return fallback;
+        const n = Number(v);
+        return Number.isFinite(n) ? n : fallback;
+      };
+      const safeArray = (v: any): string[] => (Array.isArray(v) ? v.filter(Boolean).map(String) : []);
+
       setFormData({
-        product_name: product.product_name,
-        description: product.description,
-        category_id: product.category_id,
-        subcategory_id: product.subcategory_id,
-        sku: product.sku || "",
-        base_price: product.base_price,
-        discount_percentage: product.discount_percentage,
-        final_price: product.final_price,
-        stock_quantity: product.stock_quantity,
-        weight_grams: product.weight_grams,
-        thumbnail_image: product.thumbnail_image,
-        size: product.size || [],
-        tags: product.tags || [],
-        occasion: product.occasion || "",
-        collection: product.collection || "",
-        listed_status: product.listed_status ?? true,
+        product_name: safeString(editingProduct.product_name),
+        description: safeString(editingProduct.description),
+        category_id: safeString(editingProduct.category_id),
+        subcategory_id: safeString(editingProduct.subcategory_id),
+        sku: safeString(editingProduct.sku),
+        base_price: safeNumber(editingProduct.base_price, 0),
+        discount_percentage: safeNumber(editingProduct.discount_percentage, 0),
+        final_price: safeNumber(editingProduct.final_price, 0),
+        stock_quantity: safeNumber(editingProduct.stock_quantity, 1),
+        weight_grams: safeNumber(editingProduct.weight_grams, 0),
+        thumbnail_image: (editingProduct.thumbnail_image ?? null) as string | null,
+        size: safeArray(editingProduct.size),
+        tags: safeArray(editingProduct.tags),
+        occasion: safeString(editingProduct.occasion),
+        collection: safeString(editingProduct.collection),
+        listed_status: editingProduct.listed_status ?? true,
       });
-      setThumbnailImagePreview(product.thumbnail_image);
-      if (product.category_id) {
-        fetchSubCategories(product.category_id);
+      setThumbnailImagePreview(
+        typeof editingProduct.thumbnail_image === "string" && editingProduct.thumbnail_image.length > 0
+          ? editingProduct.thumbnail_image
+          : null
+      );
+      const categoryId = safeString(editingProduct.category_id);
+      if (categoryId) {
+        fetchSubCategories(categoryId);
       }
     } else {
       // Reset form for new product
@@ -121,7 +135,7 @@ export default function ProductForm({ isDarkTheme, product }: ProductFormProps) 
       });
       setThumbnailImagePreview(null);
     }
-  }, [product]);
+  }, [editingProduct]);
 
 
   const fetchSubCategories = async (categoryId: string) => {
@@ -239,12 +253,12 @@ export default function ProductForm({ isDarkTheme, product }: ProductFormProps) 
         console.log('ℹ️ Using existing thumbnail URL (edit mode)');
       }
   
-      if (product) {
+      if (editingProduct) {
         // Update existing product
         const updateStartTime = performance.now();
         console.log('🔄 Starting product update...');
         
-        const result = await updateProduct(product.product_id, {
+        const result = await updateProduct(editingProduct.product_id, {
           ...formData,
           thumbnail_image: thumbnailUrl,
           subcategory_id: formData.subcategory_id || null,
@@ -287,7 +301,7 @@ export default function ProductForm({ isDarkTheme, product }: ProductFormProps) 
       console.log(`⏱️ Total operation time: ${totalTime.toFixed(2)}ms (${(totalTime / 1000).toFixed(2)}s)`);
       if (thumbnailUploadTime > 0) {
         console.log(`   - Thumbnail upload: ${thumbnailUploadTime.toFixed(2)}ms`);
-        console.log(`   - Product ${product ? 'update' : 'creation'}: ${(totalTime - thumbnailUploadTime).toFixed(2)}ms`);
+        console.log(`   - Product ${editingProduct ? 'update' : 'creation'}: ${(totalTime - thumbnailUploadTime).toFixed(2)}ms`);
       }
     } catch (error: any) {
       const totalTime = performance.now() - startTime;
@@ -322,6 +336,7 @@ export default function ProductForm({ isDarkTheme, product }: ProductFormProps) 
     setThumbnailImagePreview(null);
     setSubCategoriesList([]);
     setShowAddProduct(false);
+    setSelectedProduct(null);
   };
 
 
@@ -329,7 +344,7 @@ export default function ProductForm({ isDarkTheme, product }: ProductFormProps) 
   if (!showAddProduct) return null;
 
   return (
-    <div className="mb-6">
+    <div className="mb-6" id="admin-product-form">
       {/* Add/Edit Product Form */}
       <div
         className={`${
@@ -341,7 +356,7 @@ export default function ProductForm({ isDarkTheme, product }: ProductFormProps) 
               isDarkTheme ? "text-white" : "text-gray-900"
             }`}
           >
-            {product ? 'Edit Product' : 'Add New Product'}
+            {editingProduct ? 'Edit Product' : 'Add New Product'}
           </h2>
 
           <form onSubmit={handleSubmit}>
@@ -904,7 +919,8 @@ export default function ProductForm({ isDarkTheme, product }: ProductFormProps) 
                     onChange={handleImageUpload}
                     className="hidden"
                     id="thumbnail-image-upload"
-                    required
+                    // Required only when creating OR when editing a product that has no existing thumbnail
+                    required={!editingProduct}
                   />
                   <label
                     htmlFor="thumbnail-image-upload"
@@ -975,7 +991,7 @@ export default function ProductForm({ isDarkTheme, product }: ProductFormProps) 
                     Saving...
                   </>
                 ) : (
-                  product ? 'Update Product' : 'Add Product'
+                  editingProduct ? 'Update Product' : 'Add Product'
                 )}
               </button>
             </div>

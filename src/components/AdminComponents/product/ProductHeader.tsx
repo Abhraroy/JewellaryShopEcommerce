@@ -2,7 +2,7 @@
 import useAdminStore from "../../../zustandStore/AdminZustandStore";
 
 export default function ProductHeader({isDarkTheme}: {isDarkTheme: boolean}) {
-    const { showAddProduct, setShowAddProduct } = useAdminStore();
+    const { showAddProduct, setShowAddProduct, selectedProduct, setSelectedProduct } = useAdminStore();
 
     const PlusIcon = ({ className = 'w-5 h-5' }) => (
         <svg
@@ -28,7 +28,17 @@ export default function ProductHeader({isDarkTheme}: {isDarkTheme: boolean}) {
                 </p>
             </div>
             <button
-                onClick={() => setShowAddProduct(!showAddProduct)}
+                onClick={() => {
+                    if (showAddProduct) {
+                        // Cancel add/edit
+                        setShowAddProduct(false);
+                        setSelectedProduct(null);
+                    } else {
+                        // Start "add product" mode (ensure not editing)
+                        setSelectedProduct(null);
+                        setShowAddProduct(true);
+                    }
+                }}
                 className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
                     isDarkTheme
                         ? 'bg-[#E94E8B] text-white hover:bg-[#d43d75]'
@@ -36,7 +46,7 @@ export default function ProductHeader({isDarkTheme}: {isDarkTheme: boolean}) {
                 }`}
             >
                 {!showAddProduct ? <PlusIcon className="w-5 h-5" /> : ""}
-                {showAddProduct ? 'Cancel' : 'Add Product'}
+                {showAddProduct ? (selectedProduct ? 'Cancel Edit' : 'Cancel') : 'Add Product'}
             </button>
         </div>
     );

@@ -22,7 +22,7 @@ const OccasionSection = dynamic(
   );
   
   const SocialMediaBento = dynamic(
-    () => import("./SocialMediaBento"),
+    () => import("./SocialMedia"),
     { ssr: false }
   );
   
@@ -170,6 +170,10 @@ const BestSellersSection = dynamic(
     () => import("./HomePageComponents/NewArrivalSection"),
     { ssr: false }
   );
+  const FeaturedSection = dynamic(
+    () => import("./HomePageComponents/FeaturedSection"),
+    { ssr: false }
+  );
   const Cart = dynamic(() => import("./CartUI/Cart"), {
     ssr: false,
   });
@@ -179,10 +183,12 @@ export default function HomePage(
         categoriesProps,
         bestSellers,
         newArrivals,
+        featuredProducts,
     }:{
         categoriesProps: any;
         bestSellers: Product[];
         newArrivals: Product[];
+        featuredProducts: Product[];
     }
 ) {
   const {
@@ -391,32 +397,7 @@ export default function HomePage(
   }, []);
 
   useEffect(() => {
-    // const FetchLandingPageData = async () => {
-    //   setLoadingBestSellers(true);
-    //   setLoadingNewArrivals(true);
-    //   setLoadingCategories(true);
-
-    //   const [catgoriesRes, bestSellersRes, newArrivalsRes] = await Promise.all([
-    //     supabase.from("categories").select("*"),
-    //     supabase
-    //       .from("products")
-    //       .select("*")
-    //       .contains("tags", ["best-sellers"])
-    //       .eq("listed_status", true),
-    //     supabase
-    //       .from("products")
-    //       .select("*")
-    //       .contains("tags", ["new-arrivals"])
-    //       .eq("listed_status", true),
-    //   ]);
-    //   if (!catgoriesRes.error) setCategories(catgoriesRes.data || []);
-    //   if (!bestSellersRes.error) setBestSellers(bestSellersRes.data || []);
-    //   if (!newArrivalsRes.error) setNewArrivals(newArrivalsRes.data || []);
-    //   setLoadingBestSellers(false);
-    //   setLoadingNewArrivals(false);
-    //   setLoadingCategories(false);
-    // };
-    // FetchLandingPageData();
+    
   setCategories(categoriesProps);
 }, [categoriesProps]);
 
@@ -460,6 +441,17 @@ export default function HomePage(
           />
         ) : (
           <ProductCarouselSkeleton title="Best Sellers" />
+        )}
+
+        {/* Featured Products Section */}
+        {featuredProducts && featuredProducts.length > 0 ? (
+          <FeaturedSection
+            products={featuredProducts}
+            onAddToCart={handleAddToCart}
+            onWishlistToggle={handleWishlistToggle}
+          />
+        ) : (
+          <ProductCarouselSkeleton title="Featured Products" />
         )}
 
         {/* Collection Section */}

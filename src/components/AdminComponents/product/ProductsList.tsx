@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { deleteProduct, saveProductImageUrls } from "../../../app/(admin)/admin/actions/Product";
 import axios from "axios";
+import useAdminStore from "../../../zustandStore/AdminZustandStore";
 
 // Icon Components
 const EditIcon = ({ className = "w-4 h-4" }) => (
@@ -82,6 +83,7 @@ interface ProductsListProps {
 
 export default function ProductsList({ products, isDarkTheme }: ProductsListProps) {
   const router = useRouter();
+  const { setShowAddProduct, setSelectedProduct } = useAdminStore();
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
   const [showImageViewer, setShowImageViewer] = useState(false);
@@ -162,7 +164,15 @@ export default function ProductsList({ products, isDarkTheme }: ProductsListProp
   }, [showImageViewer, currentImageIndex, viewerImages.length]);
 
   const handleEditProduct = (product: any) => {
-    router.push(`/admin/products/${product.product_id}`);
+    // Open the same "Add Product" form in edit mode with prefilled data
+    setSelectedProduct(product);
+    setShowAddProduct(true);
+    // Smooth scroll to the form (if present)
+    setTimeout(() => {
+      document
+        .getElementById("admin-product-form")
+        ?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 0);
   };
 
   const handleDeleteProduct = async (productId: string) => {

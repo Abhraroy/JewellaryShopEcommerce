@@ -365,7 +365,7 @@ import { createClient } from "@/app/utils/supabase/server";
 export default async function Home() {
   const supabase = await createClient();
 
-  const [catgoriesRes, bestSellersRes, newArrivalsRes] = await Promise.all([
+  const [catgoriesRes, bestSellersRes, newArrivalsRes, featuredProductsRes] = await Promise.all([
     supabase.from("categories").select("*"),
     supabase
       .from("products")
@@ -377,6 +377,11 @@ export default async function Home() {
       .select("*")
       .contains("tags", ["new-arrivals"])
       .eq("listed_status", true),
+    supabase
+      .from("products")
+      .select("*")
+      .contains("tags", ["featured"])
+      .eq("listed_status", true),
   ]);
 
 
@@ -385,6 +390,7 @@ export default async function Home() {
       categoriesProps={catgoriesRes.data || []}
       bestSellers={bestSellersRes.data || []}
       newArrivals={newArrivalsRes.data || []}
+      featuredProducts={featuredProductsRes.data || []}
     />
   )
 }
