@@ -73,7 +73,9 @@ export async function getProducts() {
   const { data, error } = await supabase
     .from("products")
     .select("*,categories(*),product_images(*),sub_categories(*)")
-    .order("created_at", { ascending: false });
+    // Stable deterministic ordering prevents rows with identical created_at from shifting between pages after updates
+    .order("created_at", { ascending: false })
+    .order("product_id", { ascending: false });
   if (error) {
     console.log("error", error);
     return { success: false, data: null, message: error.message };

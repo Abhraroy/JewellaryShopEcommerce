@@ -44,7 +44,8 @@ interface CategoriesProps {
 
 export default function Categories({ isDarkTheme, category }: CategoriesProps) {
   const router = useRouter();
-  const { showAddCategory, setShowAddCategory } = useAdminStore();
+  const { showAddCategory, setShowAddCategory, selectedCategory, setSelectedCategory } = useAdminStore();
+  const editingCategory = category ?? selectedCategory;
   const [submitting, setSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     category_name: '',
@@ -57,14 +58,14 @@ export default function Categories({ isDarkTheme, category }: CategoriesProps) {
 
   // Initialize form when category prop changes (for editing)
   useEffect(() => {
-    if (category) {
+    if (editingCategory) {
       setFormData({
-        category_name: category.category_name,
-        slug: category.slug,
-        description: category.description || '',
+        category_name: editingCategory.category_name,
+        slug: editingCategory.slug,
+        description: editingCategory.description || '',
         image: null,
-        imagePreview: category.category_image_url || '',
-        is_active: category.is_active,
+        imagePreview: editingCategory.category_image_url || '',
+        is_active: editingCategory.is_active,
       });
     } else {
       // Reset form for new category
@@ -77,7 +78,7 @@ export default function Categories({ isDarkTheme, category }: CategoriesProps) {
         is_active: true,
       });
     }
-  }, [category]);
+  }, [editingCategory]);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -174,7 +175,7 @@ export default function Categories({ isDarkTheme, category }: CategoriesProps) {
       }
 
       const categoryData: CreateCategoryData = {
-        category_id: category?.category_id || '',
+        category_id: editingCategory?.category_id || '',
         category_name: formData.category_name,
         slug: formData.slug,
         description: formData.description || undefined,
@@ -182,11 +183,11 @@ export default function Categories({ isDarkTheme, category }: CategoriesProps) {
         is_active: formData.is_active,
       };
 
-      if (category) {
+      if (editingCategory) {
         // Update existing category
         const updateData: UpdateCategoryData = {
           ...categoryData,
-          category_id: category.category_id,
+          category_id: editingCategory.category_id,
         };
 
         const result = await updateCategory(updateData);
@@ -228,20 +229,29 @@ export default function Categories({ isDarkTheme, category }: CategoriesProps) {
       is_active: true,
     });
     setShowAddCategory(false);
+    setSelectedCategory(null);
   };
 
   if (!showAddCategory) return null;
 
   return (
-    <div className="mb-6">
-      {/* Add/Edit Category Form */}
+    <div
+      id="admin-category-form"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      onClick={handleCancel}
+    >
+      {/* Backdrop */}
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+
+      {/* Add/Edit Category Form (Modal) */}
       <div
-        className={`${
+        className={`relative z-10 w-full max-w-4xl max-h-[90vh] overflow-y-auto ${
           isDarkTheme ? 'bg-black border border-gray-700' : 'bg-white'
-        } rounded-lg shadow-lg p-6`}
+        } rounded-lg shadow-2xl p-6`}
+        onClick={(e) => e.stopPropagation()}
       >
           <h2 className={`text-2xl font-bold mb-6 ${isDarkTheme ? 'text-white' : 'text-gray-900'}`}>
-            {category ? 'Edit Category' : 'Add New Category'}
+            {editingCategory ? 'Edit Category' : 'Add New Category'}
           </h2>
 
           <form onSubmit={handleSubmit}>

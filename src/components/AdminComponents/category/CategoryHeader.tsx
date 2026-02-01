@@ -1,7 +1,7 @@
 "use client";
 import useAdminStore from "../../../zustandStore/AdminZustandStore";
 export default function CategoryHeader({isDarkTheme}: {isDarkTheme: boolean}) {
-    const { showAddCategory, setShowAddCategory } = useAdminStore();
+    const { showAddCategory, setShowAddCategory, setSelectedCategory } = useAdminStore();
 
 const PlusIcon = ({ className = 'w-5 h-5' }) => (
     <svg
@@ -29,7 +29,17 @@ const PlusIcon = ({ className = 'w-5 h-5' }) => (
       </p>
     </div>
     <button
-      onClick={() => setShowAddCategory(!showAddCategory)}
+      onClick={() => {
+        if (!showAddCategory) {
+          // Opening "Add Category" should clear any previously selected category (edit mode)
+          setSelectedCategory(null);
+          setShowAddCategory(true);
+        } else {
+          // Closing
+          setShowAddCategory(false);
+          setSelectedCategory(null);
+        }
+      }}
       className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
         isDarkTheme
           ? 'bg-[#E94E8B] text-white hover:bg-[#d43d75]'

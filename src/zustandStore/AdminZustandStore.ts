@@ -7,6 +7,8 @@ interface AdminStoreState {
     setShowAddCategory: (showAddCategory: boolean) => void;
     editingCategory: boolean;
     setEditingCategory: (editingCategory: boolean) => void;
+    selectedCategory: any | null;
+    setSelectedCategory: (category: any | null) => void;
     formData: any;
     setFormData: (formData: any) => void;
     submitting: boolean;
@@ -28,6 +30,8 @@ const useAdminStore = create<AdminStoreState>((set) => ({
     setShowAddCategory: (showAddCategory: boolean) => set({ showAddCategory }),
     editingCategory: false,
     setEditingCategory: (editingCategory: boolean) => set({ editingCategory }),
+    selectedCategory: null,
+    setSelectedCategory: (category: any | null) => set({ selectedCategory: category }),
     formData: {},
     setFormData: (formData: any) => set({ formData }),
     submitting: false,

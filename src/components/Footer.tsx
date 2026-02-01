@@ -246,19 +246,19 @@ export default function Footer({ className = "" }: FooterProps) {
               <div className="flex items-start gap-3">
                 <PhoneIcon className="w-5 h-5 text-theme-black flex-shrink-0 mt-0.5" />
                 <a
-                  href="tel:+1234567890"
+                  href="tel:+919826000000"
                   className="text-sm text-theme-black hover:text-[#0A0239] transition-colors duration-200"
                 >
-                  +1 (234) 567-890
+                  +91 9826000000
                 </a>
               </div>
               <div className="flex items-start gap-3">
                 <MailIcon className="w-5 h-5 text-theme-black flex-shrink-0 mt-0.5" />
                 <a
-                  href="mailto:support@jwel.com"
+                  href="mailto:support@thejwel.in"
                   className="text-sm text-theme-black hover:text-[#0A0239] transition-colors duration-200 break-all"
                 >
-                  support@jwel.com
+                  support@thejwel.in
                 </a>
               </div>
               <div className="flex items-start gap-3">

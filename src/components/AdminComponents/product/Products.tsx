@@ -344,12 +344,20 @@ export default function ProductForm({ isDarkTheme, product }: ProductFormProps) 
   if (!showAddProduct) return null;
 
   return (
-    <div className="mb-6" id="admin-product-form">
-      {/* Add/Edit Product Form */}
+    <div
+      id="admin-product-form"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      onClick={handleCancel}
+    >
+      {/* Backdrop */}
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+
+      {/* Add/Edit Product Form (Modal) */}
       <div
-        className={`${
+        className={`relative z-10 w-full max-w-5xl max-h-[90vh] overflow-y-auto ${
           isDarkTheme ? "bg-black border border-gray-700" : "bg-white"
-        } rounded-lg shadow-lg p-6 mb-6`}
+        } rounded-lg shadow-2xl p-6`}
+        onClick={(e) => e.stopPropagation()}
       >
           <h2
             className={`text-2xl font-bold mb-6 ${

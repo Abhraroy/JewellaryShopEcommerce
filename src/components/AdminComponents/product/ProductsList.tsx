@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { deleteProduct, saveProductImageUrls } from "../../../app/(admin)/admin/actions/Product";
+import { deleteProduct, saveProductImageUrls, deleteProductImage } from "../../../app/(admin)/admin/actions/Product";
 import axios from "axios";
 import useAdminStore from "../../../zustandStore/AdminZustandStore";
 
@@ -90,6 +90,7 @@ export default function ProductsList({ products, isDarkTheme }: ProductsListProp
   const [viewerImages, setViewerImages] = useState<{ id: string; url: string }[]>([]);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [uploadingProducts, setUploadingProducts] = useState<Set<string>>(new Set());
+  const [deletingImageId, setDeletingImageId] = useState<string | null>(null);
 
   // Pagination calculations
   const totalPages = Math.ceil(products.length / itemsPerPage);
@@ -167,12 +168,6 @@ export default function ProductsList({ products, isDarkTheme }: ProductsListProp
     // Open the same "Add Product" form in edit mode with prefilled data
     setSelectedProduct(product);
     setShowAddProduct(true);
-    // Smooth scroll to the form (if present)
-    setTimeout(() => {
-      document
-        .getElementById("admin-product-form")
-        ?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, 0);
   };
 
   const handleDeleteProduct = async (productId: string) => {
@@ -188,6 +183,55 @@ export default function ProductsList({ products, isDarkTheme }: ProductsListProp
         console.error('Delete error:', error);
         alert('An unexpected error occurred while deleting the product.');
       }
+    }
+  };
+
+  const handleDeleteImage = async (imageId: string) => {
+    if (!imageId) {
+      alert('Image ID is missing. Cannot delete image.');
+      return;
+    }
+
+    if (!confirm('Are you sure you want to delete this image? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      setDeletingImageId(imageId);
+      const result = await deleteProductImage(imageId);
+      
+      if (result && result.success) {
+        // Remove the deleted image from viewerImages
+        const updatedImages = viewerImages.filter(img => img.id !== imageId);
+        setViewerImages(updatedImages);
+        
+        // If we deleted the current image, adjust the index
+        const deletedIndex = viewerImages.findIndex(img => img.id === imageId);
+        if (deletedIndex !== -1) {
+          if (updatedImages.length === 0) {
+            // No images left, close the modal
+            setShowImageViewer(false);
+            setViewerImages([]);
+            setCurrentImageIndex(0);
+          } else if (currentImageIndex >= updatedImages.length) {
+            // If we were at the last image, go to the new last image
+            setCurrentImageIndex(updatedImages.length - 1);
+          } else if (deletedIndex <= currentImageIndex) {
+            // If we deleted an image before or at current position, stay at same index (which now points to next image)
+            setCurrentImageIndex(Math.max(0, currentImageIndex - 1));
+          }
+        }
+        
+        // Refresh the page to update the product list
+        router.refresh();
+      } else {
+        alert(`Failed to delete image: ${result?.error || 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error('Delete image error:', error);
+      alert('An unexpected error occurred while deleting the image.');
+    } finally {
+      setDeletingImageId(null);
     }
   };
 
@@ -981,7 +1025,7 @@ export default function ProductsList({ products, isDarkTheme }: ProductsListProp
                         : currentImageIndex - 1
                     )
                   }
-                  className={`absolute left-4 p-3 rounded-full transition-colors ${
+                  className={`absolute left-4 p-3 rounded-full transition-colors z-10 ${
                     isDarkTheme
                       ? "bg-gray-800 hover:bg-gray-700 text-white"
                       : "bg-white hover:bg-gray-100 text-gray-900 shadow-lg"
@@ -998,6 +1042,51 @@ export default function ProductsList({ products, isDarkTheme }: ProductsListProp
                   alt={`Product image ${currentImageIndex + 1}`}
                   className="max-w-full max-h-[70vh] object-contain rounded-lg"
                 />
+                {/* Delete Button Overlay */}
+                <button
+                  onClick={() => {
+                    const currentImage = viewerImages[currentImageIndex];
+                    if (currentImage?.id) {
+                      handleDeleteImage(currentImage.id);
+                    }
+                  }}
+                  disabled={deletingImageId === viewerImages[currentImageIndex]?.id}
+                  className={`absolute top-4 right-4 p-2.5 rounded-lg transition-colors z-10 ${
+                    deletingImageId === viewerImages[currentImageIndex]?.id
+                      ? "cursor-not-allowed opacity-60"
+                      : "cursor-pointer"
+                  } ${
+                    isDarkTheme
+                      ? "bg-red-900 hover:bg-red-800 text-red-200 hover:text-red-100"
+                      : "bg-red-600 hover:bg-red-700 text-white shadow-lg"
+                  }`}
+                  title="Delete this image"
+                >
+                  {deletingImageId === viewerImages[currentImageIndex]?.id ? (
+                    <svg
+                      className="animate-spin w-5 h-5"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      />
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      />
+                    </svg>
+                  ) : (
+                    <DeleteIcon className="w-5 h-5" />
+                  )}
+                </button>
               </div>
 
               {viewerImages.length > 1 && (
@@ -1009,7 +1098,7 @@ export default function ProductsList({ products, isDarkTheme }: ProductsListProp
                         : currentImageIndex + 1
                     )
                   }
-                  className={`absolute right-4 p-3 rounded-full transition-colors ${
+                  className={`absolute right-4 p-3 rounded-full transition-colors z-10 ${
                     isDarkTheme
                       ? "bg-gray-800 hover:bg-gray-700 text-white"
                       : "bg-white hover:bg-gray-100 text-gray-900 shadow-lg"

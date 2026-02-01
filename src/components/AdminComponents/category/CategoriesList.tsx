@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { Category, deleteCategory, createSubCategory, updateSubCategory, deleteSubCategory } from '../../../app/(admin)/admin/actions/categories';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
+import useAdminStore from "../../../zustandStore/AdminZustandStore";
 
 const PlusIcon = ({ className = 'w-5 h-5' }) => (
     <svg
@@ -66,6 +67,7 @@ const PlusIcon = ({ className = 'w-5 h-5' }) => (
 
 export default function CategoriesList({ category, isDarkTheme }: { category: Category, isDarkTheme: boolean }) {
   const router = useRouter();
+  const { setShowAddCategory, setSelectedCategory } = useAdminStore();
   const [showSubCategories, setShowSubCategories] = useState(false);
   const [showAddSubCategory, setShowAddSubCategory] = useState(false);
   const [subCategories, setSubCategories] = useState<[]>([]);
@@ -80,8 +82,10 @@ export default function CategoriesList({ category, isDarkTheme }: { category: Ca
   });
   const [submitting, setSubmitting] = useState(false);
 
-  const handleEdit = (categoryId: string) => {
-    router.push(`/admin/categories/${categoryId}`);
+  const handleEdit = (categoryToEdit: Category) => {
+    // Open the same category form in edit mode (overlay) like products
+    setSelectedCategory(categoryToEdit);
+    setShowAddCategory(true);
   };
 
   const handleDelete = async (categoryId: string) => {
@@ -324,7 +328,7 @@ export default function CategoriesList({ category, isDarkTheme }: { category: Ca
                 <td className="py-3 px-4">
                   <div className="flex items-center gap-2">
                     <button
-                      onClick={() => handleEdit(category.category_id)}
+                      onClick={() => handleEdit(category)}
                       className={`p-2 rounded-lg transition-colors ${
                         isDarkTheme
                           ? 'hover:bg-gray-700 text-gray-300 hover:text-white'
