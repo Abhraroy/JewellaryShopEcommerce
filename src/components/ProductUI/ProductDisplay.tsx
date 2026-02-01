@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { useStore } from "@/zustandStore/zustandStore";
 import { createClient } from "@/app/utils/supabase/client";
@@ -73,6 +73,27 @@ export default function ProductDisplay({
     }
   }, [productDetails]);
 
+  // Keep selected image in-bounds if productImages changes
+  useEffect(() => {
+    if (!Array.isArray(productImages) || productImages.length === 0) {
+      setSelectedImage(0);
+      return;
+    }
+    if (selectedImage < 0 || selectedImage >= productImages.length) {
+      setSelectedImage(0);
+    }
+  }, [productImages?.length]);
+
+  const goPrevImage = () => {
+    if (!Array.isArray(productImages) || productImages.length <= 1) return;
+    setSelectedImage((prev) => (prev === 0 ? productImages.length - 1 : prev - 1));
+  };
+
+  const goNextImage = () => {
+    if (!Array.isArray(productImages) || productImages.length <= 1) return;
+    setSelectedImage((prev) => (prev === productImages.length - 1 ? 0 : prev + 1));
+  };
+
   // Handle ESC key to close image viewer and prevent body scroll
   useEffect(() => {
     if (productImageView) {
@@ -83,6 +104,15 @@ export default function ProductDisplay({
       const handleEsc = (e: KeyboardEvent) => {
         if (e.key === "Escape") {
           setProductImageView(false);
+          return;
+        }
+        if (e.key === "ArrowLeft") {
+          goPrevImage();
+          return;
+        }
+        if (e.key === "ArrowRight") {
+          goNextImage();
+          return;
         }
       };
       
@@ -95,7 +125,12 @@ export default function ProductDisplay({
     } else {
       document.body.style.overflow = "unset";
     }
-  }, [productImageView]);
+  }, [productImageView, productImages?.length]);
+
+  // Touch swipe (mobile) for fullscreen viewer
+  const touchStartXRef = useRef<number | null>(null);
+  const touchEndXRef = useRef<number | null>(null);
+  const SWIPE_THRESHOLD_PX = 50;
 
   
 
@@ -1176,15 +1211,84 @@ export default function ProductDisplay({
             </svg>
           </button>
 
-          {/* Product Image */}
+          {/* Prev / Next controls (desktop + mobile) */}
+          {Array.isArray(productImages) && productImages.length > 1 && (
+            <>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  goPrevImage();
+                }}
+                className="absolute left-3 sm:left-6 md:left-8 z-[101] p-2.5 sm:p-3 bg-gray-900/10 hover:bg-gray-900/20 rounded-full transition-all duration-200 hover:scale-110 active:scale-95"
+                aria-label="Previous image"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={2.5}
+                  stroke="currentColor"
+                  className="w-6 h-6 sm:w-7 sm:h-7 text-gray-900"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+                </svg>
+              </button>
+
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  goNextImage();
+                }}
+                className="absolute right-3 sm:right-6 md:right-8 z-[101] p-2.5 sm:p-3 bg-gray-900/10 hover:bg-gray-900/20 rounded-full transition-all duration-200 hover:scale-110 active:scale-95"
+                aria-label="Next image"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={2.5}
+                  stroke="currentColor"
+                  className="w-6 h-6 sm:w-7 sm:h-7 text-gray-900"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5 15.75 12l-7.5 7.5" />
+                </svg>
+              </button>
+            </>
+          )}
+
+          {/* Product Image (swipeable on mobile) */}
           <div
             className="relative w-full h-full flex items-center justify-center p-4 sm:p-8 md:p-12"
             onClick={(e) => e.stopPropagation()}
+            onTouchStart={(e) => {
+              if (!Array.isArray(productImages) || productImages.length <= 1) return;
+              touchStartXRef.current = e.touches[0]?.clientX ?? null;
+              touchEndXRef.current = null;
+            }}
+            onTouchMove={(e) => {
+              if (!Array.isArray(productImages) || productImages.length <= 1) return;
+              touchEndXRef.current = e.touches[0]?.clientX ?? null;
+            }}
+            onTouchEnd={() => {
+              if (!Array.isArray(productImages) || productImages.length <= 1) return;
+              const startX = touchStartXRef.current;
+              const endX = touchEndXRef.current;
+              touchStartXRef.current = null;
+              touchEndXRef.current = null;
+              if (startX === null || endX === null) return;
+              const delta = startX - endX;
+              if (Math.abs(delta) < SWIPE_THRESHOLD_PX) return;
+              if (delta > 0) {
+                goNextImage(); // swipe left
+              } else {
+                goPrevImage(); // swipe right
+              }
+            }}
           >
             <div className="relative w-full h-full max-w-7xl max-h-[90vh]">
               <Image
-                src={productDetails[0]?.product_images[selectedImage]?.image_url}
-                alt={productDetails[0]?.product_images[selectedImage]?.image_url || "Product image"}
+                src={productImages[selectedImage]?.image_url}
+                alt={productImages[selectedImage]?.image_url || "Product image"}
                 fill
                 className="object-contain"
                 priority
@@ -1192,6 +1296,44 @@ export default function ProductDisplay({
               />
             </div>
           </div>
+
+          {/* Counter + hint */}
+          {Array.isArray(productImages) && productImages.length > 1 && (
+            <div className="absolute bottom-20 sm:bottom-24 left-1/2 -translate-x-1/2 z-[101] px-3 py-1.5 rounded-full bg-black/60 text-white text-xs sm:text-sm">
+             • Swipe on mobile • Use ← →
+            </div>
+          )}
+
+          {/* Thumbnails strip */}
+          {Array.isArray(productImages) && productImages.length > 1 && (
+            <div
+              className="absolute bottom-4 left-0 right-0 z-[101] px-4"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="mx-auto max-w-5xl overflow-x-auto">
+                <div className="flex items-center justify-center gap-2 min-w-max py-2">
+                  {productImages.map((img: any, idx: number) => (
+                    <button
+                      key={img?.image_id ?? idx}
+                      onClick={() => setSelectedImage(idx)}
+                      className={`relative w-14 h-14 sm:w-16 sm:h-16 rounded-lg overflow-hidden border-2 transition-all ${
+                        idx === selectedImage ? "border-[#E94E8B] scale-105" : "border-gray-200"
+                      }`}
+                      aria-label={`View image ${idx + 1}`}
+                    >
+                      <Image
+                        src={img.image_url}
+                        alt={`Thumbnail ${idx + 1}`}
+                        fill
+                        className="object-cover"
+                        sizes="80px"
+                      />
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </>
