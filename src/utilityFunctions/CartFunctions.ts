@@ -228,6 +228,26 @@ export const addToDbCart = async(product:any,CartId:string,supabase:any)=>{
     
 }
 
+/**
+ * Returns the current quantity of a product in the cart (works for both DB cart item shape and local cart item shape)
+ */
+export const getCartQuantityForProduct = (cartItems: any[] | null | undefined, productId: string): number => {
+    if (!Array.isArray(cartItems) || !productId) return 0;
+    let qty = 0;
+    for (const item of cartItems) {
+        const pid =
+            item?.product_id ||
+            item?.products?.product_id ||
+            item?.product?.product_id ||
+            item?.products?.id ||
+            item?.product?.id;
+        if (pid === productId) {
+            qty += Number(item?.quantity ?? 1) || 0;
+        }
+    }
+    return qty;
+};
+
 
 export const removeFromDbCart = async(product:any,CartId:string,supabase:any)=>{
     console.log("Removing from db cart")

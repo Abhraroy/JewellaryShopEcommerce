@@ -3,8 +3,9 @@
 import { useStore } from "@/zustandStore/zustandStore";
 import { useEffect, useState } from "react";
 import { createClient } from "@/app/utils/supabase/client";
-import { addToDbCart, addToLocalCart, decreaseQuantityFromDbCart, decreaseQuantityFromLocalCart, getCartData, removeFromDbCart, removeFromLocalCart, calculateCartCount, getLocalCartCount } from "@/utilityFunctions/CartFunctions";
+import { addToDbCart, addToLocalCart, decreaseQuantityFromDbCart, decreaseQuantityFromLocalCart, getCartData, removeFromDbCart, removeFromLocalCart, calculateCartCount, getLocalCartCount, getCartQuantityForProduct } from "@/utilityFunctions/CartFunctions";
 import CartItem from "./CartItem";
+import { toast } from "react-toastify";
 
 interface CartProps {
   isOpen?: boolean;
@@ -65,6 +66,28 @@ export default function Cart({ isOpen = false, onClose }: CartProps) {
   }
   
   const handleIncreaseQuantity = async(product:any)=>{
+    // Stock guard for incrementing quantity inside cart
+    const productObj = product?.products ?? product?.product ?? product;
+    const productId = productObj?.product_id;
+    const requiredNextQty = getCartQuantityForProduct(cartItems, productId) + 1;
+    if (productId) {
+      const latestStockRes = await supabase
+        .from("products")
+        .select("stock_quantity, product_name")
+        .eq("product_id", productId)
+        .single();
+      if (!latestStockRes.error) {
+        const availableStock = Number(latestStockRes.data?.stock_quantity);
+        if (Number.isFinite(availableStock) && requiredNextQty > availableStock) {
+          toast.error(
+            `${latestStockRes.data?.product_name || "This product"} has only ${availableStock} item(s) in stock.`,
+            { style: { backgroundColor: "#eec0c8", color: "#360000" }, position: "top-right" }
+          );
+          return;
+        }
+      }
+    }
+
     if(AuthenticatedState){
       console.log("Adding to db cart")
       console.log("product",product.product_id)
@@ -292,9 +315,67 @@ export default function Cart({ isOpen = false, onClose }: CartProps) {
               {/* Checkout Button */}
               <button 
                 className="w-full bg-[#CAF2FF] text-[#360000] font-bold py-2.5 sm:py-3 md:py-3.5 px-4 sm:px-6 rounded-xl hover:bg-[#CAF2FF]/70 transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg text-sm sm:text-base font-open-sans tracking-wider"
-                onClick={()=>{
-                  setInitiatingCheckout(true);
-                  onClose?.(); // Close the cart sidebar
+                onClick={async ()=>{
+                  // Before checkout, validate latest stock for all cart items.
+                  try {
+                    const items = Array.isArray(cartItems) ? cartItems : [];
+                    const qtyByProductId = new Map<string, { qty: number; name?: string }>();
+                    for (const item of items) {
+                      const product = item?.products ?? item?.product ?? item;
+                      const pid = product?.product_id ?? item?.product_id;
+                      const qty = Number(item?.quantity ?? 1) || 0;
+                      if (!pid || qty <= 0) continue;
+                      const prev = qtyByProductId.get(pid);
+                      qtyByProductId.set(pid, { qty: (prev?.qty || 0) + qty, name: product?.product_name });
+                    }
+
+                    const productIds = Array.from(qtyByProductId.keys());
+                    if (productIds.length === 0) {
+                      toast.error("Your cart is empty.", { style: { backgroundColor: "#eec0c8", color: "#360000" }, position: "top-right" });
+                      return;
+                    }
+
+                    const stockRes = await supabase
+                      .from("products")
+                      .select("product_id, product_name, stock_quantity")
+                      .in("product_id", productIds);
+
+                    if (stockRes.error) {
+                      toast.error("Could not validate stock. Please try again.", { style: { backgroundColor: "#eec0c8", color: "#360000" }, position: "top-right" });
+                      return;
+                    }
+
+                    const stockMap = new Map<string, { stock: number; name: string }>();
+                    for (const row of stockRes.data || []) {
+                      stockMap.set(row.product_id, {
+                        stock: Number(row.stock_quantity) || 0,
+                        name: row.product_name || "Product",
+                      });
+                    }
+
+                    const issues: string[] = [];
+                    for (const [pid, info] of qtyByProductId.entries()) {
+                      const db = stockMap.get(pid);
+                      const name = db?.name || info.name || "Product";
+                      const stock = db?.stock ?? 0;
+                      if (stock <= 0) {
+                        issues.push(`${name} is out of stock`);
+                      } else if (info.qty > stock) {
+                        issues.push(`${name} || has only ${stock} left (you have ${info.qty} in cart)`);
+                      }
+                    }
+
+                    if (issues.length > 0) {
+                      toast.error(issues.join(". "), { style: { backgroundColor: "#eec0c8", color: "#360000" }, position: "top-right" });
+                      return;
+                    }
+
+                    setInitiatingCheckout(true);
+                    onClose?.(); // Close the cart sidebar
+                  } catch (e) {
+                    console.error("Checkout stock validation failed:", e);
+                    toast.error("Could not validate stock. Please try again.", { style: { backgroundColor: "#eec0c8", color: "#360000" }, position: "top-right" });
+                  }
                 }}
                 disabled={initiatingCheckout}
               >

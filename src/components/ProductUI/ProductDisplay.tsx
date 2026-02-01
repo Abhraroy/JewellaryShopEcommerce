@@ -5,6 +5,8 @@ import Image from "next/image";
 import { useStore } from "@/zustandStore/zustandStore";
 import { createClient } from "@/app/utils/supabase/client";
 import { addToLocalCart, addToDbCart } from "@/utilityFunctions/CartFunctions";
+import { toast } from "react-toastify";
+import { getCartQuantityForProduct } from "@/utilityFunctions/CartFunctions";
 
 interface ProductData {
   name: string;
@@ -99,8 +101,33 @@ export default function ProductDisplay({
 
   const handleAddToCart = async () => {
     if (!product) {
-      alert("Product information is not available");
+      toast.error("Product information is not available", {
+        style: { backgroundColor: "#eec0c8", color: "#360000" },
+        position: "top-right",
+      });
       return;
+    }
+
+    const productId = product?.product_id;
+    const availableStock = Number(product?.stock_quantity);
+    const currentQtyInCart = getCartQuantityForProduct(cartItems, productId);
+    const requestedQty = Number(quantity) || 1;
+
+    if (Number.isFinite(availableStock)) {
+      if (availableStock <= 0) {
+        toast.error("This product is out of stock.", {
+          style: { backgroundColor: "#eec0c8", color: "#360000" },
+          position: "top-right",
+        });
+        return;
+      }
+      if (currentQtyInCart + requestedQty > availableStock) {
+        toast.error(`Only ${availableStock} item(s) available in stock.`, {
+          style: { backgroundColor: "#eec0c8", color: "#360000" },
+          position: "top-right",
+        });
+        return;
+      }
     }
 
     setIsAddingToCart(true);
@@ -134,7 +161,10 @@ export default function ProductDisplay({
       }
     } catch (error) {
       console.error("Error adding to cart:", error);
-      alert("Failed to add item to cart. Please try again.");
+      toast.error("Failed to add item to cart. Please try again.", {
+        style: { backgroundColor: "#eec0c8", color: "#360000" },
+        position: "top-right",
+      });
     } finally {
       setIsAddingToCart(false);
     }

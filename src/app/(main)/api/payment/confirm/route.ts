@@ -53,6 +53,24 @@ export async function GET(request: NextRequest) {
     orderStatusResponse.data?.state;
 
   if (paymentState === "COMPLETED") {
+    // Idempotency guard: this route is polled from `/redirect`, so we must not run side-effects twice.
+    // If the order is already completed, return early.
+    const existingOrder = await supabase
+      .from("orders")
+      .select("order_id, payment_status")
+      .eq("order_number", orderStatusResponse.data.orderId)
+      .single();
+
+    if (!existingOrder.error && existingOrder.data?.payment_status === "completed") {
+      return NextResponse.json(
+        {
+          message: "Order already completed",
+          orderStatusResponse: { state: "COMPLETED" },
+        },
+        { status: 200 }
+      );
+    }
+
     const { data: orderData, error } = await supabase
       .from("orders")
       .update({
@@ -85,6 +103,47 @@ export async function GET(request: NextRequest) {
       JSON.stringify(orderData?.[0]?.order_items, null, 2)
     );
     const updatedOrderData = orderData?.[0];
+
+    // Decrease stock quantity for each ordered product
+    // Note: We clamp at 0 to avoid negative values if stock is already low.
+    try {
+      const items = updatedOrderData?.order_items ?? [];
+      const qtyByProductId = new Map<string, number>();
+      for (const item of items) {
+        const pid = item.product_id as string | undefined;
+        const qty = Number(item.quantity) || 0;
+        if (!pid || qty <= 0) continue;
+        qtyByProductId.set(pid, (qtyByProductId.get(pid) || 0) + qty);
+      }
+
+      for (const [productId, orderedQty] of qtyByProductId.entries()) {
+        const productRes = await supabase
+          .from("products")
+          .select("stock_quantity")
+          .eq("product_id", productId)
+          .single();
+
+        if (productRes.error) {
+          console.error("Failed to fetch product for stock update:", productRes.error);
+          continue;
+        }
+
+        const currentStock = Number(productRes.data?.stock_quantity) || 0;
+        const nextStock = Math.max(0, currentStock - orderedQty);
+
+        const updateStockRes = await supabase
+          .from("products")
+          .update({ stock_quantity: nextStock })
+          .eq("product_id", productId);
+
+        if (updateStockRes.error) {
+          console.error("Failed to update stock quantity:", updateStockRes.error);
+        }
+      }
+    } catch (stockError) {
+      // Payment is already successful, so we don't fail the whole request here.
+      console.error("Stock update error:", stockError);
+    }
 
     // Parse address_text into separate variables
     // Format: "street_address, address_line1, address_line2, city, state - postal_code"

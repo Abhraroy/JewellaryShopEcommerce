@@ -15,6 +15,7 @@ import {
   checkIfWishlisted
 } from "@/utilityFunctions/WishListFunctions";
 import { toast } from "react-toastify";
+import { getCartQuantityForProduct } from "@/utilityFunctions/CartFunctions";
 
 
 // export interface Product {
@@ -114,6 +115,28 @@ export default function ProductCard({
   const handleAddToCart = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+
+    const productId = product?.product_id;
+    const availableStock = Number(product?.stock_quantity);
+    const currentQtyInCart = getCartQuantityForProduct(cartItems, productId);
+
+    if (Number.isFinite(availableStock)) {
+      if (availableStock <= 0) {
+        toast.error("This product is out of stock.", {
+          style: { backgroundColor: "#eec0c8", color: "#360000" },
+          position: "top-right",
+        });
+        return;
+      }
+      if (currentQtyInCart >= availableStock) {
+        toast.error(`Only ${availableStock} item(s) available in stock.`, {
+          style: { backgroundColor: "#eec0c8", color: "#360000" },
+          position: "top-right",
+        });
+        return;
+      }
+    }
+
     setIsCartClicked(true);
     onAddToCart?.(product.product_id);
     if(AuthenticatedState){
