@@ -86,17 +86,32 @@ export default function ProductsList({ products, isDarkTheme }: ProductsListProp
   const { setShowAddProduct, setSelectedProduct } = useAdminStore();
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+  const [skuQuery, setSkuQuery] = useState("");
   const [showImageViewer, setShowImageViewer] = useState(false);
   const [viewerImages, setViewerImages] = useState<{ id: string; url: string }[]>([]);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [uploadingProducts, setUploadingProducts] = useState<Set<string>>(new Set());
   const [deletingImageId, setDeletingImageId] = useState<string | null>(null);
 
+  const normalizedSkuQuery = skuQuery.trim().toLowerCase();
+  const filteredProducts = normalizedSkuQuery
+    ? products.filter((p) =>
+        String(p?.sku ?? "")
+          .toLowerCase()
+          .includes(normalizedSkuQuery)
+      )
+    : products;
+
+  // When search changes, reset back to page 1 so results don't "disappear" on later pages
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [normalizedSkuQuery]);
+
   // Pagination calculations
-  const totalPages = Math.ceil(products.length / itemsPerPage);
+  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const paginatedProducts = products.slice(startIndex, endIndex);
+  const paginatedProducts = filteredProducts.slice(startIndex, endIndex);
 
   const handlePageChange = (page: number) => {
     if (page >= 1 && page <= totalPages) {
@@ -295,6 +310,45 @@ export default function ProductsList({ products, isDarkTheme }: ProductsListProp
 
   return (
     <>
+      {/* SKU Search */}
+      <div className="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div className="flex items-center gap-2 w-full sm:max-w-md">
+          <input
+            value={skuQuery}
+            onChange={(e) => setSkuQuery(e.target.value)}
+            placeholder="Search by SKU (e.g., NKL-GOLD-001)"
+            className={`w-full px-4 py-2 rounded-lg border transition-colors ${
+              isDarkTheme
+                ? "bg-gray-900 border-gray-700 text-white placeholder-gray-500"
+                : "bg-white border-gray-300 text-gray-900 placeholder-gray-400"
+            } focus:outline-none focus:ring-2 focus:ring-[#E94E8B]`}
+          />
+          {skuQuery.trim().length > 0 && (
+            <button
+              type="button"
+              onClick={() => setSkuQuery("")}
+              className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                isDarkTheme
+                  ? "bg-gray-800 hover:bg-gray-700 text-gray-200"
+                  : "bg-gray-100 hover:bg-gray-200 text-gray-700"
+              }`}
+              title="Clear search"
+            >
+              Clear
+            </button>
+          )}
+        </div>
+
+        <div
+          className={`text-sm ${
+            isDarkTheme ? "text-gray-400" : "text-gray-600"
+          }`}
+        >
+          Showing <span className="font-semibold">{filteredProducts.length}</span>{" "}
+          of <span className="font-semibold">{products.length}</span>
+        </div>
+      </div>
+
       <div className="overflow-x-auto">
         <table className="w-full border-collapse min-w-full">
           <thead>
@@ -464,15 +518,33 @@ export default function ProductsList({ products, isDarkTheme }: ProductsListProp
             </tr>
           </thead>
           <tbody>
-            {paginatedProducts.map((product) => (
+            {paginatedProducts.length === 0 ? (
               <tr
-                key={product.product_id}
                 className={`border-b ${
-                  isDarkTheme
-                    ? "border-gray-700 hover:bg-gray-800"
-                    : "border-gray-200 hover:bg-gray-50"
-                } transition-colors`}
+                  isDarkTheme ? "border-gray-700" : "border-gray-200"
+                }`}
               >
+                <td
+                  colSpan={18}
+                  className={`text-center py-10 px-4 ${
+                    isDarkTheme ? "text-gray-400" : "text-gray-600"
+                  }`}
+                >
+                  {normalizedSkuQuery
+                    ? `No products found for SKU: "${skuQuery.trim()}"`
+                    : "No products found."}
+                </td>
+              </tr>
+            ) : (
+              paginatedProducts.map((product) => (
+                <tr
+                  key={product.product_id}
+                  className={`border-b ${
+                    isDarkTheme
+                      ? "border-gray-700 hover:bg-gray-800"
+                      : "border-gray-200 hover:bg-gray-50"
+                  } transition-colors`}
+                >
                 <td
                   className={`text-center py-3 px-4 border whitespace-nowrap ${
                     isDarkTheme
@@ -886,7 +958,8 @@ export default function ProductsList({ products, isDarkTheme }: ProductsListProp
                   </div>
                 </td>
               </tr>
-            ))}
+              ))
+            )}
           </tbody>
         </table>
       </div>
